@@ -8,9 +8,12 @@ import {
   Layers, 
   Wrench, 
   Check, 
-  ArrowRight,
-  Info,
-  MousePointer
+  ArrowRight, 
+  Info, 
+  MousePointer,
+  AlertTriangle,
+  FileCode,
+  FileText
 } from 'lucide-react';
 import { DxfParsedDrawing } from '../types';
 import { parseDxfContent } from '../utils/dxfParser';
@@ -18,9 +21,10 @@ import { SAMPLE_DXF_N29000, SAMPLE_DXF_BASE_PLATE } from '../utils/sampleData';
 
 interface DxfViewerProps {
   onImportHolesToCsv?: (partId: string, profile: string, holes: { diameter: number; count: number }[]) => void;
+  onNavigateToTab?: (tab: 'csv' | 'dxf' | 'ai') => void;
 }
 
-export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
+export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv, onNavigateToTab }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -32,6 +36,14 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
   const [hoveredHole, setHoveredHole] = useState<{ id: string; x: number; y: number; diameter: number } | null>(null);
   const [selectedHole, setSelectedHole] = useState<{ id: string; x: number; y: number; diameter: number } | null>(null);
   const [importedSuccess, setImportedSuccess] = useState(false);
+
+  // DWG Binary Alert State
+  const [dwgFileInfo, setDwgFileInfo] = useState<{
+    filename: string;
+    version: string;
+    sizeKb: number;
+    extractedTexts: string[];
+  } | null>(null);
 
   // Viewport transformation: scale and pan offset
   const [transform, setTransform] = useState({ scale: 1, offsetX: 0, offsetY: 0 });
@@ -62,26 +74,22 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
     const scaleY = (containerH - padding * 2) / drawingH;
     const scale = Math.min(scaleX, scaleY, 2.5);
 
-    // Center coordinates
     const centerX = bounds.minX + drawingW / 2;
     const centerY = bounds.minY + drawingH / 2;
 
     const offsetX = containerW / 2 - centerX * scale;
-    // In CAD Y is up, Canvas Y is down
     const offsetY = containerH / 2 + centerY * scale;
 
     setTransform({ scale, offsetX, offsetY });
   };
 
-  // Convert CAD coordinates (X, Y) to Canvas coordinates (px, py)
   const cadToCanvas = (x: number, y: number) => {
     return {
       cx: x * transform.scale + transform.offsetX,
-      cy: transform.offsetY - y * transform.scale, // flip Y axis for standard CAD representation
+      cy: transform.offsetY - y * transform.scale,
     };
   };
 
-  // Convert Canvas coordinates to CAD coordinates
   const canvasToCad = (cx: number, cy: number) => {
     return {
       x: (cx - transform.offsetX) / transform.scale,
@@ -96,7 +104,6 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Handle high DPI
     const rect = containerRef.current.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;
@@ -107,8 +114,7 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
     ctx.save();
     ctx.scale(dpr, dpr);
 
-    // Dark CAD background with subtle grid
-    ctx.fillStyle = '#090d16'; // Deep blueprint dark slate
+    ctx.fillStyle = '#090d16';
     ctx.fillRect(0, 0, rect.width, rect.height);
 
     // Draw coordinate grid
@@ -131,20 +137,8 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
       ctx.stroke();
     }
 
-    // Origin crosshair (0,0)
-    const origin = cadToCanvas(0, 0);
-    ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(origin.cx - 15, origin.cy);
-    ctx.lineTo(origin.cx + 15, origin.cy);
-    ctx.moveTo(origin.cx, origin.cy - 15);
-    ctx.lineTo(origin.cx, origin.cy + 15);
-    ctx.stroke();
-
     // Render CAD entities
     dxfData.entities.forEach(ent => {
-      // Check if layer is active
       if (activeLayers[ent.layer] === false) return;
 
       if (ent.type === 'LINE') {
@@ -156,11 +150,11 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
         ctx.lineTo(p2.cx, p2.cy);
 
         if (ent.layer.toLowerCase().includes('eje')) {
-          ctx.strokeStyle = '#60a5fa'; // Blue dashed axis
+          ctx.strokeStyle = '#60a5fa';
           ctx.setLineDash([8, 4, 2, 4]);
           ctx.lineWidth = 1.2;
         } else {
-          ctx.strokeStyle = '#e2e8f0'; // White/silver structural lines
+          ctx.strokeStyle = '#e2e8f0';
           ctx.setLineDash([]);
           ctx.lineWidth = 2;
         }
@@ -176,16 +170,13 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
           const p = cadToCanvas(ent.vertices[i].x, ent.vertices[i].y);
           ctx.lineTo(p.cx, p.cy);
         }
-        if (ent.closed) {
-          ctx.closePath();
-        }
+        if (ent.closed) ctx.closePath();
         ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 2;
         ctx.stroke();
       } else if (ent.type === 'ARC') {
         const c = cadToCanvas(ent.center.x, ent.center.y);
         const r = ent.radius * transform.scale;
-        // DXF angles are CCW from positive X-axis in degrees
         const startRad = (-ent.startAngle * Math.PI) / 180;
         const endRad = (-ent.endAngle * Math.PI) / 180;
 
@@ -201,35 +192,31 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
         ctx.fillStyle = '#94a3b8';
         ctx.fillText(ent.text, pos.cx, pos.cy);
       } else if (ent.type === 'CIRCLE') {
-        // Holes rendering
         const c = cadToCanvas(ent.center.x, ent.center.y);
         const r = ent.radius * transform.scale;
 
-        // Choose color based on diameter
-        let strokeColor = '#f59e0b'; // Amber 15mm default
+        let strokeColor = '#f59e0b';
         let glowColor = 'rgba(245, 158, 11, 0.4)';
 
         if (Math.abs(ent.diameter - 14) < 0.1) {
-          strokeColor = '#06b6d4'; // Cyan 14mm
+          strokeColor = '#06b6d4';
           glowColor = 'rgba(6, 182, 212, 0.4)';
         } else if (Math.abs(ent.diameter - 18) < 0.1) {
-          strokeColor = '#ec4899'; // Pink 18mm
+          strokeColor = '#ec4899';
           glowColor = 'rgba(236, 72, 153, 0.4)';
         } else if (Math.abs(ent.diameter - 22) < 0.1) {
-          strokeColor = '#a855f7'; // Purple 22mm
+          strokeColor = '#a855f7';
           glowColor = 'rgba(168, 85, 247, 0.4)';
         }
 
         const isHovered = hoveredHole && Math.abs(hoveredHole.x - ent.center.x) < 1 && Math.abs(hoveredHole.y - ent.center.y) < 1;
         const isSelected = selectedHole && Math.abs(selectedHole.x - ent.center.x) < 1 && Math.abs(selectedHole.y - ent.center.y) < 1;
 
-        // Outer glow
         ctx.beginPath();
         ctx.arc(c.cx, c.cy, r + 3, 0, Math.PI * 2);
         ctx.fillStyle = isHovered || isSelected ? 'rgba(255, 255, 255, 0.2)' : glowColor;
         ctx.fill();
 
-        // Main hole circle
         ctx.beginPath();
         ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
         ctx.strokeStyle = isHovered || isSelected ? '#ffffff' : strokeColor;
@@ -238,7 +225,7 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
         ctx.fill();
         ctx.stroke();
 
-        // Center crosshair mark
+        // Crosshairs
         const markSize = Math.max(3, r * 0.6);
         ctx.strokeStyle = isHovered || isSelected ? '#ffffff' : strokeColor;
         ctx.lineWidth = 1;
@@ -249,7 +236,6 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
         ctx.lineTo(c.cx, c.cy + markSize);
         ctx.stroke();
 
-        // Diameter label if zoomed in sufficiently
         if (r > 12) {
           ctx.font = 'bold 9px monospace';
           ctx.fillStyle = isHovered || isSelected ? '#ffffff' : strokeColor;
@@ -265,7 +251,6 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
     ctx.restore();
   }, [dxfData, activeLayers, transform, hoveredHole, selectedHole]);
 
-  // Mouse wheel zoom
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     if (!containerRef.current) return;
@@ -276,7 +261,6 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
     const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
     const newScale = Math.max(0.1, Math.min(10, transform.scale * zoomFactor));
 
-    // Keep mouse pointer centered at same CAD position
     const cadPos = canvasToCad(mouseX, mouseY);
     const newOffsetX = mouseX - cadPos.x * newScale;
     const newOffsetY = mouseY + cadPos.y * newScale;
@@ -288,7 +272,6 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
     });
   };
 
-  // Mouse drag panning
   const handleMouseDown = (e: React.MouseEvent) => {
     isDraggingRef.current = true;
     dragStartRef.current = { x: e.clientX, y: e.clientY };
@@ -308,7 +291,6 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
       return;
     }
 
-    // Hole hit testing for hover
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
@@ -317,7 +299,7 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
 
     const hit = dxfData.detectedHoles.find(h => {
       const dist = Math.hypot(h.center.x - cadPos.x, h.center.y - cadPos.y);
-      return dist <= (h.diameter / 2) + 5; // tolerance
+      return dist <= (h.diameter / 2) + 5;
     });
 
     if (hit) {
@@ -331,7 +313,6 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
     isDraggingRef.current = false;
   };
 
-  // Click on hole to inspect
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -351,9 +332,47 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
     }
   };
 
-  // Upload custom DXF
-  const handleUploadDxf = async (file: File) => {
+  // Upload CAD file: Handles both DXF and DWG gracefully
+  const handleUploadCadFile = async (file: File) => {
+    const fileName = file.name.toLowerCase();
+
+    if (fileName.endsWith('.dwg')) {
+      // Analyze DWG binary header
+      try {
+        const buffer = await file.arrayBuffer();
+        const headerBytes = new Uint8Array(buffer.slice(0, 6));
+        const headerString = String.fromCharCode(...headerBytes);
+
+        let dwgVersionName = 'AutoCAD';
+        if (headerString.startsWith('AC1032')) dwgVersionName = 'AutoCAD 2018 - 2024';
+        else if (headerString.startsWith('AC1027')) dwgVersionName = 'AutoCAD 2013 - 2017';
+        else if (headerString.startsWith('AC1024')) dwgVersionName = 'AutoCAD 2010 - 2012';
+        else if (headerString.startsWith('AC1021')) dwgVersionName = 'AutoCAD 2007 - 2009';
+        else if (headerString.startsWith('AC1018')) dwgVersionName = 'AutoCAD 2004 - 2006';
+
+        // Extract any legible ASCII strings from the DWG (piece names, diameters)
+        const textDecoder = new TextDecoder('latin1');
+        const contentStr = textDecoder.decode(buffer);
+        const matches = Array.from(contentStr.matchAll(/([A-Z0-9_\-\*]{3,20})/g))
+          .map(m => m[1])
+          .filter(t => !t.startsWith('AC10') && (t.includes('N2') || t.includes('CC') || t.includes('PL') || t.includes('DIA') || t.includes('PERF')))
+          .slice(0, 10);
+
+        setDwgFileInfo({
+          filename: file.name,
+          version: dwgVersionName,
+          sizeKb: Math.round(file.size / 1024),
+          extractedTexts: matches,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+      return;
+    }
+
+    // Process DXF
     try {
+      setDwgFileInfo(null);
       const text = await file.text();
       const parsed = parseDxfContent(text, file.name);
       setDxfData(parsed);
@@ -361,15 +380,13 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
       setHoveredHole(null);
     } catch (err) {
       console.error('Error parseando DXF:', err);
-      alert('No se pudo procesar el archivo DXF. Asegúrate de que sea un archivo DXF ASCII válido.');
+      alert('No se pudo procesar el archivo DXF. Asegúrate de que sea un archivo DXF ASCII.');
     }
   };
 
-  // Import holes to CSV table
   const handleTransferToCsv = () => {
     if (!onImportHolesToCsv) return;
 
-    // Detect likely piece name from filename
     let partId = dxfData.filename.replace(/\.[^/.]+$/, '').toUpperCase();
     if (partId.includes('N29000')) partId = 'N29000';
     if (partId.includes('BASE')) partId = 'PB-1';
@@ -398,11 +415,11 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
                 {dxfData.filename}
               </h3>
               <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                DXF 2D CAD
+                DXF CAD
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Dimensiones de pieza: {dxfData.bounds.width.toFixed(1)} mm × {dxfData.bounds.height.toFixed(1)} mm | {dxfData.detectedHoles.length} perforaciones detectadas
+              Dimensiones: {dxfData.bounds.width.toFixed(1)} mm × {dxfData.bounds.height.toFixed(1)} mm | {dxfData.detectedHoles.length} perforaciones detectadas
             </p>
           </div>
         </div>
@@ -410,13 +427,19 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
         {/* Action presets and custom upload */}
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => setDxfData(parseDxfContent(SAMPLE_DXF_N29000, 'N29000_CC150.dxf'))}
+            onClick={() => {
+              setDwgFileInfo(null);
+              setDxfData(parseDxfContent(SAMPLE_DXF_N29000, 'N29000_CC150.dxf'));
+            }}
             className="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors font-medium cursor-pointer"
           >
             Plano N29000 (CC150)
           </button>
           <button
-            onClick={() => setDxfData(parseDxfContent(SAMPLE_DXF_BASE_PLATE, 'Placa_Base_PB1.dxf'))}
+            onClick={() => {
+              setDwgFileInfo(null);
+              setDxfData(parseDxfContent(SAMPLE_DXF_BASE_PLATE, 'Placa_Base_PB1.dxf'));
+            }}
             className="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors font-medium cursor-pointer"
           >
             Placa Base PB-1
@@ -424,14 +447,14 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
 
           <label className="text-xs px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm">
             <Upload className="w-3.5 h-3.5" />
-            Subir DXF
+            Subir Plano (DXF o DWG)
             <input
               type="file"
-              accept=".dxf"
+              accept=".dxf,.dwg"
               className="hidden"
               onChange={e => {
                 if (e.target.files && e.target.files[0]) {
-                  handleUploadDxf(e.target.files[0]);
+                  handleUploadCadFile(e.target.files[0]);
                 }
               }}
             />
@@ -439,11 +462,57 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
         </div>
       </div>
 
+      {/* DWG Binary Notification & Guidance Banner */}
+      {dwgFileInfo && (
+        <div className="bg-amber-950/40 border-2 border-amber-500/60 rounded-xl p-5 shadow-lg space-y-3 text-xs">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-amber-300">
+                Archivo AutoCAD DWG Detectado: <span className="font-mono">{dwgFileInfo.filename}</span> ({dwgFileInfo.version})
+              </h4>
+              <p className="text-slate-300 leading-relaxed">
+                El formato <strong>.dwg</strong> es binario y privativo de AutoCAD. Para que el visor pueda leer las geometrías y contar automáticamente los círculos de perforación, tienes 2 opciones inmediatas y muy sencillas:
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+            <div className="bg-slate-900/90 border border-slate-700 p-3.5 rounded-lg space-y-2">
+              <div className="font-bold text-slate-100 flex items-center gap-2">
+                <FileCode className="w-4 h-4 text-amber-400" />
+                Opción 1: Guardar como DXF en AutoCAD (5 segundos)
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                En AutoCAD o DraftSight: <strong>Archivo &gt; Guardar como... &gt; Tipo: "AutoCAD DXF (*.dxf)"</strong>. Luego sube el archivo .dxf aquí y se visualizará en pantalla completa con todos los agujeros resaltados.
+              </p>
+            </div>
+
+            <div className="bg-slate-900/90 border border-slate-700 p-3.5 rounded-lg space-y-2">
+              <div className="font-bold text-slate-100 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-purple-400" />
+                Opción 2: Imprimir a PDF o Captura (Con IA)
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                Imprime el plano en PDF o haz una captura de pantalla y súbelo a la pestaña <strong>"Plano PDF / Imagen (IA)"</strong>. Nuestro modelo de visión artificial extraerá todas las piezas y perforaciones directamente del dibujo.
+              </p>
+              {onNavigateToTab && (
+                <button
+                  onClick={() => onNavigateToTab('ai')}
+                  className="mt-1 text-xs font-bold text-purple-300 hover:text-purple-200 underline flex items-center gap-1 cursor-pointer"
+                >
+                  Ir al Analizador de Planos PDF / Imagen &rarr;
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Canvas & Inspector Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* CAD Canvas Viewer */}
         <div className="lg:col-span-3 bg-slate-950 border border-slate-800 rounded-xl overflow-hidden relative shadow-inner">
-          {/* Canvas Floating Toolbar */}
           <div className="absolute top-4 left-4 z-10 flex items-center gap-1 bg-slate-900/90 backdrop-blur border border-slate-800 p-1 rounded-lg text-slate-200 shadow-lg">
             <button
               onClick={() => setTransform(t => ({ ...t, scale: Math.min(8, t.scale * 1.2) }))}
@@ -469,18 +538,15 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
             </button>
           </div>
 
-          {/* Mouse Instruction Pill */}
           <div className="absolute bottom-4 left-4 z-10 hidden sm:flex items-center gap-2 bg-slate-900/80 backdrop-blur border border-slate-800 px-3 py-1 rounded-full text-[11px] text-slate-400">
             <MousePointer className="w-3.5 h-3.5 text-amber-400" />
             <span>Arrastrar: Mover plano | Rueda: Zoom | Clic: Inspeccionar perforación</span>
           </div>
 
-          {/* Scale Display */}
           <div className="absolute top-4 right-4 z-10 font-mono text-[11px] bg-slate-900/90 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-lg text-slate-400">
             Escala: {(transform.scale * 100).toFixed(0)}%
           </div>
 
-          {/* Canvas Container */}
           <div
             ref={containerRef}
             className="w-full h-[520px] cursor-grab active:cursor-grabbing select-none"
@@ -496,7 +562,6 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
 
         {/* Right Sidebar: Holes Inspector & Layers */}
         <div className="space-y-4">
-          {/* Detected Holes Card */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
             <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2 mb-3">
               <Wrench className="w-4 h-4 text-amber-400" />
@@ -512,7 +577,11 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
                   <div className="flex items-center gap-2">
                     <span
                       className={`w-3 h-3 rounded-full ${
-                        h.diameter === 14 ? 'bg-cyan-400' : h.diameter === 15 ? 'bg-amber-400' : 'bg-purple-400'
+                        Math.abs(h.diameter - 14) < 0.1
+                          ? 'bg-cyan-400'
+                          : Math.abs(h.diameter - 15) < 0.1
+                          ? 'bg-amber-400'
+                          : 'bg-purple-400'
                       }`}
                     ></span>
                     <span className="font-bold text-slate-200">Ø {h.diameter.toFixed(1)} mm</span>
@@ -522,15 +591,8 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
                   </span>
                 </div>
               ))}
-
-              {dxfData.holeSummaryByDiameter.length === 0 && (
-                <p className="text-xs text-slate-500 py-3 text-center">
-                  No se detectaron entidades CIRCLE en el archivo.
-                </p>
-              )}
             </div>
 
-            {/* Selected Hole Detail Inspector */}
             {selectedHole && (
               <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs font-mono text-amber-200 space-y-1">
                 <div className="font-bold text-amber-300 font-sans flex items-center gap-1">
@@ -542,7 +604,6 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
               </div>
             )}
 
-            {/* Transfer to CSV Planilla Button */}
             {onImportHolesToCsv && (
               <button
                 onClick={handleTransferToCsv}
@@ -563,7 +624,6 @@ export const DxfViewer: React.FC<DxfViewerProps> = ({ onImportHolesToCsv }) => {
             )}
           </div>
 
-          {/* Layer Visibility Control */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
             <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2 mb-3">
               <Layers className="w-4 h-4 text-amber-400" />

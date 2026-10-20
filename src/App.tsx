@@ -69,15 +69,19 @@ export default function App() {
     };
   }, [parts]);
 
+  const [rawCsvText, setRawCsvText] = useState<string>(SAMPLE_METALLURGY_CSV);
+
   // Load sample data
   const handleLoadSample = () => {
     const parsed = parseMetallurgyCsv(SAMPLE_METALLURGY_CSV);
     setParts(parsed.parts);
     setHeaderMetadata(parsed.headerMetadata);
+    setRawCsvText(SAMPLE_METALLURGY_CSV);
   };
 
   // When a user drops/uploads a CSV/Excel file
   const handleFileLoaded = (rawContent: string, _filename: string) => {
+    setRawCsvText(rawContent);
     const parsed = parseMetallurgyCsv(rawContent);
     setParts(parsed.parts);
     setHeaderMetadata(parsed.headerMetadata);
@@ -173,15 +177,18 @@ export default function App() {
             parts={parts}
             setParts={setParts}
             diameterSummary={diameterSummary}
-            headerMetadata={headerMetadata}
             totalPartsCount={totalPartsCount}
             totalHolesProduction={totalHolesProduction}
             onFileLoaded={handleFileLoaded}
+            rawCsvText={rawCsvText}
           />
         )}
 
         {activeTab === 'dxf' && (
-          <DxfViewer onImportHolesToCsv={handleImportFromDxf} />
+          <DxfViewer 
+            onImportHolesToCsv={handleImportFromDxf} 
+            onNavigateToTab={setActiveTab}
+          />
         )}
 
         {activeTab === 'ai' && (

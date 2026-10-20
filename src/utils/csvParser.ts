@@ -1,31 +1,51 @@
-import { PartRecord, DiameterSummary, HoleDetail } from '../types';
+import { PartRecord, DiameterSummary } from '../types';
 
 /**
- * Detect delimiter (comma, semicolon, tab)
+ * Detect delimiter: comma, semicolon, tab, pipe, or space
  */
 export function detectDelimiter(text: string): string {
-  const lines = text.split('\n').filter(l => l.trim().length > 0).slice(0, 10);
-  const commas = lines.reduce((acc, l) => acc + (l.match(/,/g) || []).length, 0);
-  const semicolons = lines.reduce((acc, l) => acc + (l.match(/;/g) || []).length, 0);
-  const tabs = lines.reduce((acc, l) => acc + (l.match(/\t/g) || []).length, 0);
+  const lines = text
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(l => l.length > 0)
+    .slice(0, 15);
 
-  if (semicolons > commas && semicolons > tabs) return ';';
-  if (tabs > commas && tabs > semicolons) return '\t';
+  if (lines.length === 0) return ',';
+
+  let commas = 0;
+  let semicolons = 0;
+  let tabs = 0;
+  let pipes = 0;
+
+  lines.forEach(l => {
+    commas += (l.match(/,/g) || []).length;
+    semicolons += (l.match(/;/g) || []).length;
+    tabs += (l.match(/\t/g) || []).length;
+    pipes += (l.match(/\|/g) || []).length;
+  });
+
+  if (semicolons >= commas && semicolons >= tabs && semicolons > 0) return ';';
+  if (tabs >= commas && tabs >= semicolons && tabs > 0) return '\t';
+  if (pipes >= commas && pipes >= semicolons && pipes > 0) return '|';
   return ',';
 }
 
 /**
- * Clean cell content (strip quotes, spaces)
+ * Clean cell content (strip quotes, spaces, BOM)
  */
-function cleanCell(cell: string | undefined): string {
+export function cleanCell(cell: string | undefined): string {
   if (!cell) return '';
-  return cell.trim().replace(/^["']|["']$/g, '').trim();
+  return cell
+    .replace(/^\uFEFF/, '')
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .trim();
 }
 
 /**
- * Normalizes text for comparison (lowercase, removes accents)
+ * Normalizes text for header comparison (lowercase, removes accents, symbols)
  */
-function normalizeHeader(str: string): string {
+export function normalizeHeader(str: string): string {
   return str
     .toLowerCase()
     .normalize('NFD')
@@ -33,29 +53,60 @@ function normalizeHeader(str: string): string {
     .replace(/[^a-z0-9]/g, '');
 }
 
+/**
+ * Parses a numeric value that might use either comma or dot as decimal separator
+ * Handles "14,0", "14.0", "15", " 8 ", etc.
+ */
+export function parseFlexibleNumber(val: any): number {
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  if (!val) return 0;
+  const str = String(val).trim().replace(/\s+/g, '');
+  // If format is like "14,0" or "14.0"
+  const cleanStr = str.replace(',', '.');
+  const num = parseFloat(cleanStr);
+  return isNaN(num) ? 0 : num;
+}
+
 export interface ParseResult {
   headerMetadata: string[];
+  rawLines: string[];
+  sampleRows: string[][];
   parts: PartRecord[];
   diameterSummary: DiameterSummary[];
   totalPartsCount: number;
   totalHolesProduction: number;
   rawRowCount: number;
-  detectedColumns: { [key: string]: number };
+  detectedColumns: {
+    parte: number;
+    perfil: number;
+    cantPartes: number;
+    diametro: number;
+    agujerosPorParte: number;
+  };
+  delimiterUsed: string;
 }
 
 /**
- * Parses metallurgy CSV / TXT files with forward-filling of blank part/profile cells
+ * Advanced, ultra-tolerant parser for metallurgy CSV, TXT and Excel exports
  */
-export function parseMetallurgyCsv(rawContent: string): ParseResult {
-  const delimiter = detectDelimiter(rawContent);
+export function parseMetallurgyCsv(
+  rawContent: string,
+  customColMap?: { parte: number; perfil: number; cantPartes: number; diametro: number; agujerosPorParte: number },
+  forcedDelimiter?: string
+): ParseResult {
+  const delimiter = forcedDelimiter || detectDelimiter(rawContent);
+
   const rawLines = rawContent
     .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
+    .map(l => l.replace(/^\uFEFF/, '').trim())
+    .filter(l => l.length > 0);
 
-  const headerMetadata: string[] = [];
+  const sampleRows: string[][] = rawLines.slice(0, 10).map(line =>
+    line.split(delimiter).map(cleanCell)
+  );
+
   let tableHeaderIndex = -1;
-  let colMap = {
+  let colMap = customColMap ? { ...customColMap } : {
     parte: -1,
     perfil: -1,
     cantPartes: -1,
@@ -63,39 +114,57 @@ export function parseMetallurgyCsv(rawContent: string): ParseResult {
     agujerosPorParte: -1,
   };
 
-  // Find header row by matching column names
-  for (let i = 0; i < rawLines.length; i++) {
-    const cells = rawLines[i].split(delimiter).map(cleanCell);
-    const normCells = cells.map(normalizeHeader);
+  const headerMetadata: string[] = [];
 
-    // Look for keywords
-    const pIdx = normCells.findIndex(c => c.includes('parte') || c.includes('marca') || c.includes('pieza') || c === 'part');
-    const perfIdx = normCells.findIndex(c => c.includes('perfil') || c.includes('profile') || c.includes('seccion'));
-    const dIdx = normCells.findIndex(c => c.includes('diam') || c.includes('diametro') || c === 'o' || c.includes('hole'));
-    const hIdx = normCells.findIndex(c => c.includes('agujero') || c.includes('taladro') || c.includes('perf') || c.includes('holes'));
+  // Search for the header row if not using custom map
+  if (!customColMap) {
+    for (let i = 0; i < Math.min(rawLines.length, 25); i++) {
+      const cells = rawLines[i].split(delimiter).map(cleanCell);
+      const normCells = cells.map(normalizeHeader);
 
-    if (pIdx !== -1 && (perfIdx !== -1 || dIdx !== -1 || hIdx !== -1)) {
-      tableHeaderIndex = i;
-      colMap.parte = pIdx;
-      colMap.perfil = perfIdx;
-
-      // Find Cant. Partes
-      colMap.cantPartes = normCells.findIndex((c, idx) => 
-        idx !== pIdx && (c.includes('cant') || c.includes('qty') || c.includes('cantidad'))
+      // Part keywords: parte, marca, pieza, pos, posicion, part, mark, id
+      const pIdx = normCells.findIndex(c =>
+        c.includes('parte') || c.includes('marca') || c.includes('pieza') || c === 'pos' || c.includes('posicion') || c === 'part' || c === 'mark'
       );
 
-      colMap.diametro = dIdx;
-      colMap.agujerosPorParte = hIdx;
-      break;
-    } else {
-      headerMetadata.push(rawLines[i]);
+      // Profile keywords: perfil, profile, seccion, secc, material, descrip
+      const perfIdx = normCells.findIndex(c =>
+        c.includes('perfil') || c.includes('profile') || c.includes('seccion') || c.includes('material') || c.includes('desc')
+      );
+
+      // Quantity keywords: cant, cantidad, qty, partes
+      const qtyIdx = normCells.findIndex((c, idx) =>
+        idx !== pIdx && (c.includes('cant') || c.includes('qty') || c.includes('cantidad') || c === 'ctdad')
+      );
+
+      // Diameter keywords: diam, diametro, dia, o, d, hole, perforacion
+      const dIdx = normCells.findIndex(c =>
+        c.includes('diam') || c === 'o' || c === 'd' || c.includes('calibre') || c.includes('diametro')
+      );
+
+      // Hole count keywords: agujero, agujeros, taladro, taladros, holes, perf
+      const hIdx = normCells.findIndex(c =>
+        c.includes('agujero') || c.includes('taladro') || c.includes('perf') || c.includes('hole') || c.includes('bulon') || c.includes('perforac')
+      );
+
+      // If at least Part or (Diameter and Holes) are found on this row
+      if (pIdx !== -1 || (dIdx !== -1 && hIdx !== -1)) {
+        tableHeaderIndex = i;
+        colMap.parte = pIdx !== -1 ? pIdx : 0;
+        colMap.perfil = perfIdx !== -1 ? perfIdx : 1;
+        colMap.cantPartes = qtyIdx !== -1 ? qtyIdx : 2;
+        colMap.diametro = dIdx !== -1 ? dIdx : 3;
+        colMap.agujerosPorParte = hIdx !== -1 ? hIdx : 4;
+        break;
+      } else {
+        headerMetadata.push(rawLines[i]);
+      }
     }
   }
 
-  // If no header found, assume standard default column layout:
-  // Col 0: Parte, Col 1: Perfil, Col 2: Cant. Partes, Col 3: Diametro, Col 4: Agujeros
-  if (tableHeaderIndex === -1) {
-    tableHeaderIndex = 0;
+  // Fallback: If no header row found, guess based on data in first data row
+  if (tableHeaderIndex === -1 && !customColMap) {
+    tableHeaderIndex = -1; // process all rows
     colMap = {
       parte: 0,
       perfil: 1,
@@ -105,14 +174,7 @@ export function parseMetallurgyCsv(rawContent: string): ParseResult {
     };
   }
 
-  // Fallbacks for any missing column
-  if (colMap.parte === -1) colMap.parte = 0;
-  if (colMap.perfil === -1) colMap.perfil = 1;
-  if (colMap.cantPartes === -1) colMap.cantPartes = 2;
-  if (colMap.diametro === -1) colMap.diametro = 3;
-  if (colMap.agujerosPorParte === -1) colMap.agujerosPorParte = 4;
-
-  const dataLines = rawLines.slice(tableHeaderIndex + 1);
+  const dataLines = tableHeaderIndex >= 0 ? rawLines.slice(tableHeaderIndex + 1) : rawLines;
 
   let currentPartId = '';
   let currentProfile = '';
@@ -122,29 +184,33 @@ export function parseMetallurgyCsv(rawContent: string): ParseResult {
 
   for (let i = 0; i < dataLines.length; i++) {
     const line = dataLines[i];
-    // Check if line is just delimiters or empty
+    // Check if empty or separator line
     if (!line.replace(new RegExp(`\\${delimiter}`, 'g'), '').trim()) continue;
 
     const cells = line.split(delimiter).map(cleanCell);
 
-    const rawPart = cells[colMap.parte] || '';
-    const rawProfile = cells[colMap.perfil] || '';
-    const rawQty = cells[colMap.cantPartes] || '';
-    const rawDiam = cells[colMap.diametro] || '';
-    const rawHoles = cells[colMap.agujerosPorParte] || '';
+    const rawPart = colMap.parte >= 0 && colMap.parte < cells.length ? cells[colMap.parte] : '';
+    const rawProfile = colMap.perfil >= 0 && colMap.perfil < cells.length ? cells[colMap.perfil] : '';
+    const rawQty = colMap.cantPartes >= 0 && colMap.cantPartes < cells.length ? cells[colMap.cantPartes] : '';
+    const rawDiam = colMap.diametro >= 0 && colMap.diametro < cells.length ? cells[colMap.diametro] : '';
+    const rawHoles = colMap.agujerosPorParte >= 0 && colMap.agujerosPorParte < cells.length ? cells[colMap.agujerosPorParte] : '';
 
-    // Forward fill logic: If new part specified, update current context
+    // Check if this row is an accidental repeated header
+    if (normalizeHeader(rawPart).includes('parte') && normalizeHeader(rawDiam).includes('diam')) {
+      continue;
+    }
+
+    // Forward fill logic
     if (rawPart.length > 0) {
       currentPartId = rawPart;
       if (rawProfile.length > 0) currentProfile = rawProfile;
-      const parsedQty = parseFloat(rawQty.replace(',', '.'));
-      currentQuantity = !isNaN(parsedQty) && parsedQty > 0 ? parsedQty : 1;
+      const parsedQty = parseFlexibleNumber(rawQty);
+      currentQuantity = parsedQty > 0 ? parsedQty : 1;
     } else if (rawProfile.length > 0 && !currentProfile) {
       currentProfile = rawProfile;
     }
 
     if (!currentPartId) {
-      // If we still don't have a part name, generate or skip
       if (rawDiam || rawHoles) {
         currentPartId = `PIEZA-${partsMap.size + 1}`;
       } else {
@@ -152,12 +218,14 @@ export function parseMetallurgyCsv(rawContent: string): ParseResult {
       }
     }
 
-    // Parse diameter and hole count
-    const numDiam = parseFloat(rawDiam.replace(',', '.'));
-    const numHoles = parseFloat(rawHoles.replace(',', '.'));
+    const numDiam = parseFlexibleNumber(rawDiam);
+    const numHoles = parseFlexibleNumber(rawHoles);
 
-    // Valid hole row must have at least diameter or holes
-    if (!isNaN(numDiam) && numDiam > 0 && !isNaN(numHoles) && numHoles > 0) {
+    // If diameter or holes present, record it
+    if (numDiam > 0 || numHoles > 0) {
+      const validDiam = numDiam > 0 ? numDiam : 14;
+      const validHoles = numHoles > 0 ? numHoles : 1;
+
       if (!partsMap.has(currentPartId)) {
         partsMap.set(currentPartId, {
           id: `part-${currentPartId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -171,15 +239,23 @@ export function parseMetallurgyCsv(rawContent: string): ParseResult {
       }
 
       const partRecord = partsMap.get(currentPartId)!;
-      // Check if diameter already exists in this part, if so accumulate or append
-      const existingHole = partRecord.holes.find(h => h.diameter === numDiam);
+      // If quantity changed on later row
+      if (rawQty && parseFlexibleNumber(rawQty) > 0) {
+        partRecord.quantity = parseFlexibleNumber(rawQty);
+      }
+      if (rawProfile && rawProfile.length > 0) {
+        partRecord.profile = rawProfile;
+      }
+
+      // Check if diameter exists in this part
+      const existingHole = partRecord.holes.find(h => Math.abs(h.diameter - validDiam) < 0.05);
       if (existingHole) {
-        existingHole.countPerPiece += numHoles;
+        existingHole.countPerPiece += validHoles;
       } else {
         partRecord.holes.push({
-          id: `h-${numDiam}-${Math.random().toString(36).slice(2, 6)}`,
-          diameter: numDiam,
-          countPerPiece: numHoles,
+          id: `h-${validDiam}-${Math.random().toString(36).slice(2, 6)}`,
+          diameter: validDiam,
+          countPerPiece: validHoles,
           type: 'pasante',
         });
       }
@@ -197,7 +273,7 @@ export function parseMetallurgyCsv(rawContent: string): ParseResult {
     };
   });
 
-  // Calculate Diameter Summary (Tooling breakdown)
+  // Calculate Tooling / Diameter Breakdown
   const diameterMap = new Map<number, {
     perPieceSum: number;
     productionSum: number;
@@ -222,10 +298,8 @@ export function parseMetallurgyCsv(rawContent: string): ParseResult {
 
   const diameterSummary: DiameterSummary[] = Array.from(diameterMap.entries())
     .map(([diameter, data]) => {
-      // Calculate suggested cutting parameters for steel (Vc approx 25-30 m/min for HSS)
-      const vc = 28; // m/min
+      const vc = 28;
       const recommendedRpm = Math.round((1000 * vc) / (Math.PI * diameter));
-      // Approx 12-18 seconds per hole including approach and retract for 6-10mm steel plate
       const timePerHoleSeconds = Math.max(8, Math.round(diameter * 0.9));
 
       return {
@@ -233,7 +307,7 @@ export function parseMetallurgyCsv(rawContent: string): ParseResult {
         totalHolesPerPieceSum: data.perPieceSum,
         totalHolesProduction: data.productionSum,
         participatingParts: Array.from(data.parts),
-        suggestedTool: diameter <= 26 ? `Broca / Punzón Ø${diameter}mm` : `Fresa de taladrado / Mecha Ø${diameter}mm`,
+        suggestedTool: diameter <= 26 ? `Broca / Punzón Ø${diameter}mm` : `Fresa / Mecha Ø${diameter}mm`,
         recommendedRpm,
         estimatedTimeSeconds: data.productionSum * timePerHoleSeconds,
       };
@@ -245,30 +319,38 @@ export function parseMetallurgyCsv(rawContent: string): ParseResult {
 
   return {
     headerMetadata,
+    rawLines,
+    sampleRows,
     parts,
     diameterSummary,
     totalPartsCount,
     totalHolesProduction,
     rawRowCount: dataLines.length,
     detectedColumns: colMap,
+    delimiterUsed: delimiter,
   };
 }
 
 /**
- * Generates clean CSV string from current parts data
+ * Generates consolidated CSV export string
  */
 export function exportPartsToCsv(parts: PartRecord[]): string {
-  const headers = ['Parte', 'Perfil', 'Cant. Partes', 'Diametro (mm)', 'Agujeros por pieza', 'Total Agujeros Produccion'];
+  const headers = [
+    'Marca / Pieza',
+    'Perfil',
+    'Cant. Piezas',
+    'Diametro (mm)',
+    'Agujeros por Pieza',
+    'Total Agujeros Lote',
+  ];
   const rows: string[] = [headers.join(',')];
 
   for (const part of parts) {
-    for (let i = 0; i < part.holes.length; i++) {
-      const hole = part.holes[i];
-      const isFirst = i === 0;
+    for (const hole of part.holes) {
       rows.push([
-        isFirst ? `"${part.partId}"` : '',
-        isFirst ? `"${part.profile}"` : '',
-        isFirst ? part.quantity : '',
+        `"${part.partId}"`,
+        `"${part.profile}"`,
+        part.quantity,
         hole.diameter.toFixed(1),
         hole.countPerPiece,
         hole.countPerPiece * part.quantity,
