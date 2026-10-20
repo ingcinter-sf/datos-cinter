@@ -1,0 +1,6 @@
+{
+  "name": "MetalMetric - Analizador de Planos y Perforaciones Metalúrgicas",
+  "description": "Plataforma industrial para análisis automático de planillas CSV, planos DXF/CAD y documentos PDF para conteo y cubicación de perforaciones por pieza y diámetro.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
