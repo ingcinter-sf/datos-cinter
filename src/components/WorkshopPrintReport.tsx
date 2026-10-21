@@ -157,13 +157,18 @@ export const WorkshopPrintReport: React.FC<WorkshopPrintReportProps> = ({
                     {p.quantity} u.
                   </td>
                   <td className="p-2.5 border-r border-slate-300">
-                    <div className="space-y-0.5">
-                      {p.holes.map((h, hIdx) => (
-                        <div key={hIdx} className="font-mono text-[11px] text-slate-800">
-                          <strong>{h.countPerPiece}x</strong> Ø{h.diameter.toFixed(1)} mm
-                        </div>
-                      ))}
-                    </div>
+                    {p.holes.length > 0 ? (
+                      <div className="space-y-0.5">
+                        {p.holes.map((h, hIdx) => (
+                          <div key={hIdx} className="font-mono text-[11px] text-slate-800">
+                            <strong>{h.countPerPiece}x</strong> Ø{h.diameter.toFixed(1)} mm
+                            {h.slot && <span className="text-slate-600 font-sans ml-1">(Coliso {h.slot})</span>}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-slate-400 italic text-[11px]">Sin perforaciones</span>
+                    )}
                   </td>
                   <td className="p-2.5 text-right font-black font-mono text-sm text-slate-950 border-r border-slate-300">
                     {p.totalHolesAllPieces}

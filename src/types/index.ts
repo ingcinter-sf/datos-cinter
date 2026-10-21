@@ -1,8 +1,9 @@
 export interface HoleDetail {
   id: string;
-  diameter: number; // in mm, e.g. 14, 15
-  countPerPiece: number; // e.g. 2 or 8
+  diameter: number; // in mm, e.g. 14, 15, 17.5
+  countPerPiece: number; // e.g. 2, 4, 9, 18
   type?: 'pasante' | 'coliso' | 'roscado' | 'avellanado';
+  slot?: string; // e.g. "14.0x30.0" or "40.0x17.5"
   location?: string;
 }
 

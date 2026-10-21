@@ -14,7 +14,7 @@ interface NavbarProps {
   setActiveTab: (tab: 'csv' | 'dxf' | 'ai' | 'calculator' | 'print') => void;
   totalParts: number;
   totalHoles: number;
-  onLoadSample: () => void;
+  onLoadSample: (type: 'vmc' | 'n29000') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -63,16 +63,23 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Right Action: Load Sample */}
+          {/* Right Action: Load Samples */}
           <div className="flex items-center gap-2">
             <button
-              onClick={onLoadSample}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-xs font-medium text-slate-200 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
-              title="Cargar ejemplo real de taller (N29000 & N29001)"
+              onClick={() => onLoadSample('vmc')}
+              className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+              title="Cargar archivo real del usuario (A80000, 370 piezas, VMC)"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">Ejemplo N29000/N29001</span>
-              <span className="sm:hidden">Ejemplo</span>
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>Proyecto VMC (A80000)</span>
+            </button>
+
+            <button
+              onClick={() => onLoadSample('n29000')}
+              className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer hidden sm:flex"
+              title="Cargar ejemplo inicial N29000 & N29001"
+            >
+              <span>N29000/N29001</span>
             </button>
           </div>
         </div>

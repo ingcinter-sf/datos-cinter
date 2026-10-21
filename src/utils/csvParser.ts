@@ -54,16 +54,19 @@ export function normalizeHeader(str: string): string {
 }
 
 /**
- * Parses a numeric value that might use either comma or dot as decimal separator
- * Handles "14,0", "14.0", "15", " 8 ", etc.
+ * Parses numeric values safely supporting:
+ * - "17.5"
+ * - "17,5"
+ * - " 2 "
+ * - "14.0(14.0x30.0)" -> returns 14.0
  */
 export function parseFlexibleNumber(val: any): number {
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
   if (!val) return 0;
   const str = String(val).trim().replace(/\s+/g, '');
-  // If format is like "14,0" or "14.0"
-  const cleanStr = str.replace(',', '.');
-  const num = parseFloat(cleanStr);
+  const match = str.match(/-?\d+(?:[.,]\d+)?/);
+  if (!match) return 0;
+  const num = parseFloat(match[0].replace(',', '.'));
   return isNaN(num) ? 0 : num;
 }
 
@@ -116,39 +119,40 @@ export function parseMetallurgyCsv(
 
   const headerMetadata: string[] = [];
 
-  // Search for the header row if not using custom map
+  // Search for the table header row
   if (!customColMap) {
     for (let i = 0; i < Math.min(rawLines.length, 25); i++) {
       const cells = rawLines[i].split(delimiter).map(cleanCell);
       const normCells = cells.map(normalizeHeader);
 
-      // Part keywords: parte, marca, pieza, pos, posicion, part, mark, id
+      // Part keywords: parte, marca, pieza, pos, posicion, part, mark
       const pIdx = normCells.findIndex(c =>
-        c.includes('parte') || c.includes('marca') || c.includes('pieza') || c === 'pos' || c.includes('posicion') || c === 'part' || c === 'mark'
+        c === 'parte' || c === 'marca' || c === 'pieza' || c === 'pos' || c === 'posicion' || c === 'part' || c === 'mark'
       );
 
-      // Profile keywords: perfil, profile, seccion, secc, material, descrip
+      // Profile keywords: perfil, profile, seccion, material
       const perfIdx = normCells.findIndex(c =>
-        c.includes('perfil') || c.includes('profile') || c.includes('seccion') || c.includes('material') || c.includes('desc')
+        c === 'perfil' || c.includes('profile') || c === 'seccion' || c === 'secc' || c.includes('perfil')
       );
 
-      // Quantity keywords: cant, cantidad, qty, partes
+      // Quantity keywords: cant, cantidad, qty, cantpartes
       const qtyIdx = normCells.findIndex((c, idx) =>
-        idx !== pIdx && (c.includes('cant') || c.includes('qty') || c.includes('cantidad') || c === 'ctdad')
+        idx !== pIdx && (c.includes('cant') || c === 'qty' || c === 'cantidad' || c === 'cantpartes')
       );
 
-      // Diameter keywords: diam, diametro, dia, o, d, hole, perforacion
+      // Diameter keywords: diametro, diam, dia, hole, d
       const dIdx = normCells.findIndex(c =>
-        c.includes('diam') || c === 'o' || c === 'd' || c.includes('calibre') || c.includes('diametro')
+        c === 'diametro' || c === 'diam' || c.includes('diam') || c === 'd' || c === 'o'
       );
 
-      // Hole count keywords: agujero, agujeros, taladro, taladros, holes, perf
-      const hIdx = normCells.findIndex(c =>
-        c.includes('agujero') || c.includes('taladro') || c.includes('perf') || c.includes('hole') || c.includes('bulon') || c.includes('perforac')
+      // Hole count keywords: agujeros, taladros, agujerosporpartes, holes (strictly avoid matching file title "bulones por parte")
+      const hIdx = normCells.findIndex((c, idx) =>
+        idx !== pIdx && (c.includes('agujero') || c.includes('taladro') || c === 'holes' || (c.includes('perf') && !c.includes('perfil')))
       );
 
-      // If at least Part or (Diameter and Holes) are found on this row
-      if (pIdx !== -1 || (dIdx !== -1 && hIdx !== -1)) {
+      // Valid table header MUST match at least 2 distinct key headers!
+      const foundCount = [pIdx, perfIdx, qtyIdx, dIdx, hIdx].filter(idx => idx !== -1).length;
+      if (foundCount >= 2) {
         tableHeaderIndex = i;
         colMap.parte = pIdx !== -1 ? pIdx : 0;
         colMap.perfil = perfIdx !== -1 ? perfIdx : 1;
@@ -162,9 +166,9 @@ export function parseMetallurgyCsv(
     }
   }
 
-  // Fallback: If no header row found, guess based on data in first data row
+  // Fallback if no header found
   if (tableHeaderIndex === -1 && !customColMap) {
-    tableHeaderIndex = -1; // process all rows
+    tableHeaderIndex = 0;
     colMap = {
       parte: 0,
       perfil: 1,
@@ -176,15 +180,11 @@ export function parseMetallurgyCsv(
 
   const dataLines = tableHeaderIndex >= 0 ? rawLines.slice(tableHeaderIndex + 1) : rawLines;
 
-  let currentPartId = '';
-  let currentProfile = '';
-  let currentQuantity = 1;
-
+  let currentPartRecord: PartRecord | null = null;
   const partsMap = new Map<string, PartRecord>();
 
   for (let i = 0; i < dataLines.length; i++) {
     const line = dataLines[i];
-    // Check if empty or separator line
     if (!line.replace(new RegExp(`\\${delimiter}`, 'g'), '').trim()) continue;
 
     const cells = line.split(delimiter).map(cleanCell);
@@ -195,70 +195,45 @@ export function parseMetallurgyCsv(
     const rawDiam = colMap.diametro >= 0 && colMap.diametro < cells.length ? cells[colMap.diametro] : '';
     const rawHoles = colMap.agujerosPorParte >= 0 && colMap.agujerosPorParte < cells.length ? cells[colMap.agujerosPorParte] : '';
 
-    // Check if this row is an accidental repeated header
+    // Ignore accidental duplicate header rows
     if (normalizeHeader(rawPart).includes('parte') && normalizeHeader(rawDiam).includes('diam')) {
       continue;
     }
 
-    // Forward fill logic
+    // New Part row
     if (rawPart.length > 0) {
-      currentPartId = rawPart;
-      if (rawProfile.length > 0) currentProfile = rawProfile;
       const parsedQty = parseFlexibleNumber(rawQty);
-      currentQuantity = parsedQty > 0 ? parsedQty : 1;
-    } else if (rawProfile.length > 0 && !currentProfile) {
-      currentProfile = rawProfile;
+      const qty = parsedQty > 0 ? parsedQty : 1;
+
+      currentPartRecord = {
+        id: `part-${rawPart}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        partId: rawPart,
+        profile: rawProfile || 'ESTÁNDAR',
+        quantity: qty,
+        holes: [],
+        totalHolesPerPiece: 0,
+        totalHolesAllPieces: 0,
+      };
+      partsMap.set(rawPart, currentPartRecord);
     }
 
-    if (!currentPartId) {
-      if (rawDiam || rawHoles) {
-        currentPartId = `PIEZA-${partsMap.size + 1}`;
-      } else {
-        continue;
-      }
-    }
-
+    // Check if this row (whether new part or continuation row) has hole information
     const numDiam = parseFlexibleNumber(rawDiam);
     const numHoles = parseFlexibleNumber(rawHoles);
 
-    // If diameter or holes present, record it
-    if (numDiam > 0 || numHoles > 0) {
-      const validDiam = numDiam > 0 ? numDiam : 14;
-      const validHoles = numHoles > 0 ? numHoles : 1;
+    if (currentPartRecord && numDiam > 0 && numHoles > 0) {
+      // Check for slot / coliso notation e.g. "14.0(14.0x30.0)" or "17.5(40.0x17.5)"
+      const slotMatch = rawDiam.match(/\(([^)]+)\)/);
+      const slot = slotMatch ? slotMatch[1] : undefined;
+      const holeType = slot ? ('coliso' as const) : ('pasante' as const);
 
-      if (!partsMap.has(currentPartId)) {
-        partsMap.set(currentPartId, {
-          id: `part-${currentPartId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          partId: currentPartId,
-          profile: currentProfile || 'ESTÁNDAR',
-          quantity: currentQuantity,
-          holes: [],
-          totalHolesPerPiece: 0,
-          totalHolesAllPieces: 0,
-        });
-      }
-
-      const partRecord = partsMap.get(currentPartId)!;
-      // If quantity changed on later row
-      if (rawQty && parseFlexibleNumber(rawQty) > 0) {
-        partRecord.quantity = parseFlexibleNumber(rawQty);
-      }
-      if (rawProfile && rawProfile.length > 0) {
-        partRecord.profile = rawProfile;
-      }
-
-      // Check if diameter exists in this part
-      const existingHole = partRecord.holes.find(h => Math.abs(h.diameter - validDiam) < 0.05);
-      if (existingHole) {
-        existingHole.countPerPiece += validHoles;
-      } else {
-        partRecord.holes.push({
-          id: `h-${validDiam}-${Math.random().toString(36).slice(2, 6)}`,
-          diameter: validDiam,
-          countPerPiece: validHoles,
-          type: 'pasante',
-        });
-      }
+      currentPartRecord.holes.push({
+        id: `h-${numDiam}-${slot || 'std'}-${Math.random().toString(36).slice(2, 6)}`,
+        diameter: numDiam,
+        countPerPiece: numHoles, // Exactly the number of holes specified in column!
+        type: holeType,
+        slot: slot,
+      });
     }
   }
 
@@ -340,18 +315,33 @@ export function exportPartsToCsv(parts: PartRecord[]): string {
     'Perfil',
     'Cant. Piezas',
     'Diametro (mm)',
+    'Tipo / Ranura',
     'Agujeros por Pieza',
     'Total Agujeros Lote',
   ];
   const rows: string[] = [headers.join(',')];
 
   for (const part of parts) {
+    if (part.holes.length === 0) {
+      rows.push([
+        `"${part.partId}"`,
+        `"${part.profile}"`,
+        part.quantity,
+        '-',
+        'Sin perforaciones',
+        0,
+        0,
+      ].join(','));
+      continue;
+    }
+
     for (const hole of part.holes) {
       rows.push([
         `"${part.partId}"`,
         `"${part.profile}"`,
         part.quantity,
         hole.diameter.toFixed(1),
+        hole.slot ? `"Coliso ${hole.slot}"` : '"Pasante"',
         hole.countPerPiece,
         hole.countPerPiece * part.quantity,
       ].join(','));

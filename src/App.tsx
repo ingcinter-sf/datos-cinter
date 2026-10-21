@@ -6,16 +6,17 @@ import { BlueprintAiAnalyzer } from './components/BlueprintAiAnalyzer';
 import { MachiningCalculator } from './components/MachiningCalculator';
 import { WorkshopPrintReport } from './components/WorkshopPrintReport';
 import { parseMetallurgyCsv } from './utils/csvParser';
-import { SAMPLE_METALLURGY_CSV } from './utils/sampleData';
+import { SAMPLE_METALLURGY_CSV, SAMPLE_METALLURGY_VMC } from './utils/sampleData';
 import { PartRecord, DiameterSummary } from './types';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'csv' | 'dxf' | 'ai' | 'calculator' | 'print'>('csv');
 
-  // Initialize with sample data matching user's N29000 & N29001 specifications
-  const initialData = useMemo(() => parseMetallurgyCsv(SAMPLE_METALLURGY_CSV), []);
+  // Initialize with the user's real project (VMC with A80000, 370 parts, 26,954 holes)
+  const initialData = useMemo(() => parseMetallurgyCsv(SAMPLE_METALLURGY_VMC), []);
   const [parts, setParts] = useState<PartRecord[]>(initialData.parts);
   const [headerMetadata, setHeaderMetadata] = useState<string[]>(initialData.headerMetadata);
+  const [rawCsvText, setRawCsvText] = useState<string>(SAMPLE_METALLURGY_VMC);
 
   // Recalculate summary metrics whenever parts change
   const { totalPartsCount, totalHolesProduction, diameterSummary } = useMemo(() => {
@@ -69,14 +70,14 @@ export default function App() {
     };
   }, [parts]);
 
-  const [rawCsvText, setRawCsvText] = useState<string>(SAMPLE_METALLURGY_CSV);
-
-  // Load sample data
-  const handleLoadSample = () => {
-    const parsed = parseMetallurgyCsv(SAMPLE_METALLURGY_CSV);
+  // Load preset sample data
+  const handleLoadSample = (type: 'vmc' | 'n29000' = 'vmc') => {
+    const targetData = type === 'vmc' ? SAMPLE_METALLURGY_VMC : SAMPLE_METALLURGY_CSV;
+    const parsed = parseMetallurgyCsv(targetData);
     setParts(parsed.parts);
     setHeaderMetadata(parsed.headerMetadata);
-    setRawCsvText(SAMPLE_METALLURGY_CSV);
+    setRawCsvText(targetData);
+    setActiveTab('csv');
   };
 
   // When a user drops/uploads a CSV/Excel file
