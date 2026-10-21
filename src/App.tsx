@@ -4,8 +4,8 @@ import { CsvAnalyzer } from './components/CsvAnalyzer';
 import { DxfViewer } from './components/DxfViewer';
 import { BlueprintAiAnalyzer } from './components/BlueprintAiAnalyzer';
 import { MachiningCalculator } from './components/MachiningCalculator';
-import { WorkshopPrintReport } from './components/WorkshopPrintReport';
-import { parseMetallurgyCsv } from './utils/csvParser';
+import { ResumenPerforacionesReport } from './components/ResumenPerforacionesReport';
+import { parseMetallurgyCsv, mergePartRecords } from './utils/csvParser';
 import { SAMPLE_METALLURGY_CSV, SAMPLE_METALLURGY_VMC } from './utils/sampleData';
 import { PartRecord, DiameterSummary } from './types';
 
@@ -16,6 +16,7 @@ export default function App() {
   const initialData = useMemo(() => parseMetallurgyCsv(SAMPLE_METALLURGY_VMC), []);
   const [parts, setParts] = useState<PartRecord[]>(initialData.parts);
   const [headerMetadata, setHeaderMetadata] = useState<string[]>(initialData.headerMetadata);
+  const [obraTitle, setObraTitle] = useState<string>(initialData.obraTitle || 'VMC');
   const [rawCsvText, setRawCsvText] = useState<string>(SAMPLE_METALLURGY_VMC);
 
   // Recalculate summary metrics whenever parts change
@@ -70,6 +71,8 @@ export default function App() {
     };
   }, [parts]);
 
+  const [loadedFiles, setLoadedFiles] = useState<string[]>(['ep14_84099c8a.csv (VMC)']);
+
   // Load preset sample data
   const handleLoadSample = (type: 'vmc' | 'n29000' = 'vmc') => {
     const targetData = type === 'vmc' ? SAMPLE_METALLURGY_VMC : SAMPLE_METALLURGY_CSV;
@@ -77,15 +80,39 @@ export default function App() {
     setParts(parsed.parts);
     setHeaderMetadata(parsed.headerMetadata);
     setRawCsvText(targetData);
+    setObraTitle(parsed.obraTitle || (type === 'vmc' ? 'VMC' : 'N29000'));
+    setLoadedFiles([type === 'vmc' ? 'ep14_84099c8a.csv (VMC)' : 'N29000_CC150.csv']);
     setActiveTab('csv');
   };
 
-  // When a user drops/uploads a CSV/Excel file
-  const handleFileLoaded = (rawContent: string, _filename: string) => {
+  // When a user drops/uploads a single CSV/Excel file
+  const handleFileLoaded = (rawContent: string, filename: string) => {
     setRawCsvText(rawContent);
     const parsed = parseMetallurgyCsv(rawContent);
     setParts(parsed.parts);
     setHeaderMetadata(parsed.headerMetadata);
+    setObraTitle(parsed.obraTitle || 'OBRA');
+    setLoadedFiles([filename]);
+    setActiveTab('csv');
+  };
+
+  // When a user drops/uploads multiple CSV/Excel files at once or appends to existing
+  const handleMultipleFilesLoaded = (filesData: { content: string; filename: string }[], mode: 'replace' | 'append') => {
+    let combinedParts = mode === 'append' ? [...parts] : [];
+    const newFileNames = filesData.map(f => f.filename);
+    let detectedObra = obraTitle;
+
+    for (const item of filesData) {
+      const parsed = parseMetallurgyCsv(item.content);
+      combinedParts = mergePartRecords(combinedParts, parsed.parts);
+      if (parsed.obraTitle && parsed.obraTitle !== 'OBRA GENERAL') {
+        detectedObra = parsed.obraTitle;
+      }
+    }
+
+    setParts(combinedParts);
+    setObraTitle(detectedObra);
+    setLoadedFiles(prev => (mode === 'append' ? Array.from(new Set([...prev, ...newFileNames])) : newFileNames));
     setActiveTab('csv');
   };
 
@@ -117,6 +144,7 @@ export default function App() {
           id: `part-${partId}-${Date.now()}`,
           partId: partId.toUpperCase(),
           profile: profile || 'CC150',
+          thickness: 6.4,
           quantity: 5,
           holes: newHoleDetails,
           totalHolesPerPiece: totalPerPiece,
@@ -143,6 +171,7 @@ export default function App() {
         id: `part-ai-${p.partId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         partId: String(p.partId || 'PIEZA-IA').toUpperCase(),
         profile: String(p.profile || 'ESTÁNDAR'),
+        thickness: 6.4,
         quantity: qty,
         holes,
         totalHolesPerPiece,
@@ -169,6 +198,7 @@ export default function App() {
         totalParts={totalPartsCount}
         totalHoles={totalHolesProduction}
         onLoadSample={handleLoadSample}
+        obraTitle={obraTitle}
       />
 
       {/* Main Content Area */}
@@ -181,7 +211,9 @@ export default function App() {
             totalPartsCount={totalPartsCount}
             totalHolesProduction={totalHolesProduction}
             onFileLoaded={handleFileLoaded}
+            onMultipleFilesLoaded={handleMultipleFilesLoaded}
             rawCsvText={rawCsvText}
+            loadedFiles={loadedFiles}
           />
         )}
 
@@ -208,12 +240,13 @@ export default function App() {
         )}
 
         {activeTab === 'print' && (
-          <WorkshopPrintReport
+          <ResumenPerforacionesReport
             parts={parts}
             diameterSummary={diameterSummary}
             totalPartsCount={totalPartsCount}
             totalHolesProduction={totalHolesProduction}
             headerMetadata={headerMetadata}
+            obraTitle={obraTitle}
           />
         )}
       </main>

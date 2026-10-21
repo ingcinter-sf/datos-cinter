@@ -2,16 +2,18 @@ export interface HoleDetail {
   id: string;
   diameter: number; // in mm, e.g. 14, 15, 17.5
   countPerPiece: number; // e.g. 2, 4, 9, 18
-  type?: 'pasante' | 'coliso' | 'roscado' | 'avellanado';
+  type?: 'pasante' | 'corredera' | 'roscado' | 'avellanado';
   slot?: string; // e.g. "14.0x30.0" or "40.0x17.5"
   location?: string;
+  thickness?: number; // thickness in mm of the host part
 }
 
 export interface PartRecord {
   id: string;
-  partId: string; // e.g. "N29000", "N29001"
-  profile: string; // e.g. "CC150-2-20*70"
-  quantity: number; // Cant. Partes e.g. 5
+  partId: string; // e.g. "A80000", "A80001"
+  profile: string; // e.g. "PL7.9*64", "LP70*60*3.2"
+  thickness: number; // in mm, e.g. 7.9, 3.2, 12.7
+  quantity: number; // Cant. Partes e.g. 82
   holes: HoleDetail[];
   totalHolesPerPiece: number;
   totalHolesAllPieces: number;
@@ -26,6 +28,15 @@ export interface DiameterSummary {
   suggestedTool: string;
   recommendedRpm?: number;
   estimatedTimeSeconds?: number;
+  totalMetersDrilled?: number; // Total linear meters drilled
+}
+
+export interface ThicknessSummaryRow {
+  thickness: number; // in mm, e.g. 3.2, 4.8, 6.4, 7.9, 9.5, 12.7...
+  holesByDiameter: { [diameter: number]: number };
+  totalHolesInThickness: number;
+  totalMetersInThickness: number; // (totalHoles * thickness) / 1000
+  participatingParts: string[];
 }
 
 export interface RawCsvRow {

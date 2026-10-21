@@ -1,4 +1,4 @@
-import { PartRecord, DiameterSummary } from '../types';
+import { PartRecord, DiameterSummary, ThicknessSummaryRow } from '../types';
 
 /**
  * Detect delimiter: comma, semicolon, tab, pipe, or space
@@ -54,6 +54,73 @@ export function normalizeHeader(str: string): string {
 }
 
 /**
+ * Extracts plate or profile metal thickness in mm:
+ * e.g.:
+ * - "PL7.9*64" -> 7.9 mm
+ * - "LP70*60*3.2" -> 3.2 mm
+ * - "PL12.7*220" -> 12.7 mm
+ * - "PL70*7.9" -> 7.9 mm
+ * - "L57*4.8" -> 4.8 mm
+ * - "HI250-4.8-6.4*200" -> 4.8 mm
+ */
+export function extractProfileThickness(profile: string): number {
+  if (!profile) return 6.4;
+  const p = profile.toUpperCase().replace(/\s+/g, '');
+
+  // 1. Folded profile LP70*60*3.2 or PLP130*3.2 -> last number is thickness
+  const lpMatch = p.match(/^(?:LP|PLP|CHS)\d+(?:\.\d+)?(?:\*\d+(?:\.\d+)?)?\*(\d+(?:\.\d+)?)$/);
+  if (lpMatch) return parseFloat(lpMatch[1]);
+
+  // 2. Angle L57*4.8 -> 4.8
+  const lMatch = p.match(/^L\d+(?:\.\d+)?\*(\d+(?:\.\d+)?)$/);
+  if (lMatch) return parseFloat(lMatch[1]);
+
+  // 3. Built-up I beam HI250-4.8-6.4*200 -> web 4.8
+  const hiMatch = p.match(/^HI\d+(?:\.\d+)?-(\d+(?:\.\d+)?)/);
+  if (hiMatch) return parseFloat(hiMatch[1]);
+
+  // 4. Wide flange W150*29.8 -> web approx 5.8
+  if (p.startsWith('W150')) return 5.8;
+
+  // 5. Plate PL: PL7.9*64 or PL70*7.9 or PL12.7*220
+  const plMatch = p.match(/^PL(\d+(?:\.\d+)?)\*(\d+(?:\.\d+)?)$/);
+  if (plMatch) {
+    const a = parseFloat(plMatch[1]);
+    const b = parseFloat(plMatch[2]);
+    return Math.min(a, b);
+  }
+
+  // 6. Fallback: if has *number, smaller dimension or last number
+  const parts = p.split('*');
+  if (parts.length > 1) {
+    const num = parseFloat(parts[parts.length - 1]);
+    if (!isNaN(num) && num > 0 && num < 100) return num;
+  }
+
+  return 6.4;
+}
+
+/**
+ * Extracts Obra Title from header line (2nd position in CSV, e.g. "VMC")
+ */
+export function extractObraTitle(lines: string[], delimiter: string): string {
+  if (lines.length === 0) return 'OBRA GENERAL';
+
+  for (let i = 0; i < Math.min(lines.length, 3); i++) {
+    const cells = lines[i].split(delimiter).map(cleanCell);
+    // Look at 2nd cell (index 1)
+    if (cells.length > 1 && cells[1] && !cells[1].toLowerCase().includes('perfil')) {
+      const candidate = cells[1].trim();
+      if (candidate.length > 0 && !candidate.toLowerCase().includes('fecha')) {
+        return candidate.toUpperCase();
+      }
+    }
+  }
+
+  return 'VMC';
+}
+
+/**
  * Parses numeric values safely supporting:
  * - "17.5"
  * - "17,5"
@@ -71,6 +138,7 @@ export function parseFlexibleNumber(val: any): number {
 }
 
 export interface ParseResult {
+  obraTitle: string;
   headerMetadata: string[];
   rawLines: string[];
   sampleRows: string[][];
@@ -78,6 +146,7 @@ export interface ParseResult {
   diameterSummary: DiameterSummary[];
   totalPartsCount: number;
   totalHolesProduction: number;
+  totalMetersProduction: number; // Total linear meters to machine
   rawRowCount: number;
   detectedColumns: {
     parte: number;
@@ -104,6 +173,8 @@ export function parseMetallurgyCsv(
     .map(l => l.replace(/^\uFEFF/, '').trim())
     .filter(l => l.length > 0);
 
+  const obraTitle = extractObraTitle(rawLines, delimiter);
+
   const sampleRows: string[][] = rawLines.slice(0, 10).map(line =>
     line.split(delimiter).map(cleanCell)
   );
@@ -125,32 +196,26 @@ export function parseMetallurgyCsv(
       const cells = rawLines[i].split(delimiter).map(cleanCell);
       const normCells = cells.map(normalizeHeader);
 
-      // Part keywords: parte, marca, pieza, pos, posicion, part, mark
       const pIdx = normCells.findIndex(c =>
         c === 'parte' || c === 'marca' || c === 'pieza' || c === 'pos' || c === 'posicion' || c === 'part' || c === 'mark'
       );
 
-      // Profile keywords: perfil, profile, seccion, material
       const perfIdx = normCells.findIndex(c =>
         c === 'perfil' || c.includes('profile') || c === 'seccion' || c === 'secc' || c.includes('perfil')
       );
 
-      // Quantity keywords: cant, cantidad, qty, cantpartes
       const qtyIdx = normCells.findIndex((c, idx) =>
         idx !== pIdx && (c.includes('cant') || c === 'qty' || c === 'cantidad' || c === 'cantpartes')
       );
 
-      // Diameter keywords: diametro, diam, dia, hole, d
       const dIdx = normCells.findIndex(c =>
         c === 'diametro' || c === 'diam' || c.includes('diam') || c === 'd' || c === 'o'
       );
 
-      // Hole count keywords: agujeros, taladros, agujerosporpartes, holes (strictly avoid matching file title "bulones por parte")
       const hIdx = normCells.findIndex((c, idx) =>
         idx !== pIdx && (c.includes('agujero') || c.includes('taladro') || c === 'holes' || (c.includes('perf') && !c.includes('perfil')))
       );
 
-      // Valid table header MUST match at least 2 distinct key headers!
       const foundCount = [pIdx, perfIdx, qtyIdx, dIdx, hIdx].filter(idx => idx !== -1).length;
       if (foundCount >= 2) {
         tableHeaderIndex = i;
@@ -195,7 +260,6 @@ export function parseMetallurgyCsv(
     const rawDiam = colMap.diametro >= 0 && colMap.diametro < cells.length ? cells[colMap.diametro] : '';
     const rawHoles = colMap.agujerosPorParte >= 0 && colMap.agujerosPorParte < cells.length ? cells[colMap.agujerosPorParte] : '';
 
-    // Ignore accidental duplicate header rows
     if (normalizeHeader(rawPart).includes('parte') && normalizeHeader(rawDiam).includes('diam')) {
       continue;
     }
@@ -204,11 +268,13 @@ export function parseMetallurgyCsv(
     if (rawPart.length > 0) {
       const parsedQty = parseFlexibleNumber(rawQty);
       const qty = parsedQty > 0 ? parsedQty : 1;
+      const thickness = extractProfileThickness(rawProfile);
 
       currentPartRecord = {
         id: `part-${rawPart}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         partId: rawPart,
         profile: rawProfile || 'ESTÁNDAR',
+        thickness: thickness,
         quantity: qty,
         holes: [],
         totalHolesPerPiece: 0,
@@ -217,22 +283,22 @@ export function parseMetallurgyCsv(
       partsMap.set(rawPart, currentPartRecord);
     }
 
-    // Check if this row (whether new part or continuation row) has hole information
     const numDiam = parseFlexibleNumber(rawDiam);
     const numHoles = parseFlexibleNumber(rawHoles);
 
     if (currentPartRecord && numDiam > 0 && numHoles > 0) {
-      // Check for slot / coliso notation e.g. "14.0(14.0x30.0)" or "17.5(40.0x17.5)"
+      // Check for slot / corredera notation e.g. "14.0(14.0x30.0)" or "17.5(40.0x17.5)"
       const slotMatch = rawDiam.match(/\(([^)]+)\)/);
       const slot = slotMatch ? slotMatch[1] : undefined;
-      const holeType = slot ? ('coliso' as const) : ('pasante' as const);
+      const holeType = slot ? ('corredera' as const) : ('pasante' as const);
 
       currentPartRecord.holes.push({
         id: `h-${numDiam}-${slot || 'std'}-${Math.random().toString(36).slice(2, 6)}`,
         diameter: numDiam,
-        countPerPiece: numHoles, // Exactly the number of holes specified in column!
+        countPerPiece: numHoles,
         type: holeType,
         slot: slot,
+        thickness: currentPartRecord.thickness,
       });
     }
   }
@@ -248,30 +314,75 @@ export function parseMetallurgyCsv(
     };
   });
 
-  // Calculate Tooling / Diameter Breakdown
-  const diameterMap = new Map<number, {
+  const { diameterSummary, totalPartsCount, totalHolesProduction, totalMetersProduction } = calculateSummaries(parts);
+
+  return {
+    obraTitle,
+    headerMetadata,
+    rawLines,
+    sampleRows,
+    parts,
+    diameterSummary,
+    totalPartsCount,
+    totalHolesProduction,
+    totalMetersProduction,
+    rawRowCount: dataLines.length,
+    detectedColumns: colMap,
+    delimiterUsed: delimiter,
+  };
+}
+
+/**
+ * Recalculates diameter tooling breakdown, linear meters to machine, and totals
+ */
+export function calculateSummaries(parts: PartRecord[], omitCorrederas: boolean = false): {
+  diameterSummary: DiameterSummary[];
+  totalPartsCount: number;
+  totalHolesProduction: number;
+  totalMetersProduction: number;
+} {
+  const totalParts = parts.reduce((sum, p) => sum + p.quantity, 0);
+
+  const map = new Map<number, {
     perPieceSum: number;
     productionSum: number;
+    metersSum: number;
     parts: Set<string>;
   }>();
 
+  let totalHoles = 0;
+  let totalMeters = 0;
+
   for (const part of parts) {
-    for (const hole of part.holes) {
-      if (!diameterMap.has(hole.diameter)) {
-        diameterMap.set(hole.diameter, {
+    const relevantHoles = omitCorrederas
+      ? part.holes.filter(h => h.type !== 'corredera' && !h.slot)
+      : part.holes;
+
+    for (const hole of relevantHoles) {
+      if (!map.has(hole.diameter)) {
+        map.set(hole.diameter, {
           perPieceSum: 0,
           productionSum: 0,
+          metersSum: 0,
           parts: new Set(),
         });
       }
-      const item = diameterMap.get(hole.diameter)!;
+      const item = map.get(hole.diameter)!;
+      const countForPart = hole.countPerPiece * part.quantity;
+      const thickness = part.thickness || hole.thickness || 6.4;
+      const linearMeters = (countForPart * thickness) / 1000;
+
       item.perPieceSum += hole.countPerPiece;
-      item.productionSum += hole.countPerPiece * part.quantity;
+      item.productionSum += countForPart;
+      item.metersSum += linearMeters;
       item.parts.add(part.partId);
+
+      totalHoles += countForPart;
+      totalMeters += linearMeters;
     }
   }
 
-  const diameterSummary: DiameterSummary[] = Array.from(diameterMap.entries())
+  const diameterSummary: DiameterSummary[] = Array.from(map.entries())
     .map(([diameter, data]) => {
       const vc = 28;
       const recommendedRpm = Math.round((1000 * vc) / (Math.PI * diameter));
@@ -281,29 +392,127 @@ export function parseMetallurgyCsv(
         diameter,
         totalHolesPerPieceSum: data.perPieceSum,
         totalHolesProduction: data.productionSum,
+        totalMetersDrilled: Math.round(data.metersSum * 100) / 100,
         participatingParts: Array.from(data.parts),
-        suggestedTool: diameter <= 26 ? `Broca / Punzón Ø${diameter}mm` : `Fresa / Mecha Ø${diameter}mm`,
+        suggestedTool: diameter <= 26 ? `Broca / Punzón Ø${diameter}mm` : `Fresa / Mecha especial Ø${diameter}mm`,
         recommendedRpm,
         estimatedTimeSeconds: data.productionSum * timePerHoleSeconds,
       };
     })
     .sort((a, b) => a.diameter - b.diameter);
 
-  const totalPartsCount = parts.reduce((sum, p) => sum + p.quantity, 0);
-  const totalHolesProduction = parts.reduce((sum, p) => sum + p.totalHolesAllPieces, 0);
+  return {
+    diameterSummary,
+    totalPartsCount: totalParts,
+    totalHolesProduction: totalHoles,
+    totalMetersProduction: Math.round(totalMeters * 100) / 100,
+  };
+}
+
+/**
+ * Builds Matrix of Perforations separated by Thickness (rows) and Diameters (columns)
+ */
+export function buildThicknessMatrix(parts: PartRecord[], omitCorrederas: boolean = false): {
+  matrixRows: ThicknessSummaryRow[];
+  uniqueDiameters: number[];
+  grandTotalHoles: number;
+  grandTotalMeters: number;
+} {
+  const thicknessMap = new Map<number, ThicknessSummaryRow>();
+  const diameterSet = new Set<number>();
+
+  for (const part of parts) {
+    const thickness = part.thickness || 6.4;
+    const relevantHoles = omitCorrederas
+      ? part.holes.filter(h => h.type !== 'corredera' && !h.slot)
+      : part.holes;
+
+    if (!thicknessMap.has(thickness)) {
+      thicknessMap.set(thickness, {
+        thickness,
+        holesByDiameter: {},
+        totalHolesInThickness: 0,
+        totalMetersInThickness: 0,
+        participatingParts: [],
+      });
+    }
+
+    const row = thicknessMap.get(thickness)!;
+    if (!row.participatingParts.includes(part.partId)) {
+      row.participatingParts.push(part.partId);
+    }
+
+    for (const hole of relevantHoles) {
+      diameterSet.add(hole.diameter);
+      const holeCount = hole.countPerPiece * part.quantity;
+      row.holesByDiameter[hole.diameter] = (row.holesByDiameter[hole.diameter] || 0) + holeCount;
+      row.totalHolesInThickness += holeCount;
+    }
+  }
+
+  // Calculate linear meters for each thickness row
+  let grandTotalHoles = 0;
+  let grandTotalMeters = 0;
+
+  const matrixRows = Array.from(thicknessMap.values())
+    .map(row => {
+      const meters = (row.totalHolesInThickness * row.thickness) / 1000;
+      row.totalMetersInThickness = Math.round(meters * 100) / 100;
+      grandTotalHoles += row.totalHolesInThickness;
+      grandTotalMeters += row.totalMetersInThickness;
+      return row;
+    })
+    .sort((a, b) => a.thickness - b.thickness);
+
+  const uniqueDiameters = Array.from(diameterSet).sort((a, b) => a - b);
 
   return {
-    headerMetadata,
-    rawLines,
-    sampleRows,
-    parts,
-    diameterSummary,
-    totalPartsCount,
-    totalHolesProduction,
-    rawRowCount: dataLines.length,
-    detectedColumns: colMap,
-    delimiterUsed: delimiter,
+    matrixRows,
+    uniqueDiameters,
+    grandTotalHoles,
+    grandTotalMeters: Math.round(grandTotalMeters * 100) / 100,
   };
+}
+
+/**
+ * Merges two arrays of PartRecords with smart summation of quantities
+ */
+export function mergePartRecords(baseParts: PartRecord[], incomingParts: PartRecord[]): PartRecord[] {
+  const map = new Map<string, PartRecord>();
+
+  for (const part of baseParts) {
+    map.set(part.partId.toUpperCase(), {
+      ...part,
+      holes: part.holes.map(h => ({ ...h })),
+    });
+  }
+
+  for (const part of incomingParts) {
+    const key = part.partId.toUpperCase();
+    if (map.has(key)) {
+      const existing = map.get(key)!;
+      existing.quantity += part.quantity;
+
+      for (const h of part.holes) {
+        const existingHole = existing.holes.find(
+          eh => Math.abs(eh.diameter - h.diameter) < 0.05 && eh.slot === h.slot
+        );
+        if (!existingHole) {
+          existing.holes.push({ ...h });
+        }
+      }
+
+      existing.totalHolesPerPiece = existing.holes.reduce((sum, h) => sum + h.countPerPiece, 0);
+      existing.totalHolesAllPieces = existing.totalHolesPerPiece * existing.quantity;
+    } else {
+      map.set(key, {
+        ...part,
+        holes: part.holes.map(h => ({ ...h })),
+      });
+    }
+  }
+
+  return Array.from(map.values());
 }
 
 /**
@@ -313,11 +522,13 @@ export function exportPartsToCsv(parts: PartRecord[]): string {
   const headers = [
     'Marca / Pieza',
     'Perfil',
+    'Espesor (mm)',
     'Cant. Piezas',
     'Diametro (mm)',
     'Tipo / Ranura',
     'Agujeros por Pieza',
     'Total Agujeros Lote',
+    'Metros Lineales (m)',
   ];
   const rows: string[] = [headers.join(',')];
 
@@ -326,9 +537,11 @@ export function exportPartsToCsv(parts: PartRecord[]): string {
       rows.push([
         `"${part.partId}"`,
         `"${part.profile}"`,
+        part.thickness,
         part.quantity,
         '-',
         'Sin perforaciones',
+        0,
         0,
         0,
       ].join(','));
@@ -336,14 +549,18 @@ export function exportPartsToCsv(parts: PartRecord[]): string {
     }
 
     for (const hole of part.holes) {
+      const count = hole.countPerPiece * part.quantity;
+      const meters = (count * part.thickness) / 1000;
       rows.push([
         `"${part.partId}"`,
         `"${part.profile}"`,
+        part.thickness,
         part.quantity,
         hole.diameter.toFixed(1),
-        hole.slot ? `"Coliso ${hole.slot}"` : '"Pasante"',
+        hole.slot ? `"Corredera ${hole.slot}"` : '"Pasante"',
         hole.countPerPiece,
-        hole.countPerPiece * part.quantity,
+        count,
+        meters.toFixed(2),
       ].join(','));
     }
   }

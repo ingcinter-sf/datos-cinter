@@ -14,11 +14,17 @@ import {
   Filter,
   RefreshCw,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Layers,
+  EyeOff,
+  FolderPlus
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { PartRecord, DiameterSummary } from '../types';
-import { parseMetallurgyCsv, exportPartsToCsv, ParseResult } from '../utils/csvParser';
+import { parseMetallurgyCsv, exportPartsToCsv, ParseResult, mergePartRecords, calculateSummaries } from '../utils/csvParser';
 
 interface CsvAnalyzerProps {
   parts: PartRecord[];
@@ -27,8 +33,13 @@ interface CsvAnalyzerProps {
   totalPartsCount: number;
   totalHolesProduction: number;
   onFileLoaded: (text: string, filename: string) => void;
+  onMultipleFilesLoaded?: (filesData: { content: string; filename: string }[], mode: 'replace' | 'append') => void;
   rawCsvText?: string;
+  loadedFiles?: string[];
 }
+
+type SortField = 'partId' | 'profile' | 'quantity' | 'totalHolesPerPiece' | 'totalHolesAllPieces';
+type SortDirection = 'asc' | 'desc';
 
 export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   parts,
@@ -37,19 +48,35 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   totalPartsCount,
   totalHolesProduction,
   onFileLoaded,
+  onMultipleFilesLoaded,
   rawCsvText = '',
+  loadedFiles = ['ep14_84099c8a.csv (VMC)'],
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
+  const [pasteMode, setPasteMode] = useState<'replace' | 'append'>('append');
   const [showColumnAdjuster, setShowColumnAdjuster] = useState(false);
   const [lastParseResult, setLastParseResult] = useState<ParseResult | null>(null);
 
-  // Search, Filter & Pagination
+  // New features requested by user:
+  const [omitNoHoles, setOmitNoHoles] = useState(false); // "omitir piezas sin perforacion"
+  const [omitCorrederas, setOmitCorrederas] = useState(false); // "a los agujeros colisos los llamaremos correderas y agregamos un casillero para omitir tambien"
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDiameterFilter, setSelectedDiameterFilter] = useState<number | 'all' | 'slots' | 'no-holes'>('all');
+  const [selectedPieceType, setSelectedPieceType] = useState<string>('all');
+  const [selectedProfileFilter, setSelectedProfileFilter] = useState<string>('all');
+  const [selectedDiameterFilter, setSelectedDiameterFilter] = useState<number | 'all' | 'slots'>('all');
+
+  // Sorting
+  const [sortField, setSortField] = useState<SortField>('partId');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(50);
+
+  // Upload mode: 'replace' | 'append'
+  const [uploadMode, setUploadMode] = useState<'replace' | 'append'>('append');
 
   // Manual Column Mapping overrides
   const [colMapping, setColMapping] = useState({
@@ -65,7 +92,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Robust file reader supporting both UTF-8 and ANSI / ISO-8859-1 (Latin-1)
+  // Read single file with encoding fallback
   const readFileWithFallback = async (file: File): Promise<string> => {
     try {
       const fileName = file.name.toLowerCase();
@@ -96,18 +123,36 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     }
   };
 
-  const handleFileUpload = async (file: File) => {
+  // Multiple files upload handler
+  const handleFilesUpload = async (files: FileList | File[]) => {
     try {
-      const text = await readFileWithFallback(file);
-      const parsed = parseMetallurgyCsv(text);
-      setLastParseResult(parsed);
-      setColMapping(parsed.detectedColumns);
-      setDelimiterOverride(parsed.delimiterUsed);
+      const filesArray = Array.from(files);
+      if (filesArray.length === 0) return;
+
+      const loadedList: { content: string; filename: string }[] = [];
+
+      for (const file of filesArray) {
+        const text = await readFileWithFallback(file);
+        loadedList.push({ content: text, filename: file.name });
+      }
+
+      if (onMultipleFilesLoaded) {
+        onMultipleFilesLoaded(loadedList, uploadMode);
+      } else {
+        // Fallback internal combine
+        let currentCombinedParts = uploadMode === 'append' ? [...parts] : [];
+        for (const item of loadedList) {
+          const parsed = parseMetallurgyCsv(item.content);
+          currentCombinedParts = mergePartRecords(currentCombinedParts, parsed.parts);
+          setLastParseResult(parsed);
+        }
+        setParts(currentCombinedParts);
+      }
+
       setCurrentPage(1);
-      onFileLoaded(text, file.name);
     } catch (err) {
-      console.error('Error procesando archivo:', err);
-      alert('Hubo un error al leer el archivo. Intenta usar el botón "Pegar Texto de Excel" para copiar y pegar directamente.');
+      console.error('Error procesando archivos:', err);
+      alert('Hubo un error al procesar uno de los archivos. Asegúrate de que sean formatos compatibles (CSV, TXT, Excel).');
     }
   };
 
@@ -115,7 +160,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileUpload(e.dataTransfer.files[0]);
+      handleFilesUpload(e.dataTransfer.files);
     }
   };
 
@@ -126,8 +171,15 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     setLastParseResult(parsed);
     setColMapping(parsed.detectedColumns);
     setDelimiterOverride(parsed.delimiterUsed);
+
+    if (pasteMode === 'append') {
+      const merged = mergePartRecords(parts, parsed.parts);
+      setParts(merged);
+    } else {
+      setParts(parsed.parts);
+    }
+
     setCurrentPage(1);
-    onFileLoaded(pasteContent, 'datos_pegados.csv');
     setShowPasteModal(false);
   };
 
@@ -140,6 +192,38 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     setLastParseResult(parsed);
     setCurrentPage(1);
   };
+
+  // Sorting handler
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Helper to extract piece category from partId or profile
+  const getPieceCategory = (partId: string, profile: string): string => {
+    const pUpper = partId.toUpperCase();
+    const profUpper = profile.toUpperCase();
+
+    if (profUpper.startsWith('PL') || pUpper.startsWith('PL')) return 'PL'; // Planchuela / Chapa
+    if (profUpper.startsWith('LP') || profUpper.startsWith('PLP')) return 'LP'; // Conformado
+    if (profUpper.startsWith('L') && !profUpper.startsWith('LP')) return 'L'; // Ángulo
+    if (profUpper.startsWith('W') || profUpper.startsWith('HI') || profUpper.startsWith('IPE') || profUpper.startsWith('UPN')) return 'VIGA'; // Viga/Columna
+    if (profUpper.includes('ARAND') || profUpper.includes('TUERCA') || profUpper.includes('RW')) return 'ACC'; // Accesorios
+    return 'OTROS';
+  };
+
+  // Unique profiles list for filter dropdown
+  const uniqueProfiles = useMemo(() => {
+    const set = new Set<string>();
+    parts.forEach(p => {
+      if (p.profile) set.add(p.profile);
+    });
+    return Array.from(set).sort();
+  }, [parts]);
 
   // Update part quantity in table
   const handleUpdateQuantity = (partId: string, newQty: number) => {
@@ -235,12 +319,97 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     }
   };
 
+  // Filter & Search Logic
+  const filteredParts = useMemo(() => {
+    return parts
+      .map(part => {
+        if (!omitCorrederas) return part;
+        const nonCorrederas = part.holes.filter(h => h.type !== 'corredera' && !h.slot);
+        const totalHolesPerPiece = nonCorrederas.reduce((s, h) => s + h.countPerPiece, 0);
+        return {
+          ...part,
+          holes: nonCorrederas,
+          totalHolesPerPiece,
+          totalHolesAllPieces: totalHolesPerPiece * part.quantity,
+        };
+      })
+      .filter(part => {
+        // 1. Omit pieces without holes
+        if (omitNoHoles && part.holes.length === 0) {
+          return false;
+        }
+
+        // 2. Search term (partId or profile)
+        const matchSearch =
+          searchTerm === '' ||
+          part.partId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          part.profile.toLowerCase().includes(searchTerm.toLowerCase());
+
+        if (!matchSearch) return false;
+
+        // 3. Piece type filter
+        if (selectedPieceType !== 'all') {
+          const cat = getPieceCategory(part.partId, part.profile);
+          if (cat !== selectedPieceType) return false;
+        }
+
+        // 4. Profile / section filter
+        if (selectedProfileFilter !== 'all' && part.profile !== selectedProfileFilter) {
+          return false;
+        }
+
+        // 5. Diameter filter
+        if (selectedDiameterFilter !== 'all') {
+          if (selectedDiameterFilter === 'slots') {
+            return part.holes.some(h => Boolean(h.slot) || h.type === 'corredera');
+          }
+          return part.holes.some(h => Math.abs(h.diameter - (selectedDiameterFilter as number)) < 0.05);
+        }
+
+        return true;
+      });
+  }, [parts, omitNoHoles, omitCorrederas, searchTerm, selectedPieceType, selectedProfileFilter, selectedDiameterFilter]);
+
+  // Sorted parts
+  const sortedParts = useMemo(() => {
+    const list = [...filteredParts];
+    list.sort((a, b) => {
+      let comparison = 0;
+      if (sortField === 'partId') {
+        comparison = a.partId.localeCompare(b.partId, undefined, { numeric: true });
+      } else if (sortField === 'profile') {
+        comparison = a.profile.localeCompare(b.profile, undefined, { numeric: true });
+      } else if (sortField === 'quantity') {
+        comparison = a.quantity - b.quantity;
+      } else if (sortField === 'totalHolesPerPiece') {
+        comparison = a.totalHolesPerPiece - b.totalHolesPerPiece;
+      } else if (sortField === 'totalHolesAllPieces') {
+        comparison = a.totalHolesAllPieces - b.totalHolesAllPieces;
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+    return list;
+  }, [filteredParts, sortField, sortDirection]);
+
+  // Filtered summaries (reflects active filters and omit toggle)
+  const activeSummaries = useMemo(() => {
+    return calculateSummaries(filteredParts);
+  }, [filteredParts]);
+
+  // Paginated parts
+  const totalPages = Math.max(1, Math.ceil(sortedParts.length / pageSize));
+  const paginatedParts = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sortedParts.slice(start, start + pageSize);
+  }, [sortedParts, currentPage, pageSize]);
+
   // Export to Excel
   const handleExportExcel = () => {
     const wb = XLSX.utils.book_new();
 
     const excelRows: any[] = [];
-    parts.forEach(part => {
+    sortedParts.forEach(part => {
       if (part.holes.length === 0) {
         excelRows.push({
           'Marca / Pieza': part.partId,
@@ -262,7 +431,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
           'Perfil': idx === 0 ? part.profile : '',
           'Cant. Piezas': idx === 0 ? part.quantity : '',
           'Diámetro (mm)': `Ø ${hole.diameter.toFixed(1)}`,
-          'Tipo / Ranura': hole.slot ? `Coliso ${hole.slot}` : 'Pasante',
+          'Tipo / Ranura': hole.slot ? `Corredera ${hole.slot}` : 'Pasante',
           'Agujeros por Pieza': hole.countPerPiece,
           'Total Agujeros Lote': hole.countPerPiece * part.quantity,
           'Subtotal Agujeros Pieza': idx === 0 ? part.totalHolesPerPiece : '',
@@ -274,19 +443,19 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     excelRows.push({
       'Marca / Pieza': 'TOTALES GENERALES',
       'Perfil': '',
-      'Cant. Piezas': totalPartsCount,
-      'Diámetro (mm)': `${diameterSummary.length} medidas`,
+      'Cant. Piezas': activeSummaries.totalPartsCount,
+      'Diámetro (mm)': `${activeSummaries.diameterSummary.length} medidas`,
       'Tipo / Ranura': '',
       'Agujeros por Pieza': '',
-      'Total Agujeros Lote': totalHolesProduction,
+      'Total Agujeros Lote': activeSummaries.totalHolesProduction,
       'Subtotal Agujeros Pieza': '',
-      'Gran Total Pieza': totalHolesProduction,
+      'Gran Total Pieza': activeSummaries.totalHolesProduction,
     });
 
     const ws1 = XLSX.utils.json_to_sheet(excelRows);
     XLSX.utils.book_append_sheet(wb, ws1, 'Planilla Perforaciones');
 
-    const summaryRows = diameterSummary.map(d => ({
+    const summaryRows = activeSummaries.diameterSummary.map(d => ({
       'Diámetro (mm)': `Ø ${d.diameter.toFixed(1)}`,
       'Total Agujeros a Perforar': d.totalHolesProduction,
       'Herramienta Sugerida': d.suggestedTool,
@@ -301,7 +470,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
   // Export to CSV
   const handleExportCsv = () => {
-    const csvContent = exportPartsToCsv(parts);
+    const csvContent = exportPartsToCsv(sortedParts);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -313,48 +482,73 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   };
 
   const handleCopyTable = () => {
-    const csvContent = exportPartsToCsv(parts);
+    const csvContent = exportPartsToCsv(sortedParts);
     navigator.clipboard.writeText(csvContent);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2500);
   };
 
-  // Filter & Search Logic
-  const filteredParts = useMemo(() => {
-    return parts.filter(part => {
-      const matchSearch =
-        searchTerm === '' ||
-        part.partId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        part.profile.toLowerCase().includes(searchTerm.toLowerCase());
-
-      if (!matchSearch) return false;
-
-      if (selectedDiameterFilter === 'all') return true;
-      if (selectedDiameterFilter === 'slots') {
-        return part.holes.some(h => Boolean(h.slot) || h.type === 'coliso');
-      }
-      if (selectedDiameterFilter === 'no-holes') {
-        return part.holes.length === 0;
-      }
-      return part.holes.some(h => Math.abs(h.diameter - selectedDiameterFilter) < 0.05);
-    });
-  }, [parts, searchTerm, selectedDiameterFilter]);
-
-  // Paginated parts
-  const totalPages = Math.max(1, Math.ceil(filteredParts.length / pageSize));
-  const paginatedParts = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredParts.slice(start, start + pageSize);
-  }, [filteredParts, currentPage, pageSize]);
-
   const sampleColumns = lastParseResult?.sampleRows?.[0] || ['Col 0', 'Col 1', 'Col 2', 'Col 3', 'Col 4'];
+  const countNoHoles = parts.filter(p => p.holes.length === 0).length;
+  const countCorrederas = useMemo(() => {
+    return parts.reduce((sum, p) => {
+      const pSlots = p.holes.filter(h => h.type === 'corredera' || Boolean(h.slot));
+      return sum + pSlots.reduce((s, h) => s + (h.countPerPiece * p.quantity), 0);
+    }, 0);
+  }, [parts]);
 
   return (
     <div className="space-y-6">
       {/* Upload Zone & Action Buttons */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+        {/* Upload Mode Selector & File List */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400 font-semibold">Modo de Carga:</span>
+            <div className="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-800">
+              <button
+                onClick={() => setUploadMode('append')}
+                className={`px-3 py-1 rounded-md transition-all font-semibold cursor-pointer ${
+                  uploadMode === 'append'
+                    ? 'bg-amber-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Añadir más archivos y sumar cantidades a la lista actual"
+              >
+                + Añadir a lo existente (Unificar)
+              </button>
+              <button
+                onClick={() => setUploadMode('replace')}
+                className={`px-3 py-1 rounded-md transition-all font-semibold cursor-pointer ${
+                  uploadMode === 'replace'
+                    ? 'bg-amber-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Reemplazar todo con los nuevos archivos"
+              >
+                Reemplazar todo
+              </button>
+            </div>
+          </div>
+
+          {/* Loaded Files Badges */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-slate-500">Archivos en lote:</span>
+            {loadedFiles.map((fn, idx) => (
+              <span
+                key={idx}
+                className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px] border border-slate-700 flex items-center gap-1"
+              >
+                <FileSpreadsheet className="w-3 h-3 text-amber-400" />
+                {fn}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Dropzone & Buttons */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-          {/* Dropzone Area */}
+          {/* Dropzone Area with MULTIPLE file support */}
           <div
             onDragOver={e => {
               e.preventDefault();
@@ -372,9 +566,10 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
             <input
               type="file"
               ref={fileInputRef}
+              multiple
               onChange={e => {
-                if (e.target.files && e.target.files[0]) {
-                  handleFileUpload(e.target.files[0]);
+                if (e.target.files && e.target.files.length > 0) {
+                  handleFilesUpload(e.target.files);
                 }
               }}
               accept=".csv,.txt,.xlsx,.xls,.tsv"
@@ -382,18 +577,20 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
             />
 
             <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-              <Upload className="w-5 h-5" />
+              <FolderPlus className="w-5 h-5" />
             </div>
 
             <div>
               <div className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <span>Subir o arrastrar archivo CSV o Excel</span>
+                <span>Subir 1 o varios archivos CSV / Excel juntos</span>
                 <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
-                  Coma o Punto y Coma
+                  Selección múltiple admitida
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Detecta automáticamente columnas de Pieza, Perfil, Cantidad, Diámetros y Agujeros por parte.
+                {uploadMode === 'append'
+                  ? 'Los archivos nuevos se sumarán a la planilla actual (unifica marcas repetidas sumando cantidades).'
+                  : 'Los archivos nuevos reemplazarán la planilla actual.'}
               </p>
             </div>
           </div>
@@ -425,7 +622,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
         {/* Column Mapping Adjuster Drawer */}
         {showColumnAdjuster && (
-          <div className="mt-4 pt-4 border-t border-slate-800 bg-slate-950/60 p-4 rounded-xl border space-y-3">
+          <div className="pt-4 border-t border-slate-800 bg-slate-950/60 p-4 rounded-xl border space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
                 <Settings2 className="w-3.5 h-3.5" />
@@ -509,16 +706,16 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
         )}
       </div>
 
-      {/* KPI Production Summary Cards */}
+      {/* KPI Production Summary Cards (Dynamically reflects filters and omit toggle) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
           <div className="text-xs text-slate-400 font-medium mb-1">Total Piezas a Fabricar</div>
           <div className="text-2xl sm:text-3xl font-black text-white font-mono flex items-baseline gap-2">
-            {totalPartsCount.toLocaleString()}
+            {activeSummaries.totalPartsCount.toLocaleString()}
             <span className="text-xs font-semibold text-slate-400 font-sans">unidades</span>
           </div>
           <div className="text-[11px] text-slate-500 mt-1">
-            En {parts.length} marcas distintas
+            En {filteredParts.length} marcas {omitNoHoles && countNoHoles > 0 ? `(${countNoHoles} lisas omitidas)` : ''}
           </div>
         </div>
 
@@ -528,92 +725,192 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
             GRAN TOTAL DE PERFORACIONES
           </div>
           <div className="text-2xl sm:text-3xl font-black text-amber-300 font-mono flex items-baseline gap-2">
-            {totalHolesProduction.toLocaleString()}
+            {activeSummaries.totalHolesProduction.toLocaleString()}
             <span className="text-xs font-semibold text-amber-400 font-sans">agujeros</span>
           </div>
           <div className="text-[11px] text-slate-400 mt-1">
-            Cubicación total para todo el lote
+            Cubicación de producción activa
           </div>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-          <div className="text-xs text-slate-400 font-medium mb-1">Diámetros de Perforación</div>
+          <div className="text-xs text-slate-400 font-medium mb-1">Diámetros Requeridos</div>
           <div className="text-2xl sm:text-3xl font-black text-white font-mono flex items-baseline gap-2">
-            {diameterSummary.length}
+            {activeSummaries.diameterSummary.length}
             <span className="text-xs font-semibold text-slate-400 font-sans">medidas</span>
           </div>
           <div className="text-[11px] text-slate-400 mt-1 font-mono truncate">
-            {diameterSummary.map(d => `Ø${d.diameter}`).join(', ') || 'Sin perforaciones'}
+            {activeSummaries.diameterSummary.map(d => `Ø${d.diameter}`).join(', ') || 'Sin perforaciones'}
           </div>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
           <div className="text-xs text-slate-400 font-medium mb-1">Promedio por Pieza</div>
           <div className="text-2xl sm:text-3xl font-black text-white font-mono flex items-baseline gap-2">
-            {totalPartsCount > 0 ? (totalHolesProduction / totalPartsCount).toFixed(1) : '0'}
+            {activeSummaries.totalPartsCount > 0 ? (activeSummaries.totalHolesProduction / activeSummaries.totalPartsCount).toFixed(1) : '0'}
             <span className="text-xs font-semibold text-slate-400 font-sans">agujeros / pza</span>
           </div>
           <div className="text-[11px] text-slate-500 mt-1">
-            Densidad de taladrado/punzonado
+            Densidad de mecanizado activo
+          </div>
+        </div>
+      </div>
+
+      {/* FILTERS & SEARCH CONTROL PANEL */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5 uppercase tracking-wide">
+            <Filter className="w-4 h-4 text-amber-400" />
+            Filtros y Búsqueda Avanzada
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* OMIT PIECES WITHOUT HOLES CHECKBOX */}
+            <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-amber-500/40 text-xs font-semibold text-slate-200 cursor-pointer transition-colors">
+              <input
+                type="checkbox"
+                checked={omitNoHoles}
+                onChange={e => {
+                  setOmitNoHoles(e.target.checked);
+                  setCurrentPage(1);
+                }}
+                className="accent-amber-400 w-4 h-4 rounded cursor-pointer"
+              />
+              <span className="flex items-center gap-1.5">
+                <EyeOff className="w-3.5 h-3.5 text-amber-400" />
+                Omitir piezas sin perforación
+                {countNoHoles > 0 && (
+                  <span className="px-1.5 py-0.2 rounded bg-slate-800 text-[10px] text-amber-300 font-mono">
+                    {countNoHoles} lisas
+                  </span>
+                )}
+              </span>
+            </label>
+
+            {/* OMIT CORREDERAS (SLOTTED HOLES) CHECKBOX */}
+            <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/40 text-xs font-semibold text-slate-200 cursor-pointer transition-colors">
+              <input
+                type="checkbox"
+                checked={omitCorrederas}
+                onChange={e => {
+                  setOmitCorrederas(e.target.checked);
+                  setCurrentPage(1);
+                }}
+                className="accent-purple-400 w-4 h-4 rounded cursor-pointer"
+              />
+              <span className="flex items-center gap-1.5">
+                <EyeOff className="w-3.5 h-3.5 text-purple-400" />
+                Omitir correderas
+                {countCorrederas > 0 && (
+                  <span className="px-1.5 py-0.2 rounded bg-slate-800 text-[10px] text-purple-300 font-mono">
+                    {countCorrederas} u.
+                  </span>
+                )}
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          {/* 1. Free Search */}
+          <div>
+            <label className="block text-slate-400 font-semibold mb-1">Buscar por Pieza o Perfil:</label>
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              <input
+                type="text"
+                placeholder="ej: A80000, LP70, PL6.4..."
+                value={searchTerm}
+                onChange={e => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
+              />
+            </div>
+          </div>
+
+          {/* 2. Filter by Piece Type */}
+          <div>
+            <label className="block text-slate-400 font-semibold mb-1">Tipo de Pieza:</label>
+            <select
+              value={selectedPieceType}
+              onChange={e => {
+                setSelectedPieceType(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 focus:outline-none focus:border-amber-400"
+            >
+              <option value="all">Todos los Tipos</option>
+              <option value="PL">Planchuelas / Chapas (PL)</option>
+              <option value="LP">Conformados (LP / PLP)</option>
+              <option value="L">Ángulos (L)</option>
+              <option value="VIGA">Vigas / Columnas (W, HI, IPE, CHS)</option>
+              <option value="ACC">Arandelas y Accesorios (ARAND, TUERCA)</option>
+              <option value="OTROS">Otros perfiles</option>
+            </select>
+          </div>
+
+          {/* 3. Filter by Specific Profile / Section */}
+          <div>
+            <label className="block text-slate-400 font-semibold mb-1">Perfil / Sección:</label>
+            <select
+              value={selectedProfileFilter}
+              onChange={e => {
+                setSelectedProfileFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 focus:outline-none focus:border-amber-400"
+            >
+              <option value="all">Todos los Perfiles ({uniqueProfiles.length})</option>
+              {uniqueProfiles.map(prof => (
+                <option key={prof} value={prof}>
+                  {prof}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 4. Filter by Diameter */}
+          <div>
+            <label className="block text-slate-400 font-semibold mb-1">Diámetro de Broca / Punzón:</label>
+            <select
+              value={selectedDiameterFilter}
+              onChange={e => {
+                const val = e.target.value;
+                setSelectedDiameterFilter(val === 'all' || val === 'slots' ? val : parseFloat(val));
+                setCurrentPage(1);
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 focus:outline-none focus:border-amber-400"
+            >
+              <option value="all">Todos los Diámetros</option>
+              {diameterSummary.map(d => (
+                <option key={d.diameter} value={d.diameter}>
+                  Ø {d.diameter.toFixed(1)} mm ({d.totalHolesProduction.toLocaleString()} ag.)
+                </option>
+              ))}
+              <option value="slots">Solo Correderas (Ranuradas)</option>
+            </select>
           </div>
         </div>
       </div>
 
       {/* MAIN CONSOLIDATED METALLURGY TABLE */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4">
-        {/* Table Title, Filter & Action Bar */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-slate-800">
+        {/* Table Title & Action Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
           <div>
             <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
               <FileSpreadsheet className="w-5 h-5 text-amber-400" />
               Planilla Consolidada de Piezas, Diámetros y Perforaciones
             </h3>
             <p className="text-xs text-slate-400">
-              Mostrando {filteredParts.length} de {parts.length} piezas analizadas.
+              Mostrando {sortedParts.length} piezas resultantes (haz clic en las cabeceras para ordenar).
             </p>
           </div>
 
-          {/* Search & Diameter Quick Filter */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-              <input
-                type="text"
-                placeholder="Buscar por Pieza (ej: A80000) o Perfil..."
-                value={searchTerm}
-                onChange={e => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="pl-8 pr-3 py-1.5 text-xs rounded-lg bg-slate-950 border border-slate-700 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400 w-52 sm:w-60 font-mono"
-              />
-            </div>
-
-            {/* Quick Diameter Dropdown */}
-            <div className="flex items-center gap-1.5">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
-              <select
-                value={selectedDiameterFilter}
-                onChange={e => {
-                  const val = e.target.value;
-                  setSelectedDiameterFilter(val === 'all' || val === 'slots' || val === 'no-holes' ? val : parseFloat(val));
-                  setCurrentPage(1);
-                }}
-                className="px-2.5 py-1.5 text-xs rounded-lg bg-slate-950 border border-slate-700 text-slate-200 focus:outline-none focus:border-amber-400"
-              >
-                <option value="all">Todos los Diámetros</option>
-                {diameterSummary.map(d => (
-                  <option key={d.diameter} value={d.diameter}>
-                    Solo Ø {d.diameter.toFixed(1)} mm ({d.totalHolesProduction.toLocaleString()} ag.)
-                  </option>
-                ))}
-                <option value="slots">Solo Perforaciones Colisas (Ranuradas)</option>
-                <option value="no-holes">Solo Piezas sin perforaciones</option>
-              </select>
-            </div>
-
-            {/* Export Actions */}
+          {/* Export Actions */}
+          <div className="flex items-center gap-2">
             <button
               onClick={handleCopyTable}
               className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center gap-1 cursor-pointer"
@@ -641,17 +938,89 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
           </div>
         </div>
 
-        {/* Master Table */}
+        {/* Master Table with Clickable Sort Headers */}
         <div className="overflow-x-auto border border-slate-800 rounded-lg">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="bg-slate-950 text-slate-300 font-bold border-b border-slate-800 text-[11px] uppercase tracking-wider">
-                <th className="py-3 px-3 w-32">Marca / Pieza</th>
-                <th className="py-3 px-3 w-40">Perfil / Sección</th>
-                <th className="py-3 px-3 text-center w-24">Cant. Piezas</th>
+              <tr className="bg-slate-950 text-slate-300 font-bold border-b border-slate-800 text-[11px] uppercase tracking-wider select-none">
+                {/* Sortable: Marca / Pieza */}
+                <th
+                  onClick={() => handleSort('partId')}
+                  className="py-3 px-3 w-32 cursor-pointer hover:text-amber-400 transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    <span>Marca / Pieza</span>
+                    {sortField === 'partId' ? (
+                      sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5 text-amber-400" /> : <ArrowDown className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-slate-600" />
+                    )}
+                  </div>
+                </th>
+
+                {/* Sortable: Perfil */}
+                <th
+                  onClick={() => handleSort('profile')}
+                  className="py-3 px-3 w-44 cursor-pointer hover:text-amber-400 transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    <span>Perfil / Sección</span>
+                    {sortField === 'profile' ? (
+                      sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5 text-amber-400" /> : <ArrowDown className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-slate-600" />
+                    )}
+                  </div>
+                </th>
+
+                {/* Sortable: Cant. Piezas */}
+                <th
+                  onClick={() => handleSort('quantity')}
+                  className="py-3 px-3 text-center w-24 cursor-pointer hover:text-amber-400 transition-colors"
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    <span>Cant.</span>
+                    {sortField === 'quantity' ? (
+                      sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5 text-amber-400" /> : <ArrowDown className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-slate-600" />
+                    )}
+                  </div>
+                </th>
+
+                {/* Diámetros */}
                 <th className="py-3 px-3">Diámetros de Perforación</th>
-                <th className="py-3 px-3 text-right w-36">Agujeros x Pieza</th>
-                <th className="py-3 px-3 text-right w-44">Total Agujeros Lote</th>
+
+                {/* Sortable: Agujeros x Pieza */}
+                <th
+                  onClick={() => handleSort('totalHolesPerPiece')}
+                  className="py-3 px-3 text-right w-36 cursor-pointer hover:text-amber-400 transition-colors"
+                >
+                  <div className="flex items-center justify-end gap-1">
+                    <span>Agujeros x Pza</span>
+                    {sortField === 'totalHolesPerPiece' ? (
+                      sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5 text-amber-400" /> : <ArrowDown className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-slate-600" />
+                    )}
+                  </div>
+                </th>
+
+                {/* Sortable: Total Agujeros Lote */}
+                <th
+                  onClick={() => handleSort('totalHolesAllPieces')}
+                  className="py-3 px-3 text-right w-44 cursor-pointer hover:text-amber-400 transition-colors"
+                >
+                  <div className="flex items-center justify-end gap-1">
+                    <span>Total Lote</span>
+                    {sortField === 'totalHolesAllPieces' ? (
+                      sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5 text-amber-400" /> : <ArrowDown className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-slate-600" />
+                    )}
+                  </div>
+                </th>
+
                 <th className="py-3 px-3 text-center w-16">Acción</th>
               </tr>
             </thead>
@@ -706,7 +1075,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                                 Ø {hole.diameter.toFixed(1)} mm
                                 {hole.slot && (
                                   <span className="text-[10px] font-sans font-normal text-purple-200">
-                                    (Coliso {hole.slot})
+                                    (Corredera {hole.slot})
                                   </span>
                                 )}
                               </span>
@@ -790,29 +1159,32 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                 </tr>
               ))}
 
-              {filteredParts.length === 0 && (
+              {sortedParts.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-500 font-sans">
                     <AlertCircle className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                    <p className="text-sm font-semibold text-slate-400">No se encontraron piezas que coincidan con la búsqueda.</p>
+                    <p className="text-sm font-semibold text-slate-400">No se encontraron piezas con los filtros activos.</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Intenta restablecer el buscador o desmarcar "Omitir piezas sin perforación".
+                    </p>
                   </td>
                 </tr>
               )}
             </tbody>
 
-            {/* TOTALS FOOTER */}
-            {parts.length > 0 && (
+            {/* TOTALS FOOTER (Reflects filtered/omitted dataset) */}
+            {sortedParts.length > 0 && (
               <tfoot>
                 <tr className="bg-slate-950 border-t-2 border-amber-500/50 font-mono text-sm">
                   <td colSpan={2} className="py-4 px-3 font-black text-amber-400 font-sans tracking-wide">
-                    TOTALES GENERALES DE PRODUCCIÓN:
+                    TOTALES DE PRODUCCIÓN ({sortedParts.length} piezas listadas):
                   </td>
                   <td className="py-4 px-3 text-center font-black text-white text-base">
-                    {totalPartsCount.toLocaleString()} <span className="text-xs font-sans text-slate-400">u.</span>
+                    {activeSummaries.totalPartsCount.toLocaleString()} <span className="text-xs font-sans text-slate-400">u.</span>
                   </td>
                   <td className="py-4 px-3 font-sans text-xs text-slate-300">
                     <div className="flex flex-wrap gap-1.5">
-                      {diameterSummary.map(d => (
+                      {activeSummaries.diameterSummary.map(d => (
                         <span
                           key={d.diameter}
                           className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-200 font-mono text-[11px]"
@@ -826,7 +1198,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                     Gran Total:
                   </td>
                   <td className="py-4 px-3 text-right font-black text-amber-300 text-lg">
-                    {totalHolesProduction.toLocaleString()}{' '}
+                    {activeSummaries.totalHolesProduction.toLocaleString()}{' '}
                     <span className="text-xs font-sans text-amber-400/80 font-semibold">agujeros</span>
                   </td>
                   <td></td>
@@ -852,10 +1224,10 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                 <option value={25}>25</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
-                <option value={400}>Todas ({filteredParts.length})</option>
+                <option value={500}>Todas ({sortedParts.length})</option>
               </select>
               <span>
-                Página {currentPage} de {totalPages} ({filteredParts.length} piezas en total)
+                Página {currentPage} de {totalPages} ({sortedParts.length} piezas en total)
               </span>
             </div>
 
@@ -901,15 +1273,35 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
               </button>
             </div>
 
-            <p className="text-xs text-slate-400">
-              Selecciona las celdas en tu Excel (o copia el texto del CSV/TXT), presiona <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">Ctrl + C</kbd> y pégalas aquí con <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">Ctrl + V</kbd>:
-            </p>
+            <div className="flex items-center gap-4 text-xs">
+              <span className="text-slate-400 font-semibold">Acción al procesar:</span>
+              <label className="flex items-center gap-1.5 text-slate-200 cursor-pointer">
+                <input
+                  type="radio"
+                  name="pasteMode"
+                  checked={pasteMode === 'append'}
+                  onChange={() => setPasteMode('append')}
+                  className="accent-amber-400"
+                />
+                Sumar a las piezas existentes (+ Unificar)
+              </label>
+              <label className="flex items-center gap-1.5 text-slate-200 cursor-pointer">
+                <input
+                  type="radio"
+                  name="pasteMode"
+                  checked={pasteMode === 'replace'}
+                  onChange={() => setPasteMode('replace')}
+                  className="accent-amber-400"
+                />
+                Reemplazar todo
+              </label>
+            </div>
 
             <textarea
               rows={8}
               value={pasteContent}
               onChange={e => setPasteContent(e.target.value)}
-              placeholder={`Bulones por Parte ,VMC , , , Fecha 18.09.2026\nParte ,Perfil ,Cant. Partes,Diametro ,Agujeros por partes\nA80000 ,PL7.9*64 ,82 , ,\n , , , 17.5 , 2\nA80001 ,LP70*60*3.2 ,1 , ,\n , , , 14.0 , 4`}
+              placeholder={`Parte ,Perfil ,Cant. Partes,Diametro ,Agujeros por partes\nA80000 ,PL7.9*64 ,82 , ,\n , , , 17.5 , 2\nA80001 ,LP70*60*3.2 ,1 , ,\n , , , 14.0 , 4`}
               className="w-full p-3 bg-slate-950 border border-slate-700 rounded-xl font-mono text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-400"
             />
 
@@ -931,7 +1323,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                   className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  Procesar y Generar Planilla
+                  Procesar y Unificar
                 </button>
               </div>
             </div>

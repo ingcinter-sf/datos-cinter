@@ -15,6 +15,7 @@ interface NavbarProps {
   totalParts: number;
   totalHoles: number;
   onLoadSample: (type: 'vmc' | 'n29000') => void;
+  obraTitle?: string;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -23,6 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   totalParts,
   totalHoles,
   onLoadSample,
+  obraTitle = 'VMC',
 }) => {
   return (
     <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-50 shadow-md">
@@ -99,6 +101,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveTab('print')}
+            className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold rounded-md transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'print'
+                ? 'bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/20 font-bold'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Printer className="w-4 h-4" />
+            <span className="flex items-center gap-1.5">
+              <span>RESUMEN PERFORACIONES</span>
+              <span className={`text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${
+                activeTab === 'print' ? 'bg-slate-950 text-amber-400' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              }`}>
+                {obraTitle}
+              </span>
+            </span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('dxf')}
             className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold rounded-md transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'dxf'
@@ -132,18 +153,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Calculator className="w-4 h-4" />
             Tiempos & Costos
-          </button>
-
-          <button
-            onClick={() => setActiveTab('print')}
-            className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold rounded-md transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'print'
-                ? 'bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/20 font-bold'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <Printer className="w-4 h-4" />
-            Orden de Taller
           </button>
         </nav>
       </div>
