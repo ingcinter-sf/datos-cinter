@@ -11,12 +11,18 @@ import { PartRecord, DiameterSummary } from './types';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'csv' | 'dxf' | 'ai' | 'calculator' | 'print'>('csv');
+  
+  // Theme state: 'light' (white background & blue accents) vs 'dark' (slate-950 & amber)
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
   // Initialize with the user's real project (VMC with A80000, 370 parts, 26,954 holes)
   const initialData = useMemo(() => parseMetallurgyCsv(SAMPLE_METALLURGY_VMC), []);
   const [parts, setParts] = useState<PartRecord[]>(initialData.parts);
   const [headerMetadata, setHeaderMetadata] = useState<string[]>(initialData.headerMetadata);
-  const [obraTitle, setObraTitle] = useState<string>(initialData.obraTitle || 'VMC');
+  
+  // Project Name: defaults to first file added and is fully editable anytime
+  const [projectName, setProjectName] = useState<string>('ep14_84099c8a (VMC)');
   const [rawCsvText, setRawCsvText] = useState<string>(SAMPLE_METALLURGY_VMC);
 
   // Recalculate summary metrics whenever parts change
@@ -80,7 +86,7 @@ export default function App() {
     setParts(parsed.parts);
     setHeaderMetadata(parsed.headerMetadata);
     setRawCsvText(targetData);
-    setObraTitle(parsed.obraTitle || (type === 'vmc' ? 'VMC' : 'N29000'));
+    setProjectName(type === 'vmc' ? 'ep14_84099c8a (VMC)' : 'N29000_CC150');
     setLoadedFiles([type === 'vmc' ? 'ep14_84099c8a.csv (VMC)' : 'N29000_CC150.csv']);
     setActiveTab('csv');
   };
@@ -91,7 +97,10 @@ export default function App() {
     const parsed = parseMetallurgyCsv(rawContent);
     setParts(parsed.parts);
     setHeaderMetadata(parsed.headerMetadata);
-    setObraTitle(parsed.obraTitle || 'OBRA');
+    
+    // Set project name by default to the name of the file added first (clean filename without extension)
+    const defaultName = filename.replace(/\.[^/.]+$/, '');
+    setProjectName(defaultName);
     setLoadedFiles([filename]);
     setActiveTab('csv');
   };
@@ -100,18 +109,20 @@ export default function App() {
   const handleMultipleFilesLoaded = (filesData: { content: string; filename: string }[], mode: 'replace' | 'append') => {
     let combinedParts = mode === 'append' ? [...parts] : [];
     const newFileNames = filesData.map(f => f.filename);
-    let detectedObra = obraTitle;
 
     for (const item of filesData) {
       const parsed = parseMetallurgyCsv(item.content);
       combinedParts = mergePartRecords(combinedParts, parsed.parts);
-      if (parsed.obraTitle && parsed.obraTitle !== 'OBRA GENERAL') {
-        detectedObra = parsed.obraTitle;
-      }
     }
 
     setParts(combinedParts);
-    setObraTitle(detectedObra);
+    
+    // If replacing or initial load, set default title to the first file uploaded
+    if (mode === 'replace' && filesData.length > 0) {
+      const firstDefaultName = filesData[0].filename.replace(/\.[^/.]+$/, '');
+      setProjectName(firstDefaultName);
+    }
+
     setLoadedFiles(prev => (mode === 'append' ? Array.from(new Set([...prev, ...newFileNames])) : newFileNames));
     setActiveTab('csv');
   };
@@ -180,7 +191,6 @@ export default function App() {
     });
 
     setParts(prev => {
-      // Merge or append
       const existingMap = new Map(prev.map(p => [p.partId.toUpperCase(), p]));
       converted.forEach(cp => {
         existingMap.set(cp.partId.toUpperCase(), cp);
@@ -190,15 +200,22 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
-      {/* Navigation */}
+    <div className={`min-h-screen ${
+      theme === 'light' 
+        ? 'bg-slate-100 text-slate-900' 
+        : 'bg-slate-950 text-slate-100'
+    } flex flex-col font-sans transition-colors duration-200 selection:bg-blue-600 selection:text-white`}>
+      {/* Navigation with Theme Switcher, CINTER Logo, and Editable Project Title */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         totalParts={totalPartsCount}
         totalHoles={totalHolesProduction}
         onLoadSample={handleLoadSample}
-        obraTitle={obraTitle}
+        projectName={projectName}
+        onProjectNameChange={setProjectName}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* Main Content Area */}
@@ -214,6 +231,7 @@ export default function App() {
             onMultipleFilesLoaded={handleMultipleFilesLoaded}
             rawCsvText={rawCsvText}
             loadedFiles={loadedFiles}
+            theme={theme}
           />
         )}
 
@@ -246,16 +264,22 @@ export default function App() {
             totalPartsCount={totalPartsCount}
             totalHolesProduction={totalHolesProduction}
             headerMetadata={headerMetadata}
-            obraTitle={obraTitle}
+            obraTitle={projectName}
+            onObraTitleChange={setProjectName}
+            theme={theme}
           />
         )}
       </main>
 
       {/* Footer */}
-      <footer className="print:hidden border-t border-slate-900 bg-slate-950/80 py-4 text-xs text-slate-500 text-center">
+      <footer className={`print:hidden border-t py-4 text-xs text-center transition-colors ${
+        theme === 'light' 
+          ? 'border-slate-200 bg-white/90 text-slate-500' 
+          : 'border-slate-900 bg-slate-950/80 text-slate-500'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>MetalMetric - Software de Cubicaje de Perforaciones y Planos Metalúrgicos</span>
-          <span>Compatibilidad: CSV, TXT, Excel, AutoCAD DXF, Planos PDF</span>
+          <span className="font-medium">CINTER S.A. - Plataforma de Cubicaje de Perforaciones y Planos Metalúrgicos</span>
+          <span>Formatos admitidos: CSV, TXT, Excel (.xlsx, .xls), AutoCAD DXF, Planos PDF</span>
         </div>
       </footer>
     </div>
