@@ -86,11 +86,12 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
       part.holes.forEach(hole => {
         if (hole.type === 'corredera' || hole.slot) {
           const totalCount = hole.countPerPiece * part.quantity;
-          const meters = (totalCount * part.thickness) / 1000;
+          const hostThickness = hole.thickness || part.thickness;
+          const meters = (totalCount * hostThickness) / 1000;
           list.push({
             partId: part.partId,
             profile: part.profile,
-            thickness: part.thickness,
+            thickness: hostThickness,
             diameter: hole.diameter,
             slot: hole.slot || `${hole.diameter}x${hole.diameter * 2}`,
             countPerPiece: hole.countPerPiece,

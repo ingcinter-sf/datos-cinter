@@ -63,6 +63,45 @@ export function normalizeHeader(str: string): string {
  * - "L57*4.8" -> 4.8 mm
  * - "HI250-4.8-6.4*200" -> 4.8 mm
  */
+export interface ProfileThicknessInfo {
+  primary: number;
+  web?: number;
+  flange?: number;
+  isDualThickness?: boolean;
+}
+
+export function extractProfileThicknessInfo(profile: string): ProfileThicknessInfo {
+  if (!profile) return { primary: 6.4 };
+  const p = profile.toUpperCase().replace(/\s+/g, '');
+
+  // 1. Built-up I beam: HI500-4.8-9.5*240, HF500-4.8-9.5*240, HI375-4.8-6.4*200
+  // (HI/HF/H/I/WF)<altura>-<espesor_alma>-<espesor_ala>*<ancho_ala>
+  const hiMatch = p.match(/^(?:HI|HF|H|I|WF)\d*(?:\.\d+)?-(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)(?:\*(\d+(?:\.\d+)?))?/);
+  if (hiMatch) {
+    const web = parseFloat(hiMatch[1]);
+    const flange = parseFloat(hiMatch[2]);
+    return {
+      primary: web,
+      web,
+      flange,
+      isDualThickness: true,
+    };
+  }
+
+  // 2. Wide flange W150*29.8 -> web approx 5.8, flange 9.3
+  if (p.startsWith('W150')) {
+    return {
+      primary: 5.8,
+      web: 5.8,
+      flange: 9.3,
+      isDualThickness: true,
+    };
+  }
+
+  const single = extractProfileThickness(profile);
+  return { primary: single };
+}
+
 export function extractProfileThickness(profile: string): number {
   if (!profile) return 6.4;
   const p = profile.toUpperCase().replace(/\s+/g, '');
@@ -277,13 +316,16 @@ export function parseMetallurgyCsv(
       } else {
         const parsedQty = parseFlexibleNumber(rawQty);
         const qty = parsedQty > 0 ? parsedQty : 1;
-        const thickness = extractProfileThickness(rawProfile);
+        const thickInfo = extractProfileThicknessInfo(rawProfile);
 
         currentPartRecord = {
           id: `part-${rawPart}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           partId: rawPart,
           profile: rawProfile || 'ESTÁNDAR',
-          thickness: thickness,
+          thickness: thickInfo.primary,
+          webThickness: thickInfo.web,
+          flangeThickness: thickInfo.flange,
+          isDualThickness: thickInfo.isDualThickness,
           quantity: qty,
           holes: [],
           totalHolesPerPiece: 0,
@@ -302,13 +344,31 @@ export function parseMetallurgyCsv(
       const slot = slotMatch ? slotMatch[1] : undefined;
       const holeType = slot ? ('corredera' as const) : ('pasante' as const);
 
+      // Determine thickness and location for dual-thickness profiles (HI, etc.)
+      let holeThickness = currentPartRecord.thickness;
+      let location: string | undefined = undefined;
+
+      if (currentPartRecord.isDualThickness && currentPartRecord.webThickness && currentPartRecord.flangeThickness) {
+        // In built-up I-beams (HI/HF):
+        // Holes on Flanges (Alas): Ø >= 17.8 mm (e.g. Ø17.9, Ø21.0, Ø24.0, Ø28.0)
+        // Holes on Web (Alma): Ø <= 17.5 mm (e.g. Ø14.0, Ø17.5)
+        if (numDiam >= 17.8) {
+          holeThickness = currentPartRecord.flangeThickness;
+          location = 'alas';
+        } else {
+          holeThickness = currentPartRecord.webThickness;
+          location = 'alma';
+        }
+      }
+
       currentPartRecord.holes.push({
         id: `h-${numDiam}-${slot || 'std'}-${Math.random().toString(36).slice(2, 6)}`,
         diameter: numDiam,
         countPerPiece: numHoles,
         type: holeType,
         slot: slot,
-        thickness: currentPartRecord.thickness,
+        location,
+        thickness: holeThickness,
       });
     }
   }
@@ -379,7 +439,7 @@ export function calculateSummaries(parts: PartRecord[], omitCorrederas: boolean 
       }
       const item = map.get(hole.diameter)!;
       const countForPart = hole.countPerPiece * part.quantity;
-      const thickness = part.thickness || hole.thickness || 6.4;
+      const thickness = hole.thickness || part.thickness || 6.4;
       const linearMeters = (countForPart * thickness) / 1000;
 
       item.perPieceSum += hole.countPerPiece;
@@ -421,6 +481,7 @@ export function calculateSummaries(parts: PartRecord[], omitCorrederas: boolean 
 
 /**
  * Builds Matrix of Perforations separated by Thickness (rows) and Diameters (columns)
+ * Accurately supports parts with multiple thicknesses (e.g. HI beams with Web/Alma and Flange/Alas)
  */
 export function buildThicknessMatrix(parts: PartRecord[], omitCorrederas: boolean = false): {
   matrixRows: ThicknessSummaryRow[];
@@ -432,28 +493,29 @@ export function buildThicknessMatrix(parts: PartRecord[], omitCorrederas: boolea
   const diameterSet = new Set<number>();
 
   for (const part of parts) {
-    const thickness = part.thickness || 6.4;
     const relevantHoles = omitCorrederas
       ? part.holes.filter(h => h.type !== 'corredera' && !h.slot)
       : part.holes;
 
-    if (!thicknessMap.has(thickness)) {
-      thicknessMap.set(thickness, {
-        thickness,
-        holesByDiameter: {},
-        totalHolesInThickness: 0,
-        totalMetersInThickness: 0,
-        participatingParts: [],
-      });
-    }
-
-    const row = thicknessMap.get(thickness)!;
-    if (!row.participatingParts.includes(part.partId)) {
-      row.participatingParts.push(part.partId);
-    }
-
     for (const hole of relevantHoles) {
+      const holeThickness = hole.thickness || part.thickness || 6.4;
       diameterSet.add(hole.diameter);
+
+      if (!thicknessMap.has(holeThickness)) {
+        thicknessMap.set(holeThickness, {
+          thickness: holeThickness,
+          holesByDiameter: {},
+          totalHolesInThickness: 0,
+          totalMetersInThickness: 0,
+          participatingParts: [],
+        });
+      }
+
+      const row = thicknessMap.get(holeThickness)!;
+      if (!row.participatingParts.includes(part.partId)) {
+        row.participatingParts.push(part.partId);
+      }
+
       const holeCount = hole.countPerPiece * part.quantity;
       row.holesByDiameter[hole.diameter] = (row.holesByDiameter[hole.diameter] || 0) + holeCount;
       row.totalHolesInThickness += holeCount;
@@ -502,10 +564,13 @@ export function mergePartRecords(baseParts: PartRecord[], incomingParts: PartRec
     if (map.has(key)) {
       const existing = map.get(key)!;
       existing.quantity += part.quantity;
+      if (!existing.webThickness && part.webThickness) existing.webThickness = part.webThickness;
+      if (!existing.flangeThickness && part.flangeThickness) existing.flangeThickness = part.flangeThickness;
+      if (part.isDualThickness) existing.isDualThickness = true;
 
       for (const h of part.holes) {
         const existingHole = existing.holes.find(
-          eh => Math.abs(eh.diameter - h.diameter) < 0.05 && eh.slot === h.slot
+          eh => Math.abs(eh.diameter - h.diameter) < 0.05 && eh.slot === h.slot && (eh.thickness === h.thickness || !eh.thickness)
         );
         if (!existingHole) {
           existing.holes.push({ ...h });
@@ -560,11 +625,12 @@ export function exportPartsToCsv(parts: PartRecord[]): string {
 
     for (const hole of part.holes) {
       const count = hole.countPerPiece * part.quantity;
-      const meters = (count * part.thickness) / 1000;
+      const holeThickness = hole.thickness || part.thickness;
+      const meters = (count * holeThickness) / 1000;
       rows.push([
         `"${part.partId}"`,
         `"${part.profile}"`,
-        part.thickness,
+        holeThickness,
         part.quantity,
         hole.diameter.toFixed(1),
         hole.slot ? `"Corredera ${hole.slot}"` : '"Pasante"',

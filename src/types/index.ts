@@ -13,6 +13,9 @@ export interface PartRecord {
   partId: string; // e.g. "A80000", "A80001"
   profile: string; // e.g. "PL7.9*64", "LP70*60*3.2"
   thickness: number; // in mm, e.g. 7.9, 3.2, 12.7
+  webThickness?: number; // Alma thickness for built-up beams (HI, etc.)
+  flangeThickness?: number; // Alas thickness for built-up beams (HI, etc.)
+  isDualThickness?: boolean;
   quantity: number; // Cant. Partes e.g. 82
   holes: HoleDetail[];
   totalHolesPerPiece: number;

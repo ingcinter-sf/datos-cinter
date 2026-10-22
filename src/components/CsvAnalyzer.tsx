@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { 
   Upload, 
   FileSpreadsheet, 
@@ -89,6 +89,29 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(50);
 
+  // Reset all filters to show everything (default view when adding/loading a file)
+  const resetAllFilters = () => {
+    setOmitNoHoles(false);
+    setOmitCorrederas(false);
+    setSearchTerm('');
+    setSelectedPieceType('all');
+    setSelectedProfileFilter('all');
+    setSelectedDiameterFilter('all');
+    setSortField('partId');
+    setSortDirection('asc');
+    setCurrentPage(1);
+  };
+
+  // Automatically reset filters whenever a new file or batch of files is loaded or changed
+  const prevLoadedFilesKey = useRef<string>('');
+  useEffect(() => {
+    const currentKey = loadedFiles.join('|');
+    if (currentKey && currentKey !== prevLoadedFilesKey.current) {
+      prevLoadedFilesKey.current = currentKey;
+      resetAllFilters();
+    }
+  }, [loadedFiles]);
+
   // Upload mode: 'replace' by default (or 'append' if adding to existing)
   const [uploadMode, setUploadMode] = useState<'replace' | 'append'>('replace');
 
@@ -163,7 +186,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
         setParts(currentCombinedParts);
       }
 
-      setCurrentPage(1);
+      resetAllFilters();
     } catch (err) {
       console.error('Error procesando archivos:', err);
       alert('Hubo un error al procesar uno de los archivos. Asegúrate de que sean formatos compatibles (CSV, TXT, Excel).');
@@ -193,7 +216,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
       setParts(parsed.parts);
     }
 
-    setCurrentPage(1);
+    resetAllFilters();
     setShowPasteModal(false);
   };
 
@@ -331,6 +354,33 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     if (confirm(`¿Eliminar la pieza ${partId} de la planilla?`)) {
       setParts(prev => prev.filter(p => p.partId !== partId));
     }
+  };
+
+  // Toggle hole location (Alma <-> Alas) for dual-thickness profiles (HI/HF, W)
+  const handleToggleHoleLocation = (partId: string, holeId: string) => {
+    setParts(prev =>
+      prev.map(p => {
+        if (p.partId === partId && p.webThickness && p.flangeThickness) {
+          const updatedHoles = p.holes.map(h => {
+            if (h.id === holeId) {
+              const newLocation = h.location === 'alas' ? 'alma' : 'alas';
+              const newThickness = newLocation === 'alas' ? p.flangeThickness : p.webThickness;
+              return {
+                ...h,
+                location: newLocation,
+                thickness: newThickness,
+              };
+            }
+            return h;
+          });
+          return {
+            ...p,
+            holes: updatedHoles,
+          };
+        }
+        return p;
+      })
+    );
   };
 
   // Filter & Search Logic
@@ -1164,7 +1214,21 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                   <td className={`py-3.5 px-3 font-sans font-semibold align-top ${
                     isLight ? 'text-slate-800' : 'text-slate-300'
                   }`}>
-                    {part.profile}
+                    <div>{part.profile}</div>
+                    {part.isDualThickness && part.webThickness && part.flangeThickness && (
+                      <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                          isLight ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-sky-950/60 text-sky-300 border-sky-800'
+                        }`}>
+                          Alma: {part.webThickness} mm
+                        </span>
+                        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                          isLight ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-950/60 text-indigo-300 border-indigo-800'
+                        }`}>
+                          Alas: {part.flangeThickness} mm
+                        </span>
+                      </div>
+                    )}
                   </td>
 
                   {/* Cant. Piezas */}
@@ -1196,7 +1260,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                               isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/70 border-slate-800/80'
                             }`}
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span
                                 className={`px-2 py-0.5 rounded font-bold text-[11px] flex items-center gap-1 ${
                                   hole.slot
@@ -1216,6 +1280,28 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                                 )}
                               </span>
 
+                              {/* Dual-thickness location badge with 1-click toggle */}
+                              {part.isDualThickness && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleHoleLocation(part.partId, hole.id)}
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-sans font-semibold border cursor-pointer transition-colors ${
+                                    hole.location === 'alas'
+                                      ? isLight
+                                        ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
+                                        : 'bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 border-indigo-700/60'
+                                      : isLight
+                                      ? 'bg-sky-50 hover:bg-sky-100 text-sky-700 border-sky-200'
+                                      : 'bg-sky-950/60 hover:bg-sky-900/80 text-sky-300 border-sky-700/60'
+                                  }`}
+                                  title="Clic para cambiar entre Alma y Alas"
+                                >
+                                  {hole.location === 'alas'
+                                    ? `Alas (${hole.thickness || part.flangeThickness}mm)`
+                                    : `Alma (${hole.thickness || part.webThickness}mm)`}
+                                </button>
+                              )}
+
                               <span className={isLight ? 'text-slate-700' : 'text-slate-300'}>
                                 <input
                                   type="number"
@@ -1231,12 +1317,6 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                             </div>
 
                             <div className="flex items-center gap-2">
-                              <span className={`font-sans text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                                Lote:{' '}
-                                <strong className={`font-mono text-xs ${isLight ? 'text-slate-900 font-bold' : 'text-slate-200'}`}>
-                                  {(hole.countPerPiece * part.quantity).toLocaleString()}
-                                </strong>
-                              </span>
                               {part.holes.length > 1 && (
                                 <button
                                   onClick={() => handleDeleteHole(part.partId, hole.id)}
@@ -1266,22 +1346,42 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
                   {/* Agujeros x Pieza */}
                   <td className="py-3.5 px-3 text-right align-top">
-                    <div className="text-sm font-bold text-slate-200">
+                    <div className={`text-sm font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
                       {part.totalHolesPerPiece}{' '}
-                      <span className="text-[10px] font-sans text-slate-400 font-normal">agujeros</span>
+                      <span className={`text-[10px] font-sans font-normal ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>agujeros</span>
                     </div>
-                    <div className="text-[10px] text-slate-500 font-sans">por cada pieza</div>
+                    <div className={`text-[10px] font-sans ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>por cada pieza</div>
+                    {part.isDualThickness && (
+                      <div className="mt-1 pt-1 border-t border-slate-200 dark:border-slate-800 text-[10px] font-sans space-y-0.5">
+                        <div className={isLight ? 'text-sky-800' : 'text-sky-300'}>
+                          Alma: <strong className="font-mono">{part.holes.filter(h => h.location !== 'alas').reduce((s, h) => s + h.countPerPiece, 0)}</strong>
+                        </div>
+                        <div className={isLight ? 'text-indigo-800' : 'text-indigo-300'}>
+                          Alas: <strong className="font-mono">{part.holes.filter(h => h.location === 'alas').reduce((s, h) => s + h.countPerPiece, 0)}</strong>
+                        </div>
+                      </div>
+                    )}
                   </td>
 
                   {/* Total Agujeros Lote */}
                   <td className="py-3.5 px-3 text-right align-top">
-                    <div className="text-base font-black text-amber-300">
+                    <div className={`text-base font-black ${isLight ? 'text-blue-700' : 'text-amber-300'}`}>
                       {part.totalHolesAllPieces.toLocaleString()}{' '}
-                      <span className="text-[10px] font-sans text-amber-400/80 font-normal">perforaciones</span>
+                      <span className={`text-[10px] font-sans font-normal ${isLight ? 'text-blue-600/80' : 'text-amber-400/80'}`}>perforaciones</span>
                     </div>
-                    <div className="text-[10px] text-slate-400 font-sans">
-                      ({part.quantity} piezas × {part.totalHolesPerPiece} ag.)
+                    <div className={`text-[10px] font-sans ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                      ({part.quantity} pzas × {part.totalHolesPerPiece} ag.)
                     </div>
+                    {part.isDualThickness && (
+                      <div className="mt-1 pt-1 border-t border-slate-200 dark:border-slate-800 text-[10px] font-sans space-y-0.5">
+                        <div className={isLight ? 'text-sky-800' : 'text-sky-300'}>
+                          Alma ({part.webThickness}mm): <strong className="font-mono">{(part.holes.filter(h => h.location !== 'alas').reduce((s, h) => s + h.countPerPiece, 0) * part.quantity).toLocaleString()}</strong>
+                        </div>
+                        <div className={isLight ? 'text-indigo-800' : 'text-indigo-300'}>
+                          Alas ({part.flangeThickness}mm): <strong className="font-mono">{(part.holes.filter(h => h.location === 'alas').reduce((s, h) => s + h.countPerPiece, 0) * part.quantity).toLocaleString()}</strong>
+                        </div>
+                      </div>
+                    )}
                   </td>
 
                   {/* Action */}
