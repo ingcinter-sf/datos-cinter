@@ -243,8 +243,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? 'bg-blue-600 text-white border-blue-500 shadow-[0_4px_14px_rgba(37,99,235,0.18)]'
                   : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.22)]'
                 : isLight
-                  ? 'bg-white/90 text-slate-600 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-[0_3px_10px_rgba(59,130,246,0.15)]'
-                  : 'bg-slate-900 text-slate-300 border-slate-700 shadow-[0_1px_2px_rgba(2,6,23,0.4)] hover:border-amber-500/40 hover:bg-slate-800 hover:text-amber-200 hover:shadow-[0_3px_10px_rgba(251,191,36,0.08)]'
+                  ? 'bg-white/90 text-slate-600 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-[0_3px_10px_rgba(59,130,246,0.1)]'
+                  : 'bg-slate-900 text-slate-300 border-slate-700 shadow-[0_1px_2px_rgba(2,6,23,0.4)] hover:border-amber-500/40 hover:bg-slate-800 hover:text-amber-200 hover:shadow-[0_3px_10px_rgba(251,191,36,0.12)]'
             }`}
           >
             <FileSpreadsheet className="w-4 h-4" />
@@ -259,8 +259,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? 'bg-blue-600 text-white border-blue-500 shadow-[0_4px_14px_rgba(37,99,235,0.18)]'
                   : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.22)]'
                 : isLight
-                  ? 'bg-white/90 text-slate-600 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-[0_3px_10px_rgba(59,130,246,0.15)]'
-                  : 'bg-slate-900 text-slate-300 border-slate-700 shadow-[0_1px_2px_rgba(2,6,23,0.4)] hover:border-amber-500/40 hover:bg-slate-800 hover:text-amber-200 hover:shadow-[0_3px_10px_rgba(251,191,36,0.08)]'
+                  ? 'bg-white/90 text-slate-600 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-[0_3px_10px_rgba(59,130,246,0.1)]'
+                  : 'bg-slate-900 text-slate-300 border-slate-700 shadow-[0_1px_2px_rgba(2,6,23,0.4)] hover:border-amber-500/40 hover:bg-slate-800 hover:text-amber-200 hover:shadow-[0_3px_10px_rgba(251,191,36,0.12)]'
             }`}
           >
             <Printer className="w-4 h-4" />
@@ -284,8 +284,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? 'bg-blue-600 text-white border-blue-500 shadow-[0_4px_14px_rgba(37,99,235,0.18)]'
                   : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.22)]'
                 : isLight
-                  ? 'bg-white/90 text-slate-600 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-[0_3px_10px_rgba(59,130,246,0.15)]'
-                  : 'bg-slate-900 text-slate-300 border-slate-700 shadow-[0_1px_2px_rgba(2,6,23,0.4)] hover:border-amber-500/40 hover:bg-slate-800 hover:text-amber-200 hover:shadow-[0_3px_10px_rgba(251,191,36,0.08)]'
+                  ? 'bg-white/90 text-slate-600 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-[0_3px_10px_rgba(59,130,246,0.1)]'
+                  : 'bg-slate-900 text-slate-300 border-slate-700 shadow-[0_1px_2px_rgba(2,6,23,0.4)] hover:border-amber-500/40 hover:bg-slate-800 hover:text-amber-200 hover:shadow-[0_3px_10px_rgba(251,191,36,0.12)]'
             }`}
           >
             <Compass className="w-4 h-4" />
