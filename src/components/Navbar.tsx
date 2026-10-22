@@ -64,7 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-3">
           {/* Logo & Brand */}
-          <div className="flex items-start gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             {/* CINTER Official Logo Container */}
             <div className={`h-11 px-2 py-1 rounded-lg flex items-center justify-center transition-all ${
               isLight ? 'bg-blue-50/70 border border-blue-100 shadow-xs' : 'bg-white p-1 rounded-lg shadow-sm border border-slate-700'
@@ -75,13 +75,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="h-9 w-auto max-w-[110px] object-contain"
               />
             </div>
-            <div className="flex flex-col justify-center pt-1">
+            <div>
               <div className="flex items-center gap-2">
                 <span className={`font-black text-lg tracking-tight ${isLight ? 'text-blue-900' : 'text-slate-100'}`}>
                   CINTER <span className={isLight ? 'text-blue-600 font-extrabold' : 'text-amber-400 font-extrabold'}>- Fábrica</span>
                 </span>
-              </div>
-              <div className="mt-1.5">
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
                   isLight 
                     ? 'bg-blue-50 text-blue-700 border-blue-200' 
