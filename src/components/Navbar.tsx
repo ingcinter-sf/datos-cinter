@@ -187,8 +187,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
-
-
             {/* THEME SWITCHER BUTTON (TEMA CLARO / TEMA OSCURO) */}
             <button
               onClick={onToggleTheme}
@@ -239,14 +237,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         }`}>
           <button
             onClick={() => setActiveTab('csv')}
-            className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold rounded-md transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl border transition-all duration-200 whitespace-nowrap cursor-pointer ${
               activeTab === 'csv'
-                ? isLight 
-                  ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20 font-bold' 
-                  : 'bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/20 font-bold'
+                ? isLight
+                  ? 'bg-blue-600 text-white border-blue-500 shadow-[0_4px_14px_rgba(37,99,235,0.18)]'
+                  : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.22)]'
                 : isLight
-                  ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                  ? 'bg-white/90 text-slate-600 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-[0_3px_10px_rgba(59,130,246,0.08)]'
+                  : 'bg-slate-900 text-slate-300 border-slate-700 shadow-[0_1px_2px_rgba(2,6,23,0.4)] hover:border-amber-500/40 hover:bg-slate-800 hover:text-amber-200 hover:shadow-[0_3px_10px_rgba(251,191,36,0.08)]'
             }`}
           >
             <FileSpreadsheet className="w-4 h-4" />
@@ -255,14 +253,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={() => setActiveTab('print')}
-            className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold rounded-md transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl border transition-all duration-200 whitespace-nowrap cursor-pointer ${
               activeTab === 'print'
                 ? isLight
-                  ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20 font-bold'
-                  : 'bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/20 font-bold'
+                  ? 'bg-blue-600 text-white border-blue-500 shadow-[0_4px_14px_rgba(37,99,235,0.18)]'
+                  : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.22)]'
                 : isLight
-                  ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                  ? 'bg-white/90 text-slate-600 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-[0_3px_10px_rgba(59,130,246,0.08)]'
+                  : 'bg-slate-900 text-slate-300 border-slate-700 shadow-[0_1px_2px_rgba(2,6,23,0.4)] hover:border-amber-500/40 hover:bg-slate-800 hover:text-amber-200 hover:shadow-[0_3px_10px_rgba(251,191,36,0.08)]'
             }`}
           >
             <Printer className="w-4 h-4" />
@@ -280,21 +278,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={() => setActiveTab('dxf')}
-            className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold rounded-md transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl border transition-all duration-200 whitespace-nowrap cursor-pointer ${
               activeTab === 'dxf'
                 ? isLight 
-                  ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20 font-bold' 
-                  : 'bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/20 font-bold'
+                  ? 'bg-blue-600 text-white border-blue-500 shadow-[0_4px_14px_rgba(37,99,235,0.18)]'
+                  : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.22)]'
                 : isLight
-                  ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                  ? 'bg-white/90 text-slate-600 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-[0_3px_10px_rgba(59,130,246,0.08)]'
+                  : 'bg-slate-900 text-slate-300 border-slate-700 shadow-[0_1px_2px_rgba(2,6,23,0.4)] hover:border-amber-500/40 hover:bg-slate-800 hover:text-amber-200 hover:shadow-[0_3px_10px_rgba(251,191,36,0.08)]'
             }`}
           >
             <Compass className="w-4 h-4" />
             Visor CAD (DXF)
           </button>
-
-
         </nav>
       </div>
     </header>
