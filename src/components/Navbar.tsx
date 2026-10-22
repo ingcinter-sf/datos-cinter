@@ -85,7 +85,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     ? 'bg-blue-50 text-blue-700 border-blue-200' 
                     : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                 }`}>
-                  Taller & CAD
+                  CONTROL DE PROCESOS
                 </span>
               </div>
               <p className={`text-xs hidden sm:block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
