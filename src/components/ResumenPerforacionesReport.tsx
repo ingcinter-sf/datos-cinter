@@ -9,11 +9,12 @@ import {
   Building2, 
   SlidersHorizontal,
   Edit2,
-  Check
+  Check,
+  Download
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { PartRecord, DiameterSummary } from '../types';
-import { buildThicknessMatrix } from '../utils/csvParser';
+import { buildThicknessMatrix, exportPartsToReimportableCsv, exportThicknessMatrixToCsv } from '../utils/csvParser';
 
 interface ResumenPerforacionesReportProps {
   parts: PartRecord[];
@@ -182,6 +183,39 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
     XLSX.writeFile(wb, `Resumen_Perforaciones_${obraTitle}_${Date.now()}.xlsx`);
   };
 
+  // Export full parts and holes in re-importable metallurgy CSV format (to continue adding data later)
+  const handleExportReimportableCsv = () => {
+    if (parts.length === 0) {
+      alert('No hay piezas cargadas para exportar.');
+      return;
+    }
+    const csvContent = exportPartsToReimportableCsv(parts, obraTitle);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Planilla_${obraTitle.replace(/\s+/g, '_')}_${Date.now()}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  // Export thickness matrix as CSV
+  const handleExportMatrixCsv = () => {
+    const csvContent = exportThicknessMatrixToCsv(
+      matrixData.matrixRows,
+      matrixData.uniqueDiameters,
+      diameterTotals,
+      matrixData.grandTotalHoles,
+      matrixData.grandTotalMeters,
+      obraTitle
+    );
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Matriz_Espesores_${obraTitle.replace(/\s+/g, '_')}_${Date.now()}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
   const currentDate = new Date().toLocaleDateString('es-ES', {
     day: '2-digit',
     month: '2-digit',
@@ -243,7 +277,7 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
                 ? 'bg-blue-50 text-blue-700 border-blue-200' 
                 : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
             }`}>
-              CINTER · CUBICACIÓN POR ESPESOR & METROS
+              CINTER · ANÁLISIS DE PERFORACIONES POR ESPESOR & METROS
             </span>
           </div>
           <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -276,6 +310,33 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
               )}
             </span>
           </label>
+
+          {/* Guardar en CSV (Re-importable para seguir agregando datos luego) */}
+          <button
+            onClick={handleExportReimportableCsv}
+            className={`px-3.5 py-1.5 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer border ${
+              isLight 
+                ? 'bg-blue-50 hover:bg-blue-100 text-blue-900 border-blue-300' 
+                : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
+            }`}
+            title="Descarga la planilla en formato CSV compatible para poder abrirlo o seguir agregándole datos y archivos después"
+          >
+            <Download className="w-4 h-4" />
+            Guardar en CSV
+          </button>
+
+          <button
+            onClick={handleExportMatrixCsv}
+            className={`px-3 py-1.5 font-semibold text-xs rounded-lg transition-colors flex items-center gap-1 border cursor-pointer ${
+              isLight 
+                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300' 
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+            }`}
+            title="Descargar la matriz de espesores y diámetros como CSV"
+          >
+            <Download className="w-3.5 h-3.5" />
+            CSV Matriz
+          </button>
 
           <button
             onClick={handleExportExcel}
@@ -388,7 +449,7 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
                 OBRA / PROYECTO: {obraTitle}
               </div>
               <div className="text-[11px] font-medium text-slate-600 uppercase tracking-wider">
-                Cubicación Metalúrgica de Taladrado y Punzonado CNC por Espesor y Diámetro
+                Análisis de Perforaciones de Taladrado y Punzonado CNC por Espesor y Diámetro
               </div>
             </div>
           </div>
@@ -578,7 +639,7 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
 
         {/* Note / Document Footer (No signature boxes as requested by user) */}
         <div className="mt-4 pt-3 border-t border-slate-200 text-[10px] text-slate-500 text-center flex flex-col sm:flex-row justify-between items-center gap-1">
-          <span>CINTER S.A. · Documento de Cubicaje de Perforaciones emitido automáticamente · Obra: {obraTitle}</span>
+          <span>CINTER S.A. · Documento de Análisis de Perforaciones emitido automáticamente · Obra: {obraTitle}</span>
           <span>Fecha de emisión: {currentDate}</span>
         </div>
       </div>

@@ -24,7 +24,14 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { PartRecord, DiameterSummary } from '../types';
-import { parseMetallurgyCsv, exportPartsToCsv, ParseResult, mergePartRecords, calculateSummaries } from '../utils/csvParser';
+import { 
+  parseMetallurgyCsv, 
+  exportPartsToCsv, 
+  exportPartsToReimportableCsv, 
+  ParseResult, 
+  mergePartRecords, 
+  calculateSummaries 
+} from '../utils/csvParser';
 
 interface CsvAnalyzerProps {
   parts: PartRecord[];
@@ -34,6 +41,8 @@ interface CsvAnalyzerProps {
   totalHolesProduction: number;
   onFileLoaded: (text: string, filename: string) => void;
   onMultipleFilesLoaded?: (filesData: { content: string; filename: string }[], mode: 'replace' | 'append') => void;
+  onClearAll?: () => void;
+  onLoadSample?: (type: 'vmc' | 'n29000') => void;
   rawCsvText?: string;
   loadedFiles?: string[];
   theme?: 'light' | 'dark';
@@ -50,15 +59,17 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   totalHolesProduction,
   onFileLoaded,
   onMultipleFilesLoaded,
+  onClearAll,
+  onLoadSample,
   rawCsvText = '',
-  loadedFiles = ['ep14_84099c8a.csv (VMC)'],
+  loadedFiles = [],
   theme = 'light',
 }) => {
   const isLight = theme === 'light';
   const [isDragging, setIsDragging] = useState(false);
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
-  const [pasteMode, setPasteMode] = useState<'replace' | 'append'>('append');
+  const [pasteMode, setPasteMode] = useState<'replace' | 'append'>('replace');
   const [showColumnAdjuster, setShowColumnAdjuster] = useState(false);
   const [lastParseResult, setLastParseResult] = useState<ParseResult | null>(null);
 
@@ -78,8 +89,8 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(50);
 
-  // Upload mode: 'replace' | 'append'
-  const [uploadMode, setUploadMode] = useState<'replace' | 'append'>('append');
+  // Upload mode: 'replace' by default (or 'append' if adding to existing)
+  const [uploadMode, setUploadMode] = useState<'replace' | 'append'>('replace');
 
   // Manual Column Mapping overrides
   const [colMapping, setColMapping] = useState({
@@ -471,9 +482,13 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     XLSX.writeFile(wb, `Planilla_Perforaciones_${Date.now()}.xlsx`);
   };
 
-  // Export to CSV
+  // Export to CSV (Re-importable standard format so user can re-import and continue adding data later)
   const handleExportCsv = () => {
-    const csvContent = exportPartsToCsv(sortedParts);
+    if (sortedParts.length === 0) {
+      alert('No hay piezas en la planilla para exportar.');
+      return;
+    }
+    const csvContent = exportPartsToReimportableCsv(sortedParts, 'PLANILLA_PERFORACIONES');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -754,7 +769,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
             <span className={`text-xs font-semibold font-sans ${isLight ? 'text-blue-700' : 'text-amber-400'}`}>agujeros</span>
           </div>
           <div className={`text-[11px] mt-1 ${isLight ? 'text-blue-800/70' : 'text-slate-400'}`}>
-            Cubicación de producción activa
+            Análisis de producción activo
           </div>
         </div>
 
@@ -976,8 +991,27 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
             </p>
           </div>
 
-          {/* Export Actions */}
-          <div className="flex items-center gap-2">
+          {/* Export & Manage Actions */}
+          <div className="flex flex-wrap items-center gap-2">
+            {parts.length > 0 && onClearAll && (
+              <button
+                onClick={() => {
+                  if (confirm('¿Vaciar toda la planilla para cargar un archivo nuevo desde cero?')) {
+                    onClearAll();
+                  }
+                }}
+                className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors flex items-center gap-1 cursor-pointer ${
+                  isLight 
+                    ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200' 
+                    : 'bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border-rose-900'
+                }`}
+                title="Vaciar la planilla actual"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Vaciar
+              </button>
+            )}
+
             <button
               onClick={handleCopyTable}
               className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors flex items-center gap-1 cursor-pointer ${
@@ -985,7 +1019,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                   ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300' 
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
               }`}
-              title="Copiar contenido de la tabla"
+              title="Copiar contenido de la tabla al portapapeles"
             >
               <ClipboardCopy className="w-3.5 h-3.5" />
               {copySuccess ? '¡Copiado!' : 'Copiar'}
@@ -993,14 +1027,15 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
             <button
               onClick={handleExportCsv}
-              className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors flex items-center gap-1 cursor-pointer ${
+              className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border transition-colors flex items-center gap-1 cursor-pointer ${
                 isLight 
-                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300' 
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                  ? 'bg-blue-50 hover:bg-blue-100 text-blue-900 border-blue-300' 
+                  : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
               }`}
+              title="Guardar en CSV compatible para re-importar o seguir agregando datos luego"
             >
               <Download className="w-3.5 h-3.5" />
-              CSV
+              Guardar CSV
             </button>
 
             <button
@@ -1262,7 +1297,25 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                 </tr>
               ))}
 
-              {sortedParts.length === 0 && (
+              {parts.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-16 text-center font-sans">
+                    <div className="max-w-md mx-auto space-y-3">
+                      <div className={`w-12 h-12 rounded-xl mx-auto flex items-center justify-center border ${
+                        isLight ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-slate-800 border-slate-700 text-amber-400'
+                      }`}>
+                        <FileSpreadsheet className="w-6 h-6" />
+                      </div>
+                      <h4 className={`text-base font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                        La planilla está lista para cargar
+                      </h4>
+                      <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                        Sube o arrastra tus archivos CSV, TXT o Excel en el panel superior para procesar las marcas, perforaciones y diámetros.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : sortedParts.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-500 font-sans">
                     <AlertCircle className="w-8 h-8 text-slate-600 mx-auto mb-2" />
@@ -1272,37 +1325,48 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                     </p>
                   </td>
                 </tr>
-              )}
+              ) : null}
             </tbody>
 
             {/* TOTALS FOOTER (Reflects filtered/omitted dataset) */}
             {sortedParts.length > 0 && (
               <tfoot>
-                <tr className="bg-slate-950 border-t-2 border-amber-500/50 font-mono text-sm">
-                  <td colSpan={2} className="py-4 px-3 font-black text-amber-400 font-sans tracking-wide">
+                <tr className={`border-t-2 font-mono text-sm ${
+                  isLight 
+                    ? 'bg-blue-900 text-white border-blue-950' 
+                    : 'bg-slate-950 border-amber-500/50 text-slate-100'
+                }`}>
+                  <td colSpan={2} className={`py-4 px-3 font-black font-sans tracking-wide ${
+                    isLight ? 'text-blue-100' : 'text-amber-400'
+                  }`}>
                     TOTALES DE PRODUCCIÓN ({sortedParts.length} piezas listadas):
                   </td>
                   <td className="py-4 px-3 text-center font-black text-white text-base">
-                    {activeSummaries.totalPartsCount.toLocaleString()} <span className="text-xs font-sans text-slate-400">u.</span>
+                    {activeSummaries.totalPartsCount.toLocaleString()}{' '}
+                    <span className={`text-xs font-sans ${isLight ? 'text-blue-200' : 'text-slate-400'}`}>u.</span>
                   </td>
-                  <td className="py-4 px-3 font-sans text-xs text-slate-300">
+                  <td className={`py-4 px-3 font-sans text-xs ${isLight ? 'text-blue-100' : 'text-slate-300'}`}>
                     <div className="flex flex-wrap gap-1.5">
                       {activeSummaries.diameterSummary.map(d => (
                         <span
                           key={d.diameter}
-                          className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-200 font-mono text-[11px]"
+                          className={`px-2 py-0.5 rounded font-mono text-[11px] border ${
+                            isLight 
+                              ? 'bg-blue-800 border-blue-700 text-white' 
+                              : 'bg-slate-900 border-slate-700 text-slate-200'
+                          }`}
                         >
                           <strong>Ø{d.diameter}mm:</strong> {d.totalHolesProduction.toLocaleString()} ag.
                         </span>
                       ))}
                     </div>
                   </td>
-                  <td className="py-4 px-3 text-right text-xs font-sans text-slate-400">
+                  <td className={`py-4 px-3 text-right text-xs font-sans ${isLight ? 'text-blue-200' : 'text-slate-400'}`}>
                     Gran Total:
                   </td>
-                  <td className="py-4 px-3 text-right font-black text-amber-300 text-lg">
+                  <td className={`py-4 px-3 text-right font-black text-lg ${isLight ? 'text-amber-300' : 'text-amber-300'}`}>
                     {activeSummaries.totalHolesProduction.toLocaleString()}{' '}
-                    <span className="text-xs font-sans text-amber-400/80 font-semibold">agujeros</span>
+                    <span className="text-xs font-sans text-amber-200 font-semibold">agujeros</span>
                   </td>
                   <td></td>
                 </tr>

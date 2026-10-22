@@ -16,14 +16,23 @@ export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
-  // Initialize with the user's real project (VMC with A80000, 370 parts, 26,954 holes)
-  const initialData = useMemo(() => parseMetallurgyCsv(SAMPLE_METALLURGY_VMC), []);
-  const [parts, setParts] = useState<PartRecord[]>(initialData.parts);
-  const [headerMetadata, setHeaderMetadata] = useState<string[]>(initialData.headerMetadata);
+  // Initialize clean: NO pre-loaded data on startup (user starts with empty slate)
+  const [parts, setParts] = useState<PartRecord[]>([]);
+  const [headerMetadata, setHeaderMetadata] = useState<string[]>([]);
   
-  // Project Name: defaults to first file added and is fully editable anytime
-  const [projectName, setProjectName] = useState<string>('ep14_84099c8a (VMC)');
-  const [rawCsvText, setRawCsvText] = useState<string>(SAMPLE_METALLURGY_VMC);
+  // Project Name: defaults to 'Nueva Obra' until first file is added, and is fully editable anytime
+  const [projectName, setProjectName] = useState<string>('Nueva Obra');
+  const [rawCsvText, setRawCsvText] = useState<string>('');
+  const [loadedFiles, setLoadedFiles] = useState<string[]>([]);
+
+  // Clear all data (blank slate)
+  const handleClearAll = () => {
+    setParts([]);
+    setHeaderMetadata([]);
+    setProjectName('Nueva Obra');
+    setRawCsvText('');
+    setLoadedFiles([]);
+  };
 
   // Recalculate summary metrics whenever parts change
   const { totalPartsCount, totalHolesProduction, diameterSummary } = useMemo(() => {
@@ -77,9 +86,7 @@ export default function App() {
     };
   }, [parts]);
 
-  const [loadedFiles, setLoadedFiles] = useState<string[]>(['ep14_84099c8a.csv (VMC)']);
-
-  // Load preset sample data
+  // Load preset sample data if user explicitly requests it
   const handleLoadSample = (type: 'vmc' | 'n29000' = 'vmc') => {
     const targetData = type === 'vmc' ? SAMPLE_METALLURGY_VMC : SAMPLE_METALLURGY_CSV;
     const parsed = parseMetallurgyCsv(targetData);
@@ -98,7 +105,7 @@ export default function App() {
     setParts(parsed.parts);
     setHeaderMetadata(parsed.headerMetadata);
     
-    // Set project name by default to the name of the file added first (clean filename without extension)
+    // Set project name by default to the name of the file added (clean filename without extension)
     const defaultName = filename.replace(/\.[^/.]+$/, '');
     setProjectName(defaultName);
     setLoadedFiles([filename]);
@@ -107,7 +114,9 @@ export default function App() {
 
   // When a user drops/uploads multiple CSV/Excel files at once or appends to existing
   const handleMultipleFilesLoaded = (filesData: { content: string; filename: string }[], mode: 'replace' | 'append') => {
-    let combinedParts = mode === 'append' ? [...parts] : [];
+    // If there were no parts loaded yet, always start fresh
+    const effectiveMode = parts.length === 0 ? 'replace' : mode;
+    let combinedParts = effectiveMode === 'append' ? [...parts] : [];
     const newFileNames = filesData.map(f => f.filename);
 
     for (const item of filesData) {
@@ -118,12 +127,12 @@ export default function App() {
     setParts(combinedParts);
     
     // If replacing or initial load, set default title to the first file uploaded
-    if (mode === 'replace' && filesData.length > 0) {
+    if (effectiveMode === 'replace' && filesData.length > 0) {
       const firstDefaultName = filesData[0].filename.replace(/\.[^/.]+$/, '');
       setProjectName(firstDefaultName);
     }
 
-    setLoadedFiles(prev => (mode === 'append' ? Array.from(new Set([...prev, ...newFileNames])) : newFileNames));
+    setLoadedFiles(prev => (effectiveMode === 'append' ? Array.from(new Set([...prev, ...newFileNames])) : newFileNames));
     setActiveTab('csv');
   };
 
@@ -212,6 +221,7 @@ export default function App() {
         totalParts={totalPartsCount}
         totalHoles={totalHolesProduction}
         onLoadSample={handleLoadSample}
+        onClearAll={handleClearAll}
         projectName={projectName}
         onProjectNameChange={setProjectName}
         theme={theme}
@@ -229,6 +239,8 @@ export default function App() {
             totalHolesProduction={totalHolesProduction}
             onFileLoaded={handleFileLoaded}
             onMultipleFilesLoaded={handleMultipleFilesLoaded}
+            onClearAll={handleClearAll}
+            onLoadSample={handleLoadSample}
             rawCsvText={rawCsvText}
             loadedFiles={loadedFiles}
             theme={theme}
@@ -278,7 +290,7 @@ export default function App() {
           : 'border-slate-900 bg-slate-950/80 text-slate-500'
       }`}>
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span className="font-medium">CINTER S.A. - Plataforma de Cubicaje de Perforaciones y Planos Metalúrgicos</span>
+          <span className="font-medium">CINTER S.A. - Plataforma de Análisis de Perforaciones y Planos Metalúrgicos</span>
           <span>Formatos admitidos: CSV, TXT, Excel (.xlsx, .xls), AutoCAD DXF, Planos PDF</span>
         </div>
       </footer>

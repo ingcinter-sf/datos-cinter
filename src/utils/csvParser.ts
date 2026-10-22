@@ -264,23 +264,33 @@ export function parseMetallurgyCsv(
       continue;
     }
 
-    // New Part row
+    // New Part row or continuation of existing part
     if (rawPart.length > 0) {
-      const parsedQty = parseFlexibleNumber(rawQty);
-      const qty = parsedQty > 0 ? parsedQty : 1;
-      const thickness = extractProfileThickness(rawProfile);
+      const partKey = `${rawPart.toUpperCase()}__${(rawProfile || '').toUpperCase()}`;
+      if (partsMap.has(partKey)) {
+        currentPartRecord = partsMap.get(partKey)!;
+        // If row specified new quantity and it differs, ensure it is non-zero
+        const parsedQty = parseFlexibleNumber(rawQty);
+        if (parsedQty > 0 && currentPartRecord.quantity <= 1) {
+          currentPartRecord.quantity = parsedQty;
+        }
+      } else {
+        const parsedQty = parseFlexibleNumber(rawQty);
+        const qty = parsedQty > 0 ? parsedQty : 1;
+        const thickness = extractProfileThickness(rawProfile);
 
-      currentPartRecord = {
-        id: `part-${rawPart}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        partId: rawPart,
-        profile: rawProfile || 'ESTÁNDAR',
-        thickness: thickness,
-        quantity: qty,
-        holes: [],
-        totalHolesPerPiece: 0,
-        totalHolesAllPieces: 0,
-      };
-      partsMap.set(rawPart, currentPartRecord);
+        currentPartRecord = {
+          id: `part-${rawPart}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          partId: rawPart,
+          profile: rawProfile || 'ESTÁNDAR',
+          thickness: thickness,
+          quantity: qty,
+          holes: [],
+          totalHolesPerPiece: 0,
+          totalHolesAllPieces: 0,
+        };
+        partsMap.set(partKey, currentPartRecord);
+      }
     }
 
     const numDiam = parseFlexibleNumber(rawDiam);
@@ -567,3 +577,98 @@ export function exportPartsToCsv(parts: PartRecord[]): string {
 
   return rows.join('\n');
 }
+
+/**
+ * Generates standard Metallurgy CSV export that can be re-imported back
+ * into this app or merged with other files seamlessly.
+ */
+export function exportPartsToReimportableCsv(parts: PartRecord[], obraTitle: string = 'OBRA'): string {
+  const lines: string[] = [
+    `Bulones por Parte ,${obraTitle}          , ,          ,               Fecha ${new Date().toLocaleDateString('es-ES')}`,
+    '',
+    '    Parte   ,Perfil      ,Cant. Partes,Diametro  ,Agujeros por partes',
+  ];
+
+  for (const part of parts) {
+    if (part.holes.length === 0) {
+      lines.push(`    ${part.partId.padEnd(8)} ,${part.profile.padEnd(20)} ,${String(part.quantity).padEnd(4)} ,        ,`);
+      continue;
+    }
+
+    // First line with part and first hole
+    const firstHole = part.holes[0];
+    const firstDiamStr = firstHole.slot ? `${firstHole.diameter.toFixed(1)}(${firstHole.slot})` : `${firstHole.diameter.toFixed(1)}`;
+    lines.push(`    ${part.partId.padEnd(8)} ,${part.profile.padEnd(20)} ,${String(part.quantity).padEnd(4)} ,        ,`);
+    lines.push(`            ,            ,            ,            ${firstDiamStr.padEnd(16)} , ${firstHole.countPerPiece}`);
+
+    // Subsequent holes for same part
+    for (let i = 1; i < part.holes.length; i++) {
+      const h = part.holes[i];
+      const diamStr = h.slot ? `${h.diameter.toFixed(1)}(${h.slot})` : `${h.diameter.toFixed(1)}`;
+      lines.push(`            ,            ,            ,            ${diamStr.padEnd(16)} , ${h.countPerPiece}`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Generates Matrix CSV (Thickness x Diameters x Meters) for technical reports & spreadsheets
+ */
+export function exportThicknessMatrixToCsv(
+  matrixRows: ThicknessSummaryRow[],
+  uniqueDiameters: number[],
+  diameterTotals: { [diameter: number]: { holes: number; meters: number } },
+  grandTotalHoles: number,
+  grandTotalMeters: number,
+  obraTitle: string = 'OBRA'
+): string {
+  const lines: string[] = [
+    `"RESUMEN DE PERFORACIONES POR ESPESOR Y DIAMETRO - OBRA: ${obraTitle}"`,
+    `"Fecha: ${new Date().toLocaleDateString('es-ES')}"`,
+    '',
+  ];
+
+  // Header
+  const headers = [
+    'Espesor (mm)',
+    ...uniqueDiameters.map(d => `Ø ${d.toFixed(1)} mm`),
+    'Total Agujeros Espesor',
+    'Metros a Mecanizar (m)',
+    'Marcas Incluidas'
+  ];
+  lines.push(headers.join(','));
+
+  // Rows
+  for (const row of matrixRows) {
+    const rowValues = [
+      `"${row.thickness.toFixed(1)} mm"`,
+      ...uniqueDiameters.map(d => row.holesByDiameter[d] || 0),
+      row.totalHolesInThickness,
+      row.totalMetersInThickness.toFixed(2),
+      `"${row.participatingParts.join('; ')}"`
+    ];
+    lines.push(rowValues.join(','));
+  }
+
+  // Footer Totals Row
+  lines.push([
+    '"TOTAL AGUJEROS POR DIAMETRO"',
+    ...uniqueDiameters.map(d => diameterTotals[d]?.holes || 0),
+    grandTotalHoles,
+    grandTotalMeters.toFixed(2),
+    '""'
+  ].join(','));
+
+  // Footer Meters Row
+  lines.push([
+    '"METROS A MECANIZAR POR DIAMETRO (m)"',
+    ...uniqueDiameters.map(d => (diameterTotals[d]?.meters || 0).toFixed(2)),
+    '""',
+    grandTotalMeters.toFixed(2),
+    '""'
+  ].join(','));
+
+  return lines.join('\n');
+}
+
