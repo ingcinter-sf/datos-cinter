@@ -166,7 +166,7 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
     XLSX.utils.book_append_sheet(wb, ws1, `Resumen Espesores - ${obraTitle}`);
 
     // 2. Correderas Sheet
-    if (correderasSummary.list.length > 0) {
+    if (!omitCorrederas && correderasSummary.list.length > 0) {
       const correderasRows = correderasSummary.list.map(c => ({
         'Marca / Pieza': c.partId,
         'Perfil': c.profile,
@@ -577,7 +577,7 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
         </div>
 
         {/* 2. DETAIL OF CORREDERAS (SLOTTED HOLES) */}
-        {correderasSummary.list.length > 0 && (
+        {!omitCorrederas && correderasSummary.list.length > 0 && (
           <div className="mb-4 space-y-2">
             <div className="flex items-center justify-between border-b border-slate-300 pb-1">
               <h4 className="text-xs font-black uppercase tracking-wider text-blue-950 flex items-center gap-1.5">
