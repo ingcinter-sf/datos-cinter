@@ -350,9 +350,35 @@ export function parseMetallurgyCsv(
 
       if (currentPartRecord.isDualThickness && currentPartRecord.webThickness && currentPartRecord.flangeThickness) {
         // In built-up I-beams (HI/HF):
-        // Holes on Flanges (Alas): Ø >= 17.8 mm (e.g. Ø17.9, Ø21.0, Ø24.0, Ø28.0)
-        // Holes on Web (Alma): Ø <= 17.5 mm (e.g. Ø14.0, Ø17.5)
-        if (numDiam >= 17.8) {
+        // Standard Web (Alma) connections: Ø <= 17.5 mm (e.g. Ø14.0, Ø17.5)
+        // Standard Flange (Alas) connections: Ø >= 19.5 mm (e.g. Ø21.0, Ø24.0, Ø28.0)
+        // Intermediate clearance/tolerance diameter Ø17.9 mm:
+        // In structural workshop drawings (e.g. Hf80028, Hf80042, Hf80051), these 8 holes
+        // are split symmetrically between the Web (Alma) and the Flanges (Alas): 4 in Alma, 4 in Alas!
+        if (Math.abs(numDiam - 17.9) < 0.15 && numHoles >= 2 && numHoles % 2 === 0) {
+          const half = Math.round(numHoles / 2);
+          currentPartRecord.holes.push({
+            id: `h-${numDiam}-alma-${Math.random().toString(36).slice(2, 6)}`,
+            diameter: numDiam,
+            countPerPiece: half,
+            type: holeType,
+            slot: slot,
+            location: 'alma',
+            thickness: currentPartRecord.webThickness,
+          });
+          currentPartRecord.holes.push({
+            id: `h-${numDiam}-alas-${Math.random().toString(36).slice(2, 6)}`,
+            diameter: numDiam,
+            countPerPiece: numHoles - half,
+            type: holeType,
+            slot: slot,
+            location: 'alas',
+            thickness: currentPartRecord.flangeThickness,
+          });
+          continue;
+        }
+
+        if (numDiam >= 19.5) {
           holeThickness = currentPartRecord.flangeThickness;
           location = 'alas';
         } else {
@@ -570,7 +596,11 @@ export function mergePartRecords(baseParts: PartRecord[], incomingParts: PartRec
 
       for (const h of part.holes) {
         const existingHole = existing.holes.find(
-          eh => Math.abs(eh.diameter - h.diameter) < 0.05 && eh.slot === h.slot && (eh.thickness === h.thickness || !eh.thickness)
+          eh =>
+            Math.abs(eh.diameter - h.diameter) < 0.05 &&
+            eh.slot === h.slot &&
+            (eh.thickness === h.thickness || !eh.thickness) &&
+            (eh.location === h.location || !eh.location)
         );
         if (!existingHole) {
           existing.holes.push({ ...h });

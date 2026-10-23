@@ -15,6 +15,8 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  Check,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -51,6 +53,240 @@ interface CsvAnalyzerProps {
 type SortField = 'partId' | 'profile' | 'quantity' | 'totalHolesPerPiece' | 'totalHolesAllPieces';
 type SortDirection = 'asc' | 'desc';
 
+interface MultiSelectFilterProps {
+  label: string;
+  options: { id: string; label: string; count?: number }[];
+  selected: string[] | null;
+  onChange: (val: string[] | null) => void;
+  isLight: boolean;
+  searchable?: boolean;
+  unit?: string;
+}
+
+const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
+  label,
+  options,
+  selected,
+  onChange,
+  isLight,
+  searchable = false,
+  unit = 'pzas'
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const allSelected = selected === null || (options.length > 0 && selected.length === options.length);
+  const noneSelected = selected !== null && selected.length === 0;
+  const countSelected = selected === null ? options.length : selected.length;
+
+  const filteredOptions = useMemo(() => {
+    if (!query.trim()) return options;
+    const q = query.toLowerCase();
+    return options.filter(o => o.label.toLowerCase().includes(q) || o.id.toLowerCase().includes(q));
+  }, [options, query]);
+
+  const handleToggle = (id: string) => {
+    const current = selected === null ? options.map(o => o.id) : [...selected];
+    const exists = current.includes(id);
+    let next: string[];
+    if (exists) {
+      next = current.filter(item => item !== id);
+    } else {
+      next = [...current, id];
+    }
+    if (next.length === options.length) {
+      onChange(null); // All selected
+    } else {
+      onChange(next);
+    }
+  };
+
+  const handleSelectAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange(null);
+  };
+
+  const handleDeselectAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange([]);
+  };
+
+  // Button summary text
+  const getButtonText = () => {
+    if (options.length === 0) return 'Sin opciones';
+    if (allSelected) return `Todos (${options.length})`;
+    if (noneSelected) return 'Ninguno seleccionado (0)';
+    if (countSelected === 1) {
+      const match = options.find(o => selected?.includes(o.id));
+      return match ? match.label : '1 seleccionado';
+    }
+    if (countSelected === 2) {
+      const matches = options.filter(o => selected?.includes(o.id));
+      if (matches.length === 2) {
+        return `${matches[0].id}, ${matches[1].id}`;
+      }
+    }
+    return `${countSelected} de ${options.length} seleccionados`;
+  };
+
+  const isFiltered = !allSelected;
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <label className={`block font-semibold mb-1 text-xs flex items-center justify-between ${
+        isLight ? 'text-slate-600' : 'text-slate-400'
+      }`}>
+        <span>{label}:</span>
+        {isFiltered && (
+          <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded font-bold ${
+            isLight ? 'bg-amber-100 text-amber-800' : 'bg-amber-950/80 text-amber-300'
+          }`}>
+            {countSelected}/{options.length}
+          </span>
+        )}
+      </label>
+
+      {/* Trigger Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(prev => !prev)}
+        className={`w-full px-2.5 py-1.5 rounded-lg border text-left flex items-center justify-between gap-1.5 transition-colors cursor-pointer text-xs ${
+          isFiltered
+            ? isLight
+              ? 'bg-amber-50/70 border-amber-300 text-slate-900 shadow-xs'
+              : 'bg-amber-950/30 border-amber-600/60 text-amber-200'
+            : isLight
+            ? 'bg-slate-50 border-slate-300 hover:border-blue-400 text-slate-900'
+            : 'bg-slate-950 border-slate-700 hover:border-amber-400 text-slate-200'
+        }`}
+      >
+        <span className="truncate font-medium">{getButtonText()}</span>
+        <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${isOpen ? 'rotate-180 text-blue-600 dark:text-amber-400' : 'text-slate-400'}`} />
+      </button>
+
+      {/* Dropdown Popover */}
+      {isOpen && (
+        <div className={`absolute z-30 left-0 mt-1 w-72 sm:w-80 rounded-xl border shadow-xl p-2.5 space-y-2 backdrop-blur-md animate-in fade-in-50 duration-100 ${
+          isLight
+            ? 'bg-white/98 border-slate-300 text-slate-800 shadow-slate-300/50'
+            : 'bg-slate-900/98 border-slate-700 text-slate-100 shadow-black/80'
+        }`}>
+          {/* Quick Actions (Todos / Ninguno) */}
+          <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-800 text-[11px]">
+            <span className="font-semibold text-slate-500 dark:text-slate-400">
+              {countSelected} de {options.length} activos
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                className={`px-2 py-0.5 rounded font-medium transition-colors cursor-pointer ${
+                  isLight
+                    ? 'hover:bg-blue-50 text-blue-700 hover:text-blue-900'
+                    : 'hover:bg-slate-800 text-amber-300 hover:text-amber-200'
+                }`}
+              >
+                Todos
+              </button>
+              <span className="text-slate-400">|</span>
+              <button
+                type="button"
+                onClick={handleDeselectAll}
+                className={`px-2 py-0.5 rounded font-medium transition-colors cursor-pointer ${
+                  isLight
+                    ? 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+                    : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Ninguno
+              </button>
+            </div>
+          </div>
+
+          {/* Search box inside dropdown if many options */}
+          {(searchable || options.length > 6) && (
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-2 top-2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Filtrar opciones..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                className={`w-full pl-7 pr-2 py-1 text-xs rounded-md border font-sans focus:outline-none ${
+                  isLight
+                    ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-500'
+                    : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-amber-400'
+                }`}
+              />
+            </div>
+          )}
+
+          {/* Checkboxes List */}
+          <div className="max-h-56 overflow-y-auto space-y-0.5 pr-1">
+            {filteredOptions.length === 0 ? (
+              <div className="py-3 text-center text-xs text-slate-400 italic">
+                No se encontraron opciones
+              </div>
+            ) : (
+              filteredOptions.map(opt => {
+                const checked = selected === null || selected.includes(opt.id);
+                return (
+                  <label
+                    key={opt.id}
+                    className={`flex items-center justify-between px-2 py-1.5 rounded-lg text-xs cursor-pointer transition-colors select-none ${
+                      checked
+                        ? isLight
+                          ? 'bg-blue-50/60 hover:bg-blue-100/70 text-slate-900'
+                          : 'bg-amber-500/10 hover:bg-amber-500/20 text-slate-100'
+                        : isLight
+                        ? 'hover:bg-slate-100 text-slate-600'
+                        : 'hover:bg-slate-800/60 text-slate-400'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0 pr-2">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => handleToggle(opt.id)}
+                        className={`w-3.5 h-3.5 rounded cursor-pointer ${
+                          isLight ? 'accent-blue-600' : 'accent-amber-400'
+                        }`}
+                      />
+                      <span className="truncate font-medium">{opt.label}</span>
+                    </div>
+                    {opt.count !== undefined && (
+                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded shrink-0 ${
+                        checked
+                          ? isLight ? 'bg-blue-100 text-blue-800' : 'bg-slate-800 text-amber-300'
+                          : isLight ? 'bg-slate-200 text-slate-600' : 'bg-slate-800 text-slate-500'
+                      }`}>
+                        {opt.count.toLocaleString()} {unit}
+                      </span>
+                    )}
+                  </label>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   parts,
   setParts,
@@ -77,9 +313,10 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   const [omitNoHoles, setOmitNoHoles] = useState(false); // "omitir piezas sin perforacion"
   const [omitCorrederas, setOmitCorrederas] = useState(false); // "a los agujeros colisos los llamaremos correderas y agregamos un casillero para omitir tambien"
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPieceType, setSelectedPieceType] = useState<string>('all');
-  const [selectedProfileFilter, setSelectedProfileFilter] = useState<string>('all');
-  const [selectedDiameterFilter, setSelectedDiameterFilter] = useState<number | 'all' | 'slots'>('all');
+  // Multi-select checkbox filter states (null = all selected)
+  const [selectedPieceTypes, setSelectedPieceTypes] = useState<string[] | null>(null);
+  const [selectedProfiles, setSelectedProfiles] = useState<string[] | null>(null);
+  const [selectedDiameters, setSelectedDiameters] = useState<string[] | null>(null);
 
   // Sorting
   const [sortField, setSortField] = useState<SortField>('partId');
@@ -94,9 +331,9 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     setOmitNoHoles(false);
     setOmitCorrederas(false);
     setSearchTerm('');
-    setSelectedPieceType('all');
-    setSelectedProfileFilter('all');
-    setSelectedDiameterFilter('all');
+    setSelectedPieceTypes(null);
+    setSelectedProfiles(null);
+    setSelectedDiameters(null);
     setSortField('partId');
     setSortDirection('asc');
     setCurrentPage(1);
@@ -356,32 +593,83 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     }
   };
 
-  // Toggle hole location (Alma <-> Alas) for dual-thickness profiles (HI/HF, W)
-  const handleToggleHoleLocation = (partId: string, holeId: string) => {
-    setParts(prev =>
-      prev.map(p => {
-        if (p.partId === partId && p.webThickness && p.flangeThickness) {
-          const updatedHoles = p.holes.map(h => {
-            if (h.id === holeId) {
-              const newLocation = h.location === 'alas' ? 'alma' : 'alas';
-              const newThickness = newLocation === 'alas' ? p.flangeThickness : p.webThickness;
-              return {
-                ...h,
-                location: newLocation,
-                thickness: newThickness,
-              };
-            }
-            return h;
-          });
-          return {
-            ...p,
-            holes: updatedHoles,
-          };
-        }
-        return p;
-      })
+  // Piece categories with exact item counts
+  const pieceTypeOptions = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const ALL_CATS = [
+      { id: 'PL', label: 'Planchuelas / Chapas (PL)' },
+      { id: 'LP', label: 'Conformados (LP / PLP)' },
+      { id: 'L', label: 'Ángulos (L)' },
+      { id: 'VIGA', label: 'Vigas / Columnas (W, HI, IPE, CHS)' },
+      { id: 'ACC', label: 'Arandelas y Accesorios (ARAND, TUERCA)' },
+      { id: 'OTROS', label: 'Otros perfiles' },
+    ];
+    parts.forEach(p => {
+      const cat = getPieceCategory(p.partId, p.profile);
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return ALL_CATS.map(c => ({
+      id: c.id,
+      label: c.label,
+      count: counts[c.id] || 0,
+    })).filter(c => c.count > 0);
+  }, [parts]);
+
+  // Profiles list with piece counts
+  const profileOptions = useMemo(() => {
+    const counts: Record<string, number> = {};
+    parts.forEach(p => {
+      const prof = p.profile || 'ESTÁNDAR';
+      counts[prof] = (counts[prof] || 0) + 1;
+    });
+    return Object.keys(counts)
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+      .map(prof => ({
+        id: prof,
+        label: prof,
+        count: counts[prof],
+      }));
+  }, [parts]);
+
+  // Count correderas in dataset
+  const countCorrederas = useMemo(() => {
+    return parts.reduce((sum, p) => {
+      const pSlots = p.holes.filter(h => h.type === 'corredera' || Boolean(h.slot));
+      return sum + pSlots.reduce((s, h) => s + (h.countPerPiece * p.quantity), 0);
+    }, 0);
+  }, [parts]);
+
+  // Diameters list with holes production counts
+  const diameterOptions = useMemo(() => {
+    const list: { id: string; label: string; count: number }[] = [];
+    diameterSummary.forEach(d => {
+      list.push({
+        id: d.diameter.toFixed(1),
+        label: `Ø ${d.diameter.toFixed(1)} mm`,
+        count: d.totalHolesProduction,
+      });
+    });
+    if (countCorrederas > 0) {
+      list.push({
+        id: 'correderas',
+        label: 'Correderas (Colisos / Ranuras)',
+        count: countCorrederas,
+      });
+    }
+    return list;
+  }, [diameterSummary, countCorrederas]);
+
+  // Is any filter currently applied?
+  const isAnyFilterActive = useMemo(() => {
+    return (
+      omitNoHoles ||
+      omitCorrederas ||
+      searchTerm.trim().length > 0 ||
+      selectedPieceTypes !== null ||
+      selectedProfiles !== null ||
+      selectedDiameters !== null
     );
-  };
+  }, [omitNoHoles, omitCorrederas, searchTerm, selectedPieceTypes, selectedProfiles, selectedDiameters]);
 
   // Filter & Search Logic
   const filteredParts = useMemo(() => {
@@ -411,28 +699,33 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
         if (!matchSearch) return false;
 
-        // 3. Piece type filter
-        if (selectedPieceType !== 'all') {
+        // 3. Piece type filter (checkboxes)
+        if (selectedPieceTypes !== null) {
           const cat = getPieceCategory(part.partId, part.profile);
-          if (cat !== selectedPieceType) return false;
+          if (!selectedPieceTypes.includes(cat)) return false;
         }
 
-        // 4. Profile / section filter
-        if (selectedProfileFilter !== 'all' && part.profile !== selectedProfileFilter) {
-          return false;
+        // 4. Profile / section filter (checkboxes)
+        if (selectedProfiles !== null) {
+          if (!selectedProfiles.includes(part.profile)) return false;
         }
 
-        // 5. Diameter filter
-        if (selectedDiameterFilter !== 'all') {
-          if (selectedDiameterFilter === 'slots') {
-            return part.holes.some(h => Boolean(h.slot) || h.type === 'corredera');
-          }
-          return part.holes.some(h => Math.abs(h.diameter - (selectedDiameterFilter as number)) < 0.05);
+        // 5. Diameter filter (checkboxes)
+        if (selectedDiameters !== null) {
+          if (part.holes.length === 0) return false;
+          const hasMatchingHole = part.holes.some(h => {
+            if (selectedDiameters.includes('correderas') && (h.type === 'corredera' || Boolean(h.slot))) {
+              return true;
+            }
+            const dKey = h.diameter.toFixed(1);
+            return selectedDiameters.includes(dKey);
+          });
+          if (!hasMatchingHole) return false;
         }
 
         return true;
       });
-  }, [parts, omitNoHoles, omitCorrederas, searchTerm, selectedPieceType, selectedProfileFilter, selectedDiameterFilter]);
+  }, [parts, omitNoHoles, omitCorrederas, searchTerm, selectedPieceTypes, selectedProfiles, selectedDiameters]);
 
   // Sorted parts
   const sortedParts = useMemo(() => {
@@ -558,12 +851,6 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
   const sampleColumns = lastParseResult?.sampleRows?.[0] || ['Col 0', 'Col 1', 'Col 2', 'Col 3', 'Col 4'];
   const countNoHoles = parts.filter(p => p.holes.length === 0).length;
-  const countCorrederas = useMemo(() => {
-    return parts.reduce((sum, p) => {
-      const pSlots = p.holes.filter(h => h.type === 'corredera' || Boolean(h.slot));
-      return sum + pSlots.reduce((s, h) => s + (h.countPerPiece * p.quantity), 0);
-    }, 0);
-  }, [parts]);
 
   return (
     <div className="space-y-6">
@@ -918,6 +1205,23 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                 )}
               </span>
             </label>
+
+            {/* RESET / SHOW ALL BUTTON IF FILTERED */}
+            {isAnyFilterActive && (
+              <button
+                type="button"
+                onClick={resetAllFilters}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${
+                  isLight
+                    ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
+                    : 'bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 border-amber-700/60'
+                }`}
+                title="Restablecer todos los filtros y volver a mostrar todo"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Mostrar todo
+              </button>
+            )}
           </div>
         </div>
 
@@ -944,80 +1248,45 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
             </div>
           </div>
 
-          {/* 2. Filter by Piece Type */}
-          <div>
-            <label className={`block font-semibold mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Tipo de Pieza:</label>
-            <select
-              value={selectedPieceType}
-              onChange={e => {
-                setSelectedPieceType(e.target.value);
-                setCurrentPage(1);
-              }}
-              className={`w-full px-2.5 py-1.5 rounded-lg border ${
-                isLight 
-                  ? 'bg-slate-50 border-slate-300 text-slate-900 focus:outline-none focus:border-blue-500' 
-                  : 'bg-slate-950 border-slate-700 text-slate-200 focus:outline-none focus:border-amber-400'
-              }`}
-            >
-              <option value="all">Todos los Tipos</option>
-              <option value="PL">Planchuelas / Chapas (PL)</option>
-              <option value="LP">Conformados (LP / PLP)</option>
-              <option value="L">Ángulos (L)</option>
-              <option value="VIGA">Vigas / Columnas (W, HI, IPE, CHS)</option>
-              <option value="ACC">Arandelas y Accesorios (ARAND, TUERCA)</option>
-              <option value="OTROS">Otros perfiles</option>
-            </select>
-          </div>
+          {/* 2. Filter by Piece Type (Multi-select Checkboxes) */}
+          <MultiSelectFilter
+            label="Tipo de Pieza"
+            options={pieceTypeOptions}
+            selected={selectedPieceTypes}
+            onChange={val => {
+              setSelectedPieceTypes(val);
+              setCurrentPage(1);
+            }}
+            isLight={isLight}
+            unit="pzas"
+          />
 
-          {/* 3. Filter by Specific Profile / Section */}
-          <div>
-            <label className={`block font-semibold mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Perfil / Sección:</label>
-            <select
-              value={selectedProfileFilter}
-              onChange={e => {
-                setSelectedProfileFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className={`w-full px-2.5 py-1.5 rounded-lg border ${
-                isLight 
-                  ? 'bg-slate-50 border-slate-300 text-slate-900 focus:outline-none focus:border-blue-500' 
-                  : 'bg-slate-950 border-slate-700 text-slate-200 focus:outline-none focus:border-amber-400'
-              }`}
-            >
-              <option value="all">Todos los Perfiles ({uniqueProfiles.length})</option>
-              {uniqueProfiles.map(prof => (
-                <option key={prof} value={prof}>
-                  {prof}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* 3. Filter by Specific Profile / Section (Multi-select Checkboxes with Search) */}
+          <MultiSelectFilter
+            label="Perfil / Sección"
+            options={profileOptions}
+            selected={selectedProfiles}
+            onChange={val => {
+              setSelectedProfiles(val);
+              setCurrentPage(1);
+            }}
+            isLight={isLight}
+            searchable={true}
+            unit="pzas"
+          />
 
-          {/* 4. Filter by Diameter */}
-          <div>
-            <label className={`block font-semibold mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Diámetro de Broca / Punzón:</label>
-            <select
-              value={selectedDiameterFilter}
-              onChange={e => {
-                const val = e.target.value;
-                setSelectedDiameterFilter(val === 'all' || val === 'slots' ? val : parseFloat(val));
-                setCurrentPage(1);
-              }}
-              className={`w-full px-2.5 py-1.5 rounded-lg border ${
-                isLight 
-                  ? 'bg-slate-50 border-slate-300 text-slate-900 focus:outline-none focus:border-blue-500' 
-                  : 'bg-slate-950 border-slate-700 text-slate-200 focus:outline-none focus:border-amber-400'
-              }`}
-            >
-              <option value="all">Todos los Diámetros</option>
-              {diameterSummary.map(d => (
-                <option key={d.diameter} value={d.diameter}>
-                  Ø {d.diameter.toFixed(1)} mm ({d.totalHolesProduction.toLocaleString()} ag.)
-                </option>
-              ))}
-              <option value="slots">Solo Correderas (Ranuradas)</option>
-            </select>
-          </div>
+          {/* 4. Filter by Diameter (Multi-select Checkboxes) */}
+          <MultiSelectFilter
+            label="Diámetro de Broca / Punzón"
+            options={diameterOptions}
+            selected={selectedDiameters}
+            onChange={val => {
+              setSelectedDiameters(val);
+              setCurrentPage(1);
+            }}
+            isLight={isLight}
+            unit="ag."
+          />
         </div>
       </div>
 
@@ -1280,26 +1549,28 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                                 )}
                               </span>
 
-                              {/* Dual-thickness location badge with 1-click toggle */}
+                              {/* Dual-thickness location badge (read-only informative tag) */}
                               {part.isDualThickness && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleHoleLocation(part.partId, hole.id)}
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-sans font-semibold border cursor-pointer transition-colors ${
+                                <span
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-sans font-semibold border select-none ${
                                     hole.location === 'alas'
                                       ? isLight
-                                        ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
-                                        : 'bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 border-indigo-700/60'
+                                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                        : 'bg-indigo-950/60 text-indigo-300 border-indigo-700/60'
                                       : isLight
-                                      ? 'bg-sky-50 hover:bg-sky-100 text-sky-700 border-sky-200'
-                                      : 'bg-sky-950/60 hover:bg-sky-900/80 text-sky-300 border-sky-700/60'
+                                      ? 'bg-sky-50 text-sky-700 border-sky-200'
+                                      : 'bg-sky-950/60 text-sky-300 border-sky-700/60'
                                   }`}
-                                  title="Clic para cambiar entre Alma y Alas"
+                                  title={
+                                    hole.location === 'alas'
+                                      ? `Perforaciones en Alas (espesor ${hole.thickness || part.flangeThickness} mm)`
+                                      : `Perforaciones en Alma (espesor ${hole.thickness || part.webThickness} mm)`
+                                  }
                                 >
                                   {hole.location === 'alas'
                                     ? `Alas (${hole.thickness || part.flangeThickness}mm)`
                                     : `Alma (${hole.thickness || part.webThickness}mm)`}
-                                </button>
+                                </span>
                               )}
 
                               <span className={isLight ? 'text-slate-700' : 'text-slate-300'}>
