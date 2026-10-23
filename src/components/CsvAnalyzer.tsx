@@ -593,6 +593,57 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     }
   };
 
+  // Update single thickness
+  const handleUpdatePartThickness = (partId: string, newThickness: number) => {
+    if (isNaN(newThickness) || newThickness <= 0) return;
+    setParts(prev =>
+      prev.map(p => {
+        if (p.partId === partId) {
+          const updatedHoles = p.holes.map(h => ({
+            ...h,
+            thickness: newThickness,
+          }));
+          return {
+            ...p,
+            thickness: newThickness,
+            holes: updatedHoles,
+          };
+        }
+        return p;
+      })
+    );
+  };
+
+  // Update dual thickness (web or flange) for built-up beams
+  const handleUpdateDualThickness = (partId: string, side: 'web' | 'flange', newThickness: number) => {
+    if (isNaN(newThickness) || newThickness <= 0) return;
+    setParts(prev =>
+      prev.map(p => {
+        if (p.partId === partId) {
+          const webThickness = side === 'web' ? newThickness : (p.webThickness || p.thickness);
+          const flangeThickness = side === 'flange' ? newThickness : (p.flangeThickness || p.thickness);
+          const updatedHoles = p.holes.map(h => {
+            const loc = (h.location || '').toLowerCase();
+            const isFlange = loc === 'alas' || loc === 'ala';
+            const hThick = isFlange ? flangeThickness : webThickness;
+            return {
+              ...h,
+              thickness: hThick,
+            };
+          });
+          return {
+            ...p,
+            webThickness,
+            flangeThickness,
+            thickness: webThickness,
+            holes: updatedHoles,
+          };
+        }
+        return p;
+      })
+    );
+  };
+
   // Piece categories with exact item counts
   const pieceTypeOptions = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -1483,19 +1534,66 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                   <td className={`py-3.5 px-3 font-sans font-semibold align-top ${
                     isLight ? 'text-slate-800' : 'text-slate-300'
                   }`}>
-                    <div>{part.profile}</div>
-                    {part.isDualThickness && part.webThickness && part.flangeThickness && (
-                      <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                          isLight ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-sky-950/60 text-sky-300 border-sky-800'
-                        }`}>
-                          Alma: {part.webThickness} mm
-                        </span>
-                        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                          isLight ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-950/60 text-indigo-300 border-indigo-800'
-                        }`}>
-                          Alas: {part.flangeThickness} mm
-                        </span>
+                    <div className="font-bold text-xs">{part.profile}</div>
+                    {part.isDualThickness ? (
+                      <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                        <div
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-mono ${
+                            isLight ? 'bg-sky-50 text-sky-900 border-sky-300' : 'bg-sky-950/70 text-sky-200 border-sky-800'
+                          }`}
+                          title="Espesor de Alma en mm (editable)"
+                        >
+                          <span className="font-semibold text-[9px] uppercase">Alma:</span>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0.5"
+                            max="150"
+                            value={part.webThickness || part.thickness}
+                            onChange={e => handleUpdateDualThickness(part.partId, 'web', parseFloat(e.target.value))}
+                            className="w-12 text-center font-bold bg-transparent focus:outline-none"
+                          />
+                          <span className="text-[9px] text-slate-400">mm</span>
+                        </div>
+                        <div
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-mono ${
+                            isLight ? 'bg-indigo-50 text-indigo-900 border-indigo-300' : 'bg-indigo-950/70 text-indigo-200 border-indigo-800'
+                          }`}
+                          title="Espesor de Alas en mm (editable)"
+                        >
+                          <span className="font-semibold text-[9px] uppercase">Alas:</span>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0.5"
+                            max="150"
+                            value={part.flangeThickness || part.thickness}
+                            onChange={e => handleUpdateDualThickness(part.partId, 'flange', parseFloat(e.target.value))}
+                            className="w-12 text-center font-bold bg-transparent focus:outline-none"
+                          />
+                          <span className="text-[9px] text-slate-400">mm</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-1 flex items-center gap-1">
+                        <div
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-mono ${
+                            isLight ? 'bg-slate-50 text-slate-700 border-slate-300' : 'bg-slate-950 text-slate-300 border-slate-800'
+                          }`}
+                          title="Espesor de la chapa o perfil en mm (editable con recálculo automático)"
+                        >
+                          <span className="font-semibold text-[9px] uppercase tracking-wider text-slate-500">Esp:</span>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0.5"
+                            max="250"
+                            value={part.thickness}
+                            onChange={e => handleUpdatePartThickness(part.partId, parseFloat(e.target.value))}
+                            className="w-12 text-center font-bold bg-transparent focus:outline-none focus:text-blue-600 dark:focus:text-amber-400"
+                          />
+                          <span className="text-[9px] text-slate-400">mm</span>
+                        </div>
                       </div>
                     )}
                   </td>

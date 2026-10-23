@@ -102,38 +102,205 @@ export function extractProfileThicknessInfo(profile: string): ProfileThicknessIn
   return { primary: single };
 }
 
+// Known unmistakable decimal structural steel plate gauges (standard inch conversions)
+export const KNOWN_EXACT_DECIMAL_GAUGES: number[] = [
+  3.2, 4.8, 6.4, 7.9, 9.5, 12.7, 15.9, 19.1, 22.2, 25.4,
+  31.7, 31.75, 31.8,  // 1-1/4" (31.75 mm)
+  38.1,                // 1-1/2" (38.10 mm)
+  44.45, 44.5,         // 1-3/4" (44.45 mm)
+  50.8,                // 2" (50.80 mm)
+  57.15, 57.2,         // 2-1/4" (57.15 mm)
+  63.5,                // 2-1/2" (63.50 mm)
+  69.85,               // 2-3/4" (69.85 mm)
+  76.2,                // 3" (76.20 mm)
+  88.9,                // 3-1/2" (88.90 mm)
+  101.6                // 4" (101.60 mm)
+];
+
+export function isKnownSteelGauge(val: number): boolean {
+  return KNOWN_EXACT_DECIMAL_GAUGES.some(g => Math.abs(val - g) <= 0.15);
+}
+
+/**
+ * Parse dimension part supporting decimals or fractions like 1-1/4, 1 1/2, 3/4
+ */
+function parseDimensionPart(raw: string): number | null {
+  const s = raw.trim().replace(/"$/, '');
+  // Compound fraction: "1-1/4" or "1 1/2"
+  const compound = s.match(/^(\d+)[\s-]+(\d+)\/(\d+)$/);
+  if (compound) {
+    const whole = parseFloat(compound[1]);
+    const num = parseFloat(compound[2]);
+    const den = parseFloat(compound[3]);
+    if (den > 0) return Math.round((whole + num / den) * 25.4 * 10) / 10;
+  }
+  // Simple fraction: "3/4" or "1/2"
+  const simple = s.match(/^(\d+)\/(\d+)$/);
+  if (simple) {
+    const num = parseFloat(simple[1]);
+    const den = parseFloat(simple[2]);
+    if (den > 0) return Math.round((num / den) * 25.4 * 10) / 10;
+  }
+  const val = parseFloat(s);
+  return isNaN(val) ? null : val;
+}
+
 export function extractProfileThickness(profile: string): number {
   if (!profile) return 6.4;
-  const p = profile.toUpperCase().replace(/\s+/g, '');
+  const rawClean = profile.trim().toUpperCase();
+  const pNoSpace = rawClean.replace(/\s+/g, '');
 
-  // 1. Folded profile LP70*60*3.2 or PLP130*3.2 -> last number is thickness
-  const lpMatch = p.match(/^(?:LP|PLP|CHS)\d+(?:\.\d+)?(?:\*\d+(?:\.\d+)?)?\*(\d+(?:\.\d+)?)$/);
-  if (lpMatch) return parseFloat(lpMatch[1]);
-
-  // 2. Angle L57*4.8 -> 4.8
-  const lMatch = p.match(/^L\d+(?:\.\d+)?\*(\d+(?:\.\d+)?)$/);
-  if (lMatch) return parseFloat(lMatch[1]);
-
-  // 3. Built-up I beam HI250-4.8-6.4*200 -> web 4.8
-  const hiMatch = p.match(/^HI\d+(?:\.\d+)?-(\d+(?:\.\d+)?)/);
+  // 1. Built-up I beam HI250-4.8-6.4*200 -> web 4.8
+  const hiMatch = pNoSpace.match(/^(?:HI|HF|H|I|WF)\d*(?:\.\d+)?-(\d+(?:\.\d+)?)/);
   if (hiMatch) return parseFloat(hiMatch[1]);
 
-  // 4. Wide flange W150*29.8 -> web approx 5.8
-  if (p.startsWith('W150')) return 5.8;
+  // 2. Wide flange W150*29.8 -> web approx 5.8
+  if (pNoSpace.startsWith('W150')) return 5.8;
 
-  // 5. Plate PL: PL7.9*64 or PL70*7.9 or PL12.7*220
-  const plMatch = p.match(/^PL(\d+(?:\.\d+)?)\*(\d+(?:\.\d+)?)$/);
-  if (plMatch) {
-    const a = parseFloat(plMatch[1]);
-    const b = parseFloat(plMatch[2]);
-    return Math.min(a, b);
+  // 3. Cold-formed C / CC / U / CF / Z / ZP channels with hyphens:
+  // e.g. CC180-2-20*70 -> thickness 2 mm (height 180, thickness 2, lip 20, flange 70)
+  // e.g. CC180-3.2-23*65 -> thickness 3.2 mm (height 180, thickness 3.2, lip 23, flange 65)
+  // e.g. CC150-2-20*70 -> thickness 2 mm
+  // e.g. C180-2-20*70 -> thickness 2 mm
+  // e.g. Z200-2.5-20*75 -> thickness 2.5 mm
+  // e.g. CC180-2*70 -> thickness 2 mm
+  const ccHyphenMatch = pNoSpace.match(/^(?:CC|C|U|CF|Z|ZP)\d*(?:\.\d+)?-(\d+(?:\.\d+)?)-/);
+  if (ccHyphenMatch) {
+    const t = parseFloat(ccHyphenMatch[1]);
+    if (t > 0 && t <= 50) return t;
+  }
+  const ccHyphenShort = pNoSpace.match(/^(?:CC|C|U|CF|Z|ZP)\d*(?:\.\d+)?-(\d+(?:\.\d+)?)\*/);
+  if (ccHyphenShort) {
+    const t = parseFloat(ccHyphenShort[1]);
+    if (t > 0 && t <= 50) return t;
   }
 
-  // 6. Fallback: if has *number, smaller dimension or last number
-  const parts = p.split('*');
-  if (parts.length > 1) {
-    const num = parseFloat(parts[parts.length - 1]);
-    if (!isNaN(num) && num > 0 && num < 100) return num;
+  // 4. Folded profiles with hyphens: LP70-3.2*60, PLP130-3.2*65
+  const lpHyphenMatch = pNoSpace.match(/^(?:LP|PLP)\d*(?:\.\d+)?-(\d+(?:\.\d+)?)/);
+  if (lpHyphenMatch) {
+    const t = parseFloat(lpHyphenMatch[1]);
+    if (t > 0 && t <= 50) return t;
+  }
+
+  // 5. Folded profile with 3 parts e.g. LP70*60*3.2, PLP130*65*3.2, CHS168*4.8
+  const lp3Match = pNoSpace.match(/^(?:LP|PLP|CHS)\d+(?:\.\d+)?\*\d+(?:\.\d+)?\*(\d+(?:\.\d+)?)$/);
+  if (lp3Match) {
+    const t = parseFloat(lp3Match[1]);
+    if (t > 0 && t <= 50) return t;
+  }
+
+  // 6. Folded profile with 2 parts e.g. LP45*3.2 or CHS168*4.8
+  const lp2Match = pNoSpace.match(/^(?:LP|PLP|CHS)\d+(?:\.\d+)?\*(\d+(?:\.\d+)?)$/);
+  if (lp2Match) {
+    const t = parseFloat(lp2Match[1]);
+    if (t > 0 && t <= 50) return t;
+    return 3.2;
+  }
+
+  // 7. C channel with asterisks: CC200*70*20*2 or C200*70*2.5
+  const cMatch = pNoSpace.match(/^(?:CC|C|U|CF|Z|ZP)\d+(?:\.\d+)?\*\d+(?:\.\d+)?(?:\*\d+(?:\.\d+)?)?\*(\d+(?:\.\d+)?)$/);
+  if (cMatch) {
+    const t = parseFloat(cMatch[1]);
+    if (t > 0 && t <= 50) return t;
+  }
+  if (pNoSpace.startsWith('C') || pNoSpace.startsWith('CC') || pNoSpace.startsWith('U')) {
+    if (pNoSpace.startsWith('UPN')) {
+      const sizeMatch = pNoSpace.match(/UPN(\d+)/);
+      const size = sizeMatch ? parseInt(sizeMatch[1], 10) : 200;
+      if (size <= 140) return 7.0;
+      if (size <= 200) return 8.5;
+      return 10.0;
+    }
+    const c2 = pNoSpace.match(/^(?:CC|C)\d+(?:\.\d+)?\*(\d+(?:\.\d+)?)$/);
+    if (c2) {
+      const t = parseFloat(c2[1]);
+      if (t <= 50) return t;
+      return 2.5;
+    }
+  }
+
+  // 8. Angle L: L57*4.8, L64*6.4, L89*6.4, L100*100*10
+  const l3Match = pNoSpace.match(/^L\d+(?:\.\d+)?\*\d+(?:\.\d+)?\*(\d+(?:\.\d+)?)$/);
+  if (l3Match) {
+    const t = parseFloat(l3Match[1]);
+    if (t > 0 && t <= 50) return t;
+  }
+  const l2Match = pNoSpace.match(/^L\d+(?:\.\d+)?\*(\d+(?:\.\d+)?)$/);
+  if (l2Match) {
+    const t = parseFloat(l2Match[1]);
+    if (t > 0 && t <= 50) return t;
+  }
+
+  // 9. Plate PL:
+  // Can be:
+  // - 3 dimensions: PL38.1*300*600, PL12.7*250*400, PL6.4-250*400
+  // - 2 dimensions: PL31.7*400, PL38.1*450, PL50.8*500, PL7.9*70, PL12.7*220
+  // - Hyphenated: PL6.4-200, PL12.7-250
+  if (pNoSpace.startsWith('PL')) {
+    const afterPl = rawClean.replace(/^PL\s*/, '');
+    const rawParts = afterPl.split(/[*xX]/);
+    // If it has hyphen inside like "6.4-253*350"
+    const parsedDims: number[] = [];
+    for (const part of rawParts) {
+      if (part.includes('-')) {
+        const sub = part.split('-');
+        for (const s of sub) {
+          const d = parseDimensionPart(s);
+          if (d !== null && d > 0) parsedDims.push(d);
+        }
+      } else {
+        const d = parseDimensionPart(part);
+        if (d !== null && d > 0) parsedDims.push(d);
+      }
+    }
+
+    if (parsedDims.length >= 3) {
+      // With 3 dimensions (thickness * width * length), thickness is either the 1st or the smallest dimension <= 100mm
+      const candidate = parsedDims[0] <= 100 ? parsedDims[0] : Math.min(...parsedDims);
+      return candidate <= 120 ? candidate : 6.4;
+    }
+
+    if (parsedDims.length === 2) {
+      const [dimA, dimB] = parsedDims;
+      const minDim = Math.min(dimA, dimB);
+      const maxDim = Math.max(dimA, dimB);
+
+      // A. Unmistakable decimal heavy plate gauges (31.7, 38.1, 44.5, 50.8, 63.5, 76.2, etc.)
+      if (isKnownSteelGauge(minDim)) {
+        return minDim;
+      }
+
+      // B. Standard light to medium plate (<= 25.4 mm / 1 inch)
+      if (minDim <= 25.4) {
+        return minDim;
+      }
+
+      // C. Heavy metric plates (30, 35, 40, 50 mm) where aspect ratio width/thickness is >= 2.5
+      if (minDim <= 50.0 && maxDim >= minDim * 2.5) {
+        return minDim;
+      }
+
+      // D. Otherwise, planar dimensions of a cut gusset plate (e.g. 253*350)
+      return 6.4;
+    }
+
+    if (parsedDims.length === 1) {
+      const d = parsedDims[0];
+      if (isKnownSteelGauge(d) || d <= 100) return d;
+    }
+
+    return 6.4;
+  }
+
+  // 8. General fallback for any other profile with asterisks:
+  const allNums = rawClean.split('*').map(parseDimensionPart).filter((n): n is number => n !== null && n > 0);
+  const knownGauges = allNums.filter(n => isKnownSteelGauge(n));
+  if (knownGauges.length > 0) {
+    return Math.min(...knownGauges);
+  }
+  const realisticThick = allNums.filter(n => n <= 38.1);
+  if (realisticThick.length > 0) {
+    return Math.min(...realisticThick);
   }
 
   return 6.4;
