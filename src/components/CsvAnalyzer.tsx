@@ -22,9 +22,11 @@ import {
   ArrowDown,
   Layers,
   EyeOff,
-  FolderPlus
+  FolderPlus,
+  BookOpen
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { GerdauCatalogModal } from './GerdauCatalogModal';
 import { PartRecord, DiameterSummary } from '../types';
 import { 
   parseMetallurgyCsv, 
@@ -32,7 +34,8 @@ import {
   exportPartsToReimportableCsv, 
   ParseResult, 
   mergePartRecords, 
-  calculateSummaries 
+  calculateSummaries,
+  getWProfileOptions
 } from '../utils/csvParser';
 
 interface CsvAnalyzerProps {
@@ -307,6 +310,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   const [pasteContent, setPasteContent] = useState('');
   const [pasteMode, setPasteMode] = useState<'replace' | 'append'>('replace');
   const [showColumnAdjuster, setShowColumnAdjuster] = useState(false);
+  const [showGerdauModal, setShowGerdauModal] = useState(false);
   const [lastParseResult, setLastParseResult] = useState<ParseResult | null>(null);
 
   // New features requested by user:
@@ -636,6 +640,35 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
             webThickness,
             flangeThickness,
             thickness: webThickness,
+            holes: updatedHoles,
+          };
+        }
+        return p;
+      })
+    );
+  };
+
+  // Select exact W profile variant from catalog (e.g. W150x13, W150x18, W150x29.8)
+  const handleSelectWVariant = (partId: string, newProfile: string, web: number, flange: number) => {
+    setParts(prev =>
+      prev.map(p => {
+        if (p.partId === partId) {
+          const updatedHoles = p.holes.map(h => {
+            const loc = (h.location || '').toLowerCase();
+            const isFlange = loc === 'alas' || loc === 'ala';
+            const hThick = isFlange ? flange : web;
+            return {
+              ...h,
+              thickness: hThick,
+            };
+          });
+          return {
+            ...p,
+            profile: newProfile,
+            webThickness: web,
+            flangeThickness: flange,
+            thickness: web,
+            isDualThickness: true,
             holes: updatedHoles,
           };
         }
@@ -1415,6 +1448,19 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
               <FileSpreadsheet className="w-3.5 h-3.5" />
               Descargar Excel (.xlsx)
             </button>
+
+            <button
+              onClick={() => setShowGerdauModal(true)}
+              className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                isLight 
+                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300' 
+                  : 'bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border-amber-700/70'
+              }`}
+              title="Abrir catálogo oficial de perfiles W y HP Gerdau (Marzo 2023) con medidas y equivalencias"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-amber-500" />
+              <span>Catálogo Gerdau W</span>
+            </button>
           </div>
         </div>
 
@@ -1535,6 +1581,48 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                     isLight ? 'text-slate-800' : 'text-slate-300'
                   }`}>
                     <div className="font-bold text-xs">{part.profile}</div>
+
+                    {/* W Profile Quick Variant Selector */}
+                    {(() => {
+                      const wOptions = getWProfileOptions(part.profile);
+                      if (wOptions.length === 0) return null;
+                      const currentNorm = part.profile.toUpperCase().replace(/\s+/g, '').replace('*', 'X');
+                      return (
+                        <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                          <select
+                            value={wOptions.some(o => o.id.toUpperCase() === currentNorm) ? currentNorm : ''}
+                            onChange={e => {
+                              const found = wOptions.find(o => o.id.toUpperCase() === e.target.value);
+                              if (found) {
+                                handleSelectWVariant(part.partId, found.id, found.web, found.flange);
+                              }
+                            }}
+                            className={`text-[10px] font-mono px-1.5 py-0.5 rounded border focus:outline-none cursor-pointer max-w-[210px] ${
+                              isLight 
+                                ? 'bg-amber-50/80 border-amber-300 text-slate-800 hover:border-amber-400' 
+                                : 'bg-slate-900 border-amber-600/50 text-amber-200 hover:border-amber-400'
+                            }`}
+                            title="Seleccione la variante exacta de peso/metro según catálogo oficial Gerdau (Marzo 2023)"
+                          >
+                            <option value="">Variante Gerdau ({part.profile})</option>
+                            {wOptions.map(opt => (
+                              <option key={opt.id} value={opt.id.toUpperCase()}>
+                                {opt.id} (Alma {opt.web} / Alas {opt.flange})
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => setShowGerdauModal(true)}
+                            className="text-[9px] font-semibold text-amber-500 hover:underline cursor-pointer"
+                            title="Ver catálogo técnico Gerdau MAR 23"
+                          >
+                            Ver Catálogo
+                          </button>
+                        </div>
+                      );
+                    })()}
+
                     {part.isDualThickness ? (
                       <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
                         <div
@@ -1966,6 +2054,13 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
           </div>
         </div>
       )}
+
+      {/* Official Gerdau Structural W & HP Catalog Modal (Marzo 2023) */}
+      <GerdauCatalogModal
+        isOpen={showGerdauModal}
+        onClose={() => setShowGerdauModal(false)}
+        isLight={isLight}
+      />
     </div>
   );
 };

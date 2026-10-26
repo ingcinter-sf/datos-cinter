@@ -1,4 +1,5 @@
 import { PartRecord, DiameterSummary, ThicknessSummaryRow } from '../types';
+import { GERDAU_W_CATALOG, findGerdauProfile, normalizeGerdauKey, GerdauProfile } from '../data/gerdauProfiles';
 
 /**
  * Detect delimiter: comma, semicolon, tab, pipe, or space
@@ -88,18 +89,133 @@ export function extractProfileThicknessInfo(profile: string): ProfileThicknessIn
     };
   }
 
-  // 2. Wide flange W150*29.8 -> web approx 5.8, flange 9.3
-  if (p.startsWith('W150')) {
+  // 2. Wide flange W & Bearing Pile HP profiles from Gerdau official catalog (MAR 2023)
+  const gerdauDirect = findGerdauProfile(p);
+  if (gerdauDirect) {
     return {
-      primary: 5.8,
-      web: 5.8,
-      flange: 9.3,
+      primary: gerdauDirect.tw,
+      web: gerdauDirect.tw,
+      flange: gerdauDirect.tf,
       isDualThickness: true,
     };
   }
 
+  const wKey = p.replace(/X/g, '*').replace(',', '.');
+  if (wKey.startsWith('W') || wKey.startsWith('HP')) {
+    if (W_PROFILES_CATALOG[wKey]) {
+      const match = W_PROFILES_CATALOG[wKey];
+      return {
+        primary: match.web,
+        web: match.web,
+        flange: match.flange,
+        isDualThickness: true,
+      };
+    }
+    // Match by nominal peralte if exact weight is not in dictionary
+    const nominalMatch = wKey.match(/^(?:W|HP)(\d+)/);
+    if (nominalMatch) {
+      const nom = parseInt(nominalMatch[1], 10);
+      if (nom <= 150) return { primary: 5.8, web: 5.8, flange: 9.3, isDualThickness: true };
+      if (nom <= 200) return { primary: 6.2, web: 6.2, flange: 10.2, isDualThickness: true };
+      if (nom <= 250) return { primary: 6.6, web: 6.6, flange: 10.7, isDualThickness: true };
+      if (nom <= 310) return { primary: 6.6, web: 6.6, flange: 11.2, isDualThickness: true };
+      if (nom <= 360) return { primary: 7.2, web: 7.2, flange: 11.6, isDualThickness: true };
+      if (nom <= 410) return { primary: 7.7, web: 7.7, flange: 12.8, isDualThickness: true };
+      if (nom <= 460) return { primary: 8.0, web: 8.0, flange: 13.3, isDualThickness: true };
+      if (nom <= 530) return { primary: 9.0, web: 9.0, flange: 12.4, isDualThickness: true };
+      return { primary: 10.0, web: 10.0, flange: 14.5, isDualThickness: true };
+    }
+  }
+
   const single = extractProfileThickness(profile);
   return { primary: single };
+}
+
+/**
+ * Standard Gerdau / ASTM A6 / AISC Wide Flange (W) and Bearing Pile (HP) catalog
+ * Populated from official Gerdau brochure (March 2023 edition)
+ */
+export const W_PROFILES_CATALOG: Record<string, { web: number; flange: number; d?: number; bf?: number; weight?: number }> = (() => {
+  const cat: Record<string, { web: number; flange: number; d?: number; bf?: number; weight?: number }> = {};
+  
+  for (const p of GERDAU_W_CATALOG) {
+    const val = { web: p.tw, flange: p.tf, d: p.d, bf: p.bf, weight: p.massKgM };
+    const prefix = p.type; // 'W' | 'HP'
+
+    // Form: W150*13, W150*13.0, W150X13, etc.
+    cat[`${prefix}${p.nominalSeries}*${p.massKgM}`] = val;
+    cat[`${prefix}${p.nominalSeries}*${p.massKgM.toFixed(1)}`] = val;
+    cat[`${prefix}${p.nominalSeries}*${p.massKgM.toString().replace('.', ',')}`] = val;
+    if (Number.isInteger(p.massKgM)) {
+      cat[`${prefix}${p.nominalSeries}*${p.massKgM}`] = val;
+    }
+    // Also without type prefix if just e.g. "W150"
+    if (prefix === 'HP') {
+      cat[`W${p.nominalSeries}*${p.massKgM}`] = val;
+    }
+
+    // Imperial Caliber (e.g. "W6*8.5", "W6*12", "HP8*36", etc.)
+    const impClean = p.caliberInch.toUpperCase().replace(/\s+/g, '').replace('X', '*').replace(',', '.');
+    cat[impClean] = val;
+  }
+
+  return cat;
+})();
+
+/**
+ * Returns list of official Gerdau catalog variants for a given W or HP series (e.g. "W150", "W200", "HP200"...)
+ */
+export function getWProfileOptions(profileName: string): Array<{
+  id: string;
+  label: string;
+  web: number;
+  flange: number;
+  d?: number;
+  bf?: number;
+  weight?: number;
+}> {
+  if (!profileName) return [];
+  const clean = profileName.toUpperCase().replace(/\s+/g, '');
+  const match = clean.match(/^(?:W|HP)(\d+)/);
+  if (!match) return [];
+  const nomSeries = parseInt(match[1], 10);
+  
+  // Query Gerdau official database for this series
+  const gerdauVariants = GERDAU_W_CATALOG.filter(p => p.nominalSeries === nomSeries);
+  if (gerdauVariants.length > 0) {
+    return gerdauVariants.map(p => ({
+      id: `${p.type}${p.nominalSeries}x${p.massKgM}`,
+      label: `${p.designation} (${p.caliberInch}) - Alma: ${p.tw}mm, Alas: ${p.tf}mm [${p.massKgM} kg/m]${p.isCustomOrder ? ' *' : ''}`,
+      web: p.tw,
+      flange: p.tf,
+      d: p.d,
+      bf: p.bf,
+      weight: p.massKgM
+    }));
+  }
+
+  // Fallback if not found in Gerdau series
+  const series = `W${nomSeries}`;
+  const options: Array<{ id: string; label: string; web: number; flange: number }> = [];
+  const seen = new Set<string>();
+
+  for (const [key, val] of Object.entries(W_PROFILES_CATALOG)) {
+    if (key.startsWith(series + '*')) {
+      const weight = key.replace(series + '*', '');
+      const numWeight = parseFloat(weight);
+      const weightLabel = numWeight.toString();
+      if (!seen.has(weightLabel)) {
+        seen.add(weightLabel);
+        options.push({
+          id: `${series}x${weightLabel}`,
+          label: `${series}x${weightLabel} (Alma: ${val.web}mm, Alas: ${val.flange}mm)`,
+          web: val.web,
+          flange: val.flange,
+        });
+      }
+    }
+  }
+  return options;
 }
 
 // Known unmistakable decimal structural steel plate gauges (standard inch conversions)
@@ -154,8 +270,26 @@ export function extractProfileThickness(profile: string): number {
   const hiMatch = pNoSpace.match(/^(?:HI|HF|H|I|WF)\d*(?:\.\d+)?-(\d+(?:\.\d+)?)/);
   if (hiMatch) return parseFloat(hiMatch[1]);
 
-  // 2. Wide flange W150*29.8 -> web approx 5.8
-  if (pNoSpace.startsWith('W150')) return 5.8;
+  // 2. Wide flange W profiles from ASTM A6 / AISC / Gerdau catalog
+  const wKey = pNoSpace.replace(/X/g, '*').replace(',', '.');
+  if (wKey.startsWith('W')) {
+    if (W_PROFILES_CATALOG[wKey]) {
+      return W_PROFILES_CATALOG[wKey].web;
+    }
+    const nominalMatch = wKey.match(/^W(\d+)/);
+    if (nominalMatch) {
+      const nom = parseInt(nominalMatch[1], 10);
+      if (nom <= 150) return 5.8;
+      if (nom <= 200) return 6.2;
+      if (nom <= 250) return 6.6;
+      if (nom <= 310) return 6.6;
+      if (nom <= 360) return 7.2;
+      if (nom <= 410) return 7.7;
+      if (nom <= 460) return 8.0;
+      if (nom <= 530) return 9.0;
+      return 10.0;
+    }
+  }
 
   // 3. Cold-formed C / CC / U / CF / Z / ZP channels with hyphens:
   // e.g. CC180-2-20*70 -> thickness 2 mm (height 180, thickness 2, lip 20, flange 70)
