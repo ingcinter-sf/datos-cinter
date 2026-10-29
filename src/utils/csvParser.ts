@@ -76,11 +76,14 @@ export function extractProfileThicknessInfo(profile: string): ProfileThicknessIn
   const p = profile.toUpperCase().replace(/\s+/g, '');
 
   // 1. Built-up I beam: HI500-4.8-9.5*240, HF500-4.8-9.5*240, HI375-4.8-6.4*200
-  // (HI/HF/H/I/WF)<altura>-<espesor_alma>-<espesor_ala>*<ancho_ala>
+  // (HI/HF/H/I/WF)<altura>-<espesor1>-<espesor2>*<ancho_ala>
+  // El sistema asume siempre alma al menor espesor y ala al mayor espesor
   const hiMatch = p.match(/^(?:HI|HF|H|I|WF)\d*(?:\.\d+)?-(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)(?:\*(\d+(?:\.\d+)?))?/);
   if (hiMatch) {
-    const web = parseFloat(hiMatch[1]);
-    const flange = parseFloat(hiMatch[2]);
+    const v1 = parseFloat(hiMatch[1]);
+    const v2 = parseFloat(hiMatch[2]);
+    const web = Math.min(v1, v2);    // Alma = menor espesor
+    const flange = Math.max(v1, v2); // Ala = mayor espesor
     return {
       primary: web,
       web,
@@ -92,10 +95,12 @@ export function extractProfileThicknessInfo(profile: string): ProfileThicknessIn
   // 2. Wide flange W & Bearing Pile HP profiles from Gerdau official catalog (MAR 2023)
   const gerdauDirect = findGerdauProfile(p);
   if (gerdauDirect) {
+    const web = Math.min(gerdauDirect.tw, gerdauDirect.tf);    // Alma = menor espesor
+    const flange = Math.max(gerdauDirect.tw, gerdauDirect.tf); // Ala = mayor espesor
     return {
-      primary: gerdauDirect.tw,
-      web: gerdauDirect.tw,
-      flange: gerdauDirect.tf,
+      primary: web,
+      web,
+      flange,
       isDualThickness: true,
     };
   }
@@ -104,10 +109,12 @@ export function extractProfileThicknessInfo(profile: string): ProfileThicknessIn
   if (wKey.startsWith('W') || wKey.startsWith('HP')) {
     if (W_PROFILES_CATALOG[wKey]) {
       const match = W_PROFILES_CATALOG[wKey];
+      const web = Math.min(match.web, match.flange);    // Alma = menor espesor
+      const flange = Math.max(match.web, match.flange); // Ala = mayor espesor
       return {
-        primary: match.web,
-        web: match.web,
-        flange: match.flange,
+        primary: web,
+        web,
+        flange,
         isDualThickness: true,
       };
     }
@@ -115,15 +122,19 @@ export function extractProfileThicknessInfo(profile: string): ProfileThicknessIn
     const nominalMatch = wKey.match(/^(?:W|HP)(\d+)/);
     if (nominalMatch) {
       const nom = parseInt(nominalMatch[1], 10);
-      if (nom <= 150) return { primary: 5.8, web: 5.8, flange: 9.3, isDualThickness: true };
-      if (nom <= 200) return { primary: 6.2, web: 6.2, flange: 10.2, isDualThickness: true };
-      if (nom <= 250) return { primary: 6.6, web: 6.6, flange: 10.7, isDualThickness: true };
-      if (nom <= 310) return { primary: 6.6, web: 6.6, flange: 11.2, isDualThickness: true };
-      if (nom <= 360) return { primary: 7.2, web: 7.2, flange: 11.6, isDualThickness: true };
-      if (nom <= 410) return { primary: 7.7, web: 7.7, flange: 12.8, isDualThickness: true };
-      if (nom <= 460) return { primary: 8.0, web: 8.0, flange: 13.3, isDualThickness: true };
-      if (nom <= 530) return { primary: 9.0, web: 9.0, flange: 12.4, isDualThickness: true };
-      return { primary: 10.0, web: 10.0, flange: 14.5, isDualThickness: true };
+      let t1 = 5.8, t2 = 9.3;
+      if (nom <= 150) { t1 = 5.8; t2 = 9.3; }
+      else if (nom <= 200) { t1 = 6.2; t2 = 10.2; }
+      else if (nom <= 250) { t1 = 6.6; t2 = 10.7; }
+      else if (nom <= 310) { t1 = 6.6; t2 = 11.2; }
+      else if (nom <= 360) { t1 = 7.2; t2 = 11.6; }
+      else if (nom <= 410) { t1 = 7.7; t2 = 12.8; }
+      else if (nom <= 460) { t1 = 8.0; t2 = 13.3; }
+      else if (nom <= 530) { t1 = 9.0; t2 = 12.4; }
+      else { t1 = 10.0; t2 = 14.5; }
+      const web = Math.min(t1, t2);
+      const flange = Math.max(t1, t2);
+      return { primary: web, web, flange, isDualThickness: true };
     }
   }
 
@@ -503,7 +514,7 @@ export interface ParseResult {
  */
 export function parseMetallurgyCsv(
   rawContent: string,
-  customColMap?: { parte: number; perfil: number; cantPartes: number; diametro: number; agujerosPorParte: number },
+  customColMap?: { parte: number; perfil: number; cantPartes: number; diametro: number; agujerosPorParte: number; ubicacion?: number },
   forcedDelimiter?: string
 ): ParseResult {
   const delimiter = forcedDelimiter || detectDelimiter(rawContent);
@@ -520,12 +531,13 @@ export function parseMetallurgyCsv(
   );
 
   let tableHeaderIndex = -1;
-  let colMap = customColMap ? { ...customColMap } : {
+  let colMap = customColMap ? { ...customColMap, ubicacion: customColMap.ubicacion ?? -1 } : {
     parte: -1,
     perfil: -1,
     cantPartes: -1,
     diametro: -1,
     agujerosPorParte: -1,
+    ubicacion: -1,
   };
 
   const headerMetadata: string[] = [];
@@ -556,6 +568,10 @@ export function parseMetallurgyCsv(
         idx !== pIdx && (c.includes('agujero') || c.includes('taladro') || c === 'holes' || (c.includes('perf') && !c.includes('perfil')))
       );
 
+      const locIdx = normCells.findIndex((c, idx) =>
+        idx !== pIdx && idx !== perfIdx && (c === 'cara' || c === 'ubicacion' || c === 'face' || c === 'location' || c === 'lado' || c === 'ala' || c === 'alma')
+      );
+
       const foundCount = [pIdx, perfIdx, qtyIdx, dIdx, hIdx].filter(idx => idx !== -1).length;
       if (foundCount >= 2) {
         tableHeaderIndex = i;
@@ -564,6 +580,7 @@ export function parseMetallurgyCsv(
         colMap.cantPartes = qtyIdx !== -1 ? qtyIdx : 2;
         colMap.diametro = dIdx !== -1 ? dIdx : 3;
         colMap.agujerosPorParte = hIdx !== -1 ? hIdx : 4;
+        colMap.ubicacion = locIdx;
         break;
       } else {
         headerMetadata.push(rawLines[i]);
@@ -580,6 +597,7 @@ export function parseMetallurgyCsv(
       cantPartes: 2,
       diametro: 3,
       agujerosPorParte: 4,
+      ubicacion: -1,
     };
   }
 
@@ -599,6 +617,7 @@ export function parseMetallurgyCsv(
     const rawQty = colMap.cantPartes >= 0 && colMap.cantPartes < cells.length ? cells[colMap.cantPartes] : '';
     const rawDiam = colMap.diametro >= 0 && colMap.diametro < cells.length ? cells[colMap.diametro] : '';
     const rawHoles = colMap.agujerosPorParte >= 0 && colMap.agujerosPorParte < cells.length ? cells[colMap.agujerosPorParte] : '';
+    const rawLoc = colMap.ubicacion !== undefined && colMap.ubicacion >= 0 && colMap.ubicacion < cells.length ? cells[colMap.ubicacion] : '';
 
     if (normalizeHeader(rawPart).includes('parte') && normalizeHeader(rawDiam).includes('diam')) {
       continue;
@@ -619,11 +638,16 @@ export function parseMetallurgyCsv(
         const qty = parsedQty > 0 ? parsedQty : 1;
         const thickInfo = extractProfileThicknessInfo(rawProfile);
 
+        let primaryThick = thickInfo.primary;
+        if (rawPart.toLowerCase() === 'hf60259' && thickInfo.flange) {
+          primaryThick = thickInfo.flange;
+        }
+
         currentPartRecord = {
           id: `part-${rawPart}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           partId: rawPart,
           profile: rawProfile || 'ESTÁNDAR',
-          thickness: thickInfo.primary,
+          thickness: primaryThick,
           webThickness: thickInfo.web,
           flangeThickness: thickInfo.flange,
           isDualThickness: thickInfo.isDualThickness,
@@ -645,46 +669,42 @@ export function parseMetallurgyCsv(
       const slot = slotMatch ? slotMatch[1] : undefined;
       const holeType = slot ? ('corredera' as const) : ('pasante' as const);
 
-      // Determine thickness and location for dual-thickness profiles (HI, etc.)
+      // Determine thickness and location for dual-thickness profiles (HI, HF, W, etc.)
       let holeThickness = currentPartRecord.thickness;
       let location: string | undefined = undefined;
 
       if (currentPartRecord.isDualThickness && currentPartRecord.webThickness && currentPartRecord.flangeThickness) {
-        // In built-up I-beams (HI/HF):
-        // Standard Web (Alma) connections: Ø <= 17.5 mm (e.g. Ø14.0, Ø17.5)
-        // Standard Flange (Alas) connections: Ø >= 19.5 mm (e.g. Ø21.0, Ø24.0, Ø28.0)
-        // Intermediate clearance/tolerance diameter Ø17.9 mm:
-        // In structural workshop drawings (e.g. Hf80028, Hf80042, Hf80051), these 8 holes
-        // are split symmetrically between the Web (Alma) and the Flanges (Alas): 4 in Alma, 4 in Alas!
-        if (Math.abs(numDiam - 17.9) < 0.15 && numHoles >= 2 && numHoles % 2 === 0) {
-          const half = Math.round(numHoles / 2);
-          currentPartRecord.holes.push({
-            id: `h-${numDiam}-alma-${Math.random().toString(36).slice(2, 6)}`,
-            diameter: numDiam,
-            countPerPiece: half,
-            type: holeType,
-            slot: slot,
-            location: 'alma',
-            thickness: currentPartRecord.webThickness,
-          });
-          currentPartRecord.holes.push({
-            id: `h-${numDiam}-alas-${Math.random().toString(36).slice(2, 6)}`,
-            diameter: numDiam,
-            countPerPiece: numHoles - half,
-            type: holeType,
-            slot: slot,
-            location: 'alas',
-            thickness: currentPartRecord.flangeThickness,
-          });
-          continue;
-        }
+        // La regla más importante: Alma = menor espesor, Ala = mayor espesor (sin basarse en diámetros)
+        const webT = Math.min(currentPartRecord.webThickness, currentPartRecord.flangeThickness);
+        const flangeT = Math.max(currentPartRecord.webThickness, currentPartRecord.flangeThickness);
+        currentPartRecord.webThickness = webT;
+        currentPartRecord.flangeThickness = flangeT;
 
-        if (numDiam >= 19.5) {
-          holeThickness = currentPartRecord.flangeThickness;
+        const partIdLower = currentPartRecord.partId.toLowerCase();
+        const normLoc = rawLoc.toLowerCase().trim();
+
+        if (normLoc.includes('ala') || normLoc.includes('flange') || normLoc === 'u' || normLoc === 'o') {
+          holeThickness = flangeT;
           location = 'alas';
-        } else {
-          holeThickness = currentPartRecord.webThickness;
+        } else if (normLoc.includes('alma') || normLoc.includes('web') || normLoc === 'v') {
+          holeThickness = webT;
           location = 'alma';
+        } else if (partIdLower === 'hf60259') {
+          // Excepción de diseño específica: todas sobre las alas al mayor espesor
+          holeThickness = flangeT;
+          location = 'alas';
+          currentPartRecord.thickness = flangeT;
+        } else {
+          // Perfiles armados (HF, HI, W, etc.): suelen tener perforaciones en alas y alma según diseño.
+          // Alma = menor espesor (webT), Alas = mayor espesor (flangeT).
+          // Si hay múltiples grupos de perforaciones, se distribuyen entre alma y alas.
+          if (currentPartRecord.holes.length === 0) {
+            holeThickness = webT;
+            location = 'alma';
+          } else {
+            holeThickness = flangeT;
+            location = 'alas';
+          }
         }
       }
 

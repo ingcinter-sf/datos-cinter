@@ -353,6 +353,60 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     }
   }, [loadedFiles]);
 
+  // Ensure dual-thickness pieces respect strict metallurgical rules:
+  // - Alma is always menor espesor (Math.min), Ala is always mayor espesor (Math.max)
+  // - Holes assigned to Alas take flangeThickness (mayor espesor)
+  // - Holes assigned to Alma take webThickness (menor espesor)
+  // - Piece hf60259 specifically has all holes on Alas per user design instruction
+  useEffect(() => {
+    let needsUpdate = false;
+    const sanitized = parts.map(p => {
+      if (!p.isDualThickness || !p.webThickness || !p.flangeThickness) return p;
+      const webT = Math.min(p.webThickness, p.flangeThickness);
+      const flangeT = Math.max(p.webThickness, p.flangeThickness);
+      const isHf60259 = p.partId.toLowerCase() === 'hf60259';
+
+      let partModified = false;
+      if (p.webThickness !== webT || p.flangeThickness !== flangeT) {
+        partModified = true;
+      }
+
+      const updatedHoles = p.holes.map(h => {
+        if (isHf60259) {
+          if (h.location !== 'alas' || h.thickness !== flangeT) {
+            partModified = true;
+            return { ...h, location: 'alas', thickness: flangeT };
+          }
+        } else {
+          // Strictly enforce: if alas -> flangeT, if alma -> webT
+          const loc = h.location === 'alas' ? 'alas' : 'alma';
+          const expectedThick = loc === 'alas' ? flangeT : webT;
+          if (h.location !== loc || h.thickness !== expectedThick) {
+            partModified = true;
+            return { ...h, location: loc, thickness: expectedThick };
+          }
+        }
+        return h;
+      });
+
+      if (partModified) {
+        needsUpdate = true;
+        return {
+          ...p,
+          webThickness: webT,
+          flangeThickness: flangeT,
+          thickness: isHf60259 ? flangeT : webT,
+          holes: updatedHoles,
+        };
+      }
+      return p;
+    });
+
+    if (needsUpdate) {
+      setParts(sanitized);
+    }
+  }, [parts, setParts]);
+
   // Upload mode: 'replace' by default (or 'append' if adding to existing)
   const [uploadMode, setUploadMode] = useState<'replace' | 'append'>('replace');
 
@@ -551,11 +605,29 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     setParts(prev =>
       prev.map(p => {
         if (p.partId === partId) {
+          const isHf = p.partId.toLowerCase().startsWith('hf') || (p.profile || '').toLowerCase().startsWith('hf');
+          const isHw = p.partId.toLowerCase().startsWith('hw') || (p.profile || '').toLowerCase().startsWith('hw');
+          let holeThickness = p.thickness;
+          let location: string | undefined = undefined;
+          if (p.isDualThickness && p.webThickness && p.flangeThickness) {
+            if (isHf) {
+              location = 'alas';
+              holeThickness = p.flangeThickness;
+            } else if (isHw) {
+              location = 'alma';
+              holeThickness = p.webThickness;
+            } else {
+              location = p.holes.some(h => h.location === 'alas') ? 'alas' : 'alma';
+              holeThickness = location === 'alas' ? p.flangeThickness : p.webThickness;
+            }
+          }
           const newHole = {
             id: `h-${diam}-${Date.now()}`,
             diameter: diam,
             countPerPiece: 2,
             type: 'pasante' as const,
+            thickness: holeThickness,
+            location,
           };
           const updatedHoles = [...p.holes, newHole];
           const totalHolesPerPiece = updatedHoles.reduce((s, h) => s + h.countPerPiece, 0);
@@ -624,14 +696,19 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     setParts(prev =>
       prev.map(p => {
         if (p.partId === partId) {
-          const webThickness = side === 'web' ? newThickness : (p.webThickness || p.thickness);
-          const flangeThickness = side === 'flange' ? newThickness : (p.flangeThickness || p.thickness);
+          const rawWeb = side === 'web' ? newThickness : (p.webThickness || p.thickness);
+          const rawFlange = side === 'flange' ? newThickness : (p.flangeThickness || p.thickness);
+          // Alma = menor espesor, Ala = mayor espesor
+          const webThickness = Math.min(rawWeb, rawFlange);
+          const flangeThickness = Math.max(rawWeb, rawFlange);
+          const isHf60259 = p.partId.toLowerCase() === 'hf60259';
           const updatedHoles = p.holes.map(h => {
-            const loc = (h.location || '').toLowerCase();
+            const loc = isHf60259 ? 'alas' : (h.location || '').toLowerCase();
             const isFlange = loc === 'alas' || loc === 'ala';
             const hThick = isFlange ? flangeThickness : webThickness;
             return {
               ...h,
+              location: isFlange ? 'alas' : 'alma',
               thickness: hThick,
             };
           });
@@ -639,7 +716,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
             ...p,
             webThickness,
             flangeThickness,
-            thickness: webThickness,
+            thickness: isHf60259 ? flangeThickness : webThickness,
             holes: updatedHoles,
           };
         }
@@ -650,24 +727,29 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
   // Select exact W profile variant from catalog (e.g. W150x13, W150x18, W150x29.8)
   const handleSelectWVariant = (partId: string, newProfile: string, web: number, flange: number) => {
+    // Alma = menor espesor, Ala = mayor espesor
+    const webT = Math.min(web, flange);
+    const flangeT = Math.max(web, flange);
     setParts(prev =>
       prev.map(p => {
         if (p.partId === partId) {
+          const isHf60259 = p.partId.toLowerCase() === 'hf60259';
           const updatedHoles = p.holes.map(h => {
-            const loc = (h.location || '').toLowerCase();
+            const loc = isHf60259 ? 'alas' : (h.location || '').toLowerCase();
             const isFlange = loc === 'alas' || loc === 'ala';
-            const hThick = isFlange ? flange : web;
+            const hThick = isFlange ? flangeT : webT;
             return {
               ...h,
+              location: isFlange ? 'alas' : 'alma',
               thickness: hThick,
             };
           });
           return {
             ...p,
             profile: newProfile,
-            webThickness: web,
-            flangeThickness: flange,
-            thickness: web,
+            webThickness: webT,
+            flangeThickness: flangeT,
+            thickness: isHf60259 ? flangeT : webT,
             isDualThickness: true,
             holes: updatedHoles,
           };
@@ -1647,9 +1729,9 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                           className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-mono ${
                             isLight ? 'bg-indigo-50 text-indigo-900 border-indigo-300' : 'bg-indigo-950/70 text-indigo-200 border-indigo-800'
                           }`}
-                          title="Espesor de Alas en mm (editable)"
+                          title="Espesor de Ala en mm (editable)"
                         >
-                          <span className="font-semibold text-[9px] uppercase">Alas:</span>
+                          <span className="font-semibold text-[9px] uppercase">Ala:</span>
                           <input
                             type="number"
                             step="0.1"
@@ -1735,30 +1817,6 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                                 )}
                               </span>
 
-                              {/* Dual-thickness location badge (read-only informative tag) */}
-                              {part.isDualThickness && (
-                                <span
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-sans font-semibold border select-none ${
-                                    hole.location === 'alas'
-                                      ? isLight
-                                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                                        : 'bg-indigo-950/60 text-indigo-300 border-indigo-700/60'
-                                      : isLight
-                                      ? 'bg-sky-50 text-sky-700 border-sky-200'
-                                      : 'bg-sky-950/60 text-sky-300 border-sky-700/60'
-                                  }`}
-                                  title={
-                                    hole.location === 'alas'
-                                      ? `Perforaciones en Alas (espesor ${hole.thickness || part.flangeThickness} mm)`
-                                      : `Perforaciones en Alma (espesor ${hole.thickness || part.webThickness} mm)`
-                                  }
-                                >
-                                  {hole.location === 'alas'
-                                    ? `Alas (${hole.thickness || part.flangeThickness}mm)`
-                                    : `Alma (${hole.thickness || part.webThickness}mm)`}
-                                </span>
-                              )}
-
                               <span className={isLight ? 'text-slate-700' : 'text-slate-300'}>
                                 <input
                                   type="number"
@@ -1810,12 +1868,29 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                     <div className={`text-[10px] font-sans ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>por cada pieza</div>
                     {part.isDualThickness && (
                       <div className="mt-1 pt-1 border-t border-slate-200 dark:border-slate-800 text-[10px] font-sans space-y-0.5">
-                        <div className={isLight ? 'text-sky-800' : 'text-sky-300'}>
-                          Alma: <strong className="font-mono">{part.holes.filter(h => h.location !== 'alas').reduce((s, h) => s + h.countPerPiece, 0)}</strong>
-                        </div>
-                        <div className={isLight ? 'text-indigo-800' : 'text-indigo-300'}>
-                          Alas: <strong className="font-mono">{part.holes.filter(h => h.location === 'alas').reduce((s, h) => s + h.countPerPiece, 0)}</strong>
-                        </div>
+                        {(() => {
+                          const isHf60259 = part.partId.toLowerCase() === 'hf60259';
+                          const alaCount = part.holes
+                            .filter(h => isHf60259 || (h.location || '').toLowerCase().startsWith('ala') || (part.flangeThickness && h.thickness === part.flangeThickness))
+                            .reduce((s, h) => s + h.countPerPiece, 0);
+                          const almaCount = part.holes
+                            .filter(h => !isHf60259 && ((h.location || '').toLowerCase() === 'alma' || (part.webThickness && h.thickness === part.webThickness && (!part.flangeThickness || h.thickness !== part.flangeThickness))))
+                            .reduce((s, h) => s + h.countPerPiece, 0);
+                          return (
+                            <>
+                              {alaCount > 0 && (
+                                <div className={isLight ? 'text-indigo-800' : 'text-indigo-300'}>
+                                  ala: <strong className="font-mono">{alaCount}</strong> {alaCount === 1 ? 'perforación' : 'perforaciones'}
+                                </div>
+                              )}
+                              {almaCount > 0 && (
+                                <div className={isLight ? 'text-sky-800' : 'text-sky-300'}>
+                                  alma: <strong className="font-mono">{almaCount}</strong> {almaCount === 1 ? 'perforación' : 'perforaciones'}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     )}
                   </td>
@@ -1831,12 +1906,29 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                     </div>
                     {part.isDualThickness && (
                       <div className="mt-1 pt-1 border-t border-slate-200 dark:border-slate-800 text-[10px] font-sans space-y-0.5">
-                        <div className={isLight ? 'text-sky-800' : 'text-sky-300'}>
-                          Alma ({part.webThickness}mm): <strong className="font-mono">{(part.holes.filter(h => h.location !== 'alas').reduce((s, h) => s + h.countPerPiece, 0) * part.quantity).toLocaleString()}</strong>
-                        </div>
-                        <div className={isLight ? 'text-indigo-800' : 'text-indigo-300'}>
-                          Alas ({part.flangeThickness}mm): <strong className="font-mono">{(part.holes.filter(h => h.location === 'alas').reduce((s, h) => s + h.countPerPiece, 0) * part.quantity).toLocaleString()}</strong>
-                        </div>
+                        {(() => {
+                          const isHf60259 = part.partId.toLowerCase() === 'hf60259';
+                          const alaTotal = part.holes
+                            .filter(h => isHf60259 || (h.location || '').toLowerCase().startsWith('ala') || (part.flangeThickness && h.thickness === part.flangeThickness))
+                            .reduce((s, h) => s + h.countPerPiece, 0) * part.quantity;
+                          const almaTotal = part.holes
+                            .filter(h => !isHf60259 && ((h.location || '').toLowerCase() === 'alma' || (part.webThickness && h.thickness === part.webThickness && (!part.flangeThickness || h.thickness !== part.flangeThickness))))
+                            .reduce((s, h) => s + h.countPerPiece, 0) * part.quantity;
+                          return (
+                            <>
+                              {alaTotal > 0 && (
+                                <div className={isLight ? 'text-indigo-800' : 'text-indigo-300'}>
+                                  ala: <strong className="font-mono">{alaTotal.toLocaleString()}</strong> perf.
+                                </div>
+                              )}
+                              {almaTotal > 0 && (
+                                <div className={isLight ? 'text-sky-800' : 'text-sky-300'}>
+                                  alma: <strong className="font-mono">{almaTotal.toLocaleString()}</strong> perf.
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     )}
                   </td>
