@@ -309,7 +309,6 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
   const [pasteMode, setPasteMode] = useState<'replace' | 'append'>('replace');
-  const [showColumnAdjuster, setShowColumnAdjuster] = useState(false);
   const [showGerdauModal, setShowGerdauModal] = useState(false);
   const [lastParseResult, setLastParseResult] = useState<ParseResult | null>(null);
 
@@ -1141,105 +1140,8 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
               <span>Pegar desde Excel (Ctrl+V)</span>
             </button>
 
-            <button
-              onClick={() => setShowColumnAdjuster(!showColumnAdjuster)}
-              className={`px-3 py-2.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
-                showColumnAdjuster
-                  ? isLight ? 'bg-blue-600 text-white font-bold border-blue-600' : 'bg-amber-500 text-slate-950 font-bold border-amber-400'
-                  : isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300' : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
-              }`}
-              title="Ajustar qué columna corresponde a cada dato"
-            >
-              <Settings2 className="w-4 h-4" />
-              <span>Mapear Columnas</span>
-            </button>
           </div>
         </div>
-
-        {/* Column Mapping Adjuster Drawer */}
-        {showColumnAdjuster && (
-          <div className="pt-4 border-t border-slate-800 bg-slate-950/60 p-4 rounded-xl border space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                <Settings2 className="w-3.5 h-3.5" />
-                Mapeador Manual de Columnas
-              </h4>
-              <button
-                onClick={handleApplyCustomMapping}
-                className="text-xs font-bold px-3 py-1 rounded bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors flex items-center gap-1 cursor-pointer"
-              >
-                <RefreshCw className="w-3 h-3" /> Aplicar Cambios
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Columna Pieza / Marca:</label>
-                <select
-                  value={colMapping.parte}
-                  onChange={e => setColMapping(prev => ({ ...prev, parte: parseInt(e.target.value, 10) }))}
-                  className="w-full px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200"
-                >
-                  {sampleColumns.map((c, i) => (
-                    <option key={i} value={i}>Columna {i + 1}: "{c}"</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Columna Perfil:</label>
-                <select
-                  value={colMapping.perfil}
-                  onChange={e => setColMapping(prev => ({ ...prev, perfil: parseInt(e.target.value, 10) }))}
-                  className="w-full px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200"
-                >
-                  {sampleColumns.map((c, i) => (
-                    <option key={i} value={i}>Columna {i + 1}: "{c}"</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Columna Cantidad:</label>
-                <select
-                  value={colMapping.cantPartes}
-                  onChange={e => setColMapping(prev => ({ ...prev, cantPartes: parseInt(e.target.value, 10) }))}
-                  className="w-full px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200"
-                >
-                  {sampleColumns.map((c, i) => (
-                    <option key={i} value={i}>Columna {i + 1}: "{c}"</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Columna Diámetro:</label>
-                <select
-                  value={colMapping.diametro}
-                  onChange={e => setColMapping(prev => ({ ...prev, diametro: parseInt(e.target.value, 10) }))}
-                  className="w-full px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200"
-                >
-                  {sampleColumns.map((c, i) => (
-                    <option key={i} value={i}>Columna {i + 1}: "{c}"</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Columna Agujeros:</label>
-                <select
-                  value={colMapping.agujerosPorParte}
-                  onChange={e => setColMapping(prev => ({ ...prev, agujerosPorParte: parseInt(e.target.value, 10) }))}
-                  className="w-full px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200"
-                >
-                  {sampleColumns.map((c, i) => (
-                    <option key={i} value={i}>Columna {i + 1}: "{c}"</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* KPI Production Summary Cards (Dynamically reflects filters and omit toggle) */}
