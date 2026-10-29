@@ -353,18 +353,16 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     }
   }, [loadedFiles]);
 
-  // Ensure dual-thickness pieces respect strict metallurgical rules:
-  // - Alma is always menor espesor (Math.min), Ala is always mayor espesor (Math.max)
-  // - Holes assigned to Alas take flangeThickness (mayor espesor)
-  // - Holes assigned to Alma take webThickness (menor espesor)
-  // - Piece hf60259 specifically has all holes on Alas per user design instruction
+  // Regla universal de los espesores para TODAS las piezas:
+  // - Alma es siempre el menor espesor (Math.min), Ala es siempre el mayor espesor (Math.max)
+  // - Si una perforación coincide o está más cerca del mayor espesor (o está asignada a alas) -> Ala (flangeThickness)
+  // - Si una perforación coincide o está más cerca del menor espesor (o está asignada a alma) -> Alma (webThickness)
   useEffect(() => {
     let needsUpdate = false;
     const sanitized = parts.map(p => {
       if (!p.isDualThickness || !p.webThickness || !p.flangeThickness) return p;
       const webT = Math.min(p.webThickness, p.flangeThickness);
       const flangeT = Math.max(p.webThickness, p.flangeThickness);
-      const isHf60259 = p.partId.toLowerCase() === 'hf60259';
 
       let partModified = false;
       if (p.webThickness !== webT || p.flangeThickness !== flangeT) {
@@ -372,19 +370,25 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
       }
 
       const updatedHoles = p.holes.map(h => {
-        if (isHf60259) {
-          if (h.location !== 'alas' || h.thickness !== flangeT) {
-            partModified = true;
-            return { ...h, location: 'alas', thickness: flangeT };
-          }
+        const loc = (h.location || '').toLowerCase();
+        let targetLoc: 'alas' | 'alma';
+
+        if (loc.startsWith('ala')) {
+          targetLoc = 'alas';
+        } else if (loc === 'alma') {
+          targetLoc = 'alma';
+        } else if (h.thickness && Math.abs(h.thickness - flangeT) < Math.abs(h.thickness - webT)) {
+          targetLoc = 'alas';
+        } else if (h.thickness && Math.abs(h.thickness - webT) < Math.abs(h.thickness - flangeT)) {
+          targetLoc = 'alma';
         } else {
-          // Strictly enforce: if alas -> flangeT, if alma -> webT
-          const loc = h.location === 'alas' ? 'alas' : 'alma';
-          const expectedThick = loc === 'alas' ? flangeT : webT;
-          if (h.location !== loc || h.thickness !== expectedThick) {
-            partModified = true;
-            return { ...h, location: loc, thickness: expectedThick };
-          }
+          targetLoc = loc === 'alma' ? 'alma' : 'alas';
+        }
+
+        const expectedThick = targetLoc === 'alas' ? flangeT : webT;
+        if (h.location !== targetLoc || h.thickness !== expectedThick) {
+          partModified = true;
+          return { ...h, location: targetLoc, thickness: expectedThick };
         }
         return h;
       });
@@ -395,7 +399,6 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
           ...p,
           webThickness: webT,
           flangeThickness: flangeT,
-          thickness: isHf60259 ? flangeT : webT,
           holes: updatedHoles,
         };
       }
@@ -701,10 +704,9 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
           // Alma = menor espesor, Ala = mayor espesor
           const webThickness = Math.min(rawWeb, rawFlange);
           const flangeThickness = Math.max(rawWeb, rawFlange);
-          const isHf60259 = p.partId.toLowerCase() === 'hf60259';
           const updatedHoles = p.holes.map(h => {
-            const loc = isHf60259 ? 'alas' : (h.location || '').toLowerCase();
-            const isFlange = loc === 'alas' || loc === 'ala';
+            const loc = (h.location || '').toLowerCase();
+            const isFlange = loc.startsWith('ala') || (h.thickness && Math.abs(h.thickness - flangeThickness) < Math.abs(h.thickness - webThickness));
             const hThick = isFlange ? flangeThickness : webThickness;
             return {
               ...h,
@@ -716,7 +718,6 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
             ...p,
             webThickness,
             flangeThickness,
-            thickness: isHf60259 ? flangeThickness : webThickness,
             holes: updatedHoles,
           };
         }
@@ -733,10 +734,9 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     setParts(prev =>
       prev.map(p => {
         if (p.partId === partId) {
-          const isHf60259 = p.partId.toLowerCase() === 'hf60259';
           const updatedHoles = p.holes.map(h => {
-            const loc = isHf60259 ? 'alas' : (h.location || '').toLowerCase();
-            const isFlange = loc === 'alas' || loc === 'ala';
+            const loc = (h.location || '').toLowerCase();
+            const isFlange = loc.startsWith('ala') || (h.thickness && Math.abs(h.thickness - flangeT) < Math.abs(h.thickness - webT));
             const hThick = isFlange ? flangeT : webT;
             return {
               ...h,
@@ -749,7 +749,6 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
             profile: newProfile,
             webThickness: webT,
             flangeThickness: flangeT,
-            thickness: isHf60259 ? flangeT : webT,
             isDualThickness: true,
             holes: updatedHoles,
           };
@@ -1869,12 +1868,14 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                     {part.isDualThickness && (
                       <div className="mt-1 pt-1 border-t border-slate-200 dark:border-slate-800 text-[10px] font-sans space-y-0.5">
                         {(() => {
-                          const isHf60259 = part.partId.toLowerCase() === 'hf60259';
+                          const webT = part.webThickness || Math.min(part.thickness, part.flangeThickness || part.thickness);
+                          const flangeT = part.flangeThickness || Math.max(part.thickness, part.webThickness || part.thickness);
+
                           const alaCount = part.holes
-                            .filter(h => isHf60259 || (h.location || '').toLowerCase().startsWith('ala') || (part.flangeThickness && h.thickness === part.flangeThickness))
+                            .filter(h => (h.location || '').toLowerCase().startsWith('ala') || (h.thickness && Math.abs(h.thickness - flangeT) < Math.abs(h.thickness - webT)))
                             .reduce((s, h) => s + h.countPerPiece, 0);
                           const almaCount = part.holes
-                            .filter(h => !isHf60259 && ((h.location || '').toLowerCase() === 'alma' || (part.webThickness && h.thickness === part.webThickness && (!part.flangeThickness || h.thickness !== part.flangeThickness))))
+                            .filter(h => (h.location || '').toLowerCase() === 'alma' || (h.thickness && Math.abs(h.thickness - webT) <= Math.abs(h.thickness - flangeT) && !(h.location || '').toLowerCase().startsWith('ala')))
                             .reduce((s, h) => s + h.countPerPiece, 0);
                           return (
                             <>
@@ -1907,12 +1908,14 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                     {part.isDualThickness && (
                       <div className="mt-1 pt-1 border-t border-slate-200 dark:border-slate-800 text-[10px] font-sans space-y-0.5">
                         {(() => {
-                          const isHf60259 = part.partId.toLowerCase() === 'hf60259';
+                          const webT = part.webThickness || Math.min(part.thickness, part.flangeThickness || part.thickness);
+                          const flangeT = part.flangeThickness || Math.max(part.thickness, part.webThickness || part.thickness);
+
                           const alaTotal = part.holes
-                            .filter(h => isHf60259 || (h.location || '').toLowerCase().startsWith('ala') || (part.flangeThickness && h.thickness === part.flangeThickness))
+                            .filter(h => (h.location || '').toLowerCase().startsWith('ala') || (h.thickness && Math.abs(h.thickness - flangeT) < Math.abs(h.thickness - webT)))
                             .reduce((s, h) => s + h.countPerPiece, 0) * part.quantity;
                           const almaTotal = part.holes
-                            .filter(h => !isHf60259 && ((h.location || '').toLowerCase() === 'alma' || (part.webThickness && h.thickness === part.webThickness && (!part.flangeThickness || h.thickness !== part.flangeThickness))))
+                            .filter(h => (h.location || '').toLowerCase() === 'alma' || (h.thickness && Math.abs(h.thickness - webT) <= Math.abs(h.thickness - flangeT) && !(h.location || '').toLowerCase().startsWith('ala')))
                             .reduce((s, h) => s + h.countPerPiece, 0) * part.quantity;
                           return (
                             <>
