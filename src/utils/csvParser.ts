@@ -309,7 +309,7 @@ export function extractProfileThickness(profile: string): number {
   // e.g. C180-2-20*70 -> thickness 2 mm
   // e.g. Z200-2.5-20*75 -> thickness 2.5 mm
   // e.g. CC180-2*70 -> thickness 2 mm
-  const ccHyphenMatch = pNoSpace.match(/^(?:CC|C|U|CF|Z|ZP)\d*(?:\.\d+)?-(\d+(?:\.\d+)?)-/);
+  const ccHyphenMatch = pNoSpace.match(/^(?:ZZ|Z|CC|C|U|CF|ZP)\d*(?:\.\d+)?-(\d+(?:\.\d+)?)-/);
   if (ccHyphenMatch) {
     const t = parseFloat(ccHyphenMatch[1]);
     if (t > 0 && t <= 50) return t;
