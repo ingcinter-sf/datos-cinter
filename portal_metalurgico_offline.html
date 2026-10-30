@@ -48648,17 +48648,68 @@ function App() {
 	const [activeTab, setActiveTab] = (0, import_react.useState)("csv");
 	const [theme, setTheme] = (0, import_react.useState)("light");
 	const toggleTheme = () => setTheme((prev) => prev === "light" ? "dark" : "light");
-	const [parts, setParts] = (0, import_react.useState)([]);
-	const [headerMetadata, setHeaderMetadata] = (0, import_react.useState)([]);
-	const [projectName, setProjectName] = (0, import_react.useState)("Nueva Obra");
-	const [rawCsvText, setRawCsvText] = (0, import_react.useState)("");
-	const [loadedFiles, setLoadedFiles] = (0, import_react.useState)([]);
+	const [parts, setParts] = (0, import_react.useState)(() => {
+		try {
+			const saved = localStorage.getItem("cinter_saved_parts");
+			return saved ? JSON.parse(saved) : [];
+		} catch {
+			return [];
+		}
+	});
+	const [headerMetadata, setHeaderMetadata] = (0, import_react.useState)(() => {
+		try {
+			const saved = localStorage.getItem("cinter_saved_metadata");
+			return saved ? JSON.parse(saved) : [];
+		} catch {
+			return [];
+		}
+	});
+	const [projectName, setProjectName] = (0, import_react.useState)(() => {
+		return localStorage.getItem("cinter_saved_project_name") || "Nueva Obra";
+	});
+	const [rawCsvText, setRawCsvText] = (0, import_react.useState)(() => {
+		return localStorage.getItem("cinter_saved_raw_csv") || "";
+	});
+	const [loadedFiles, setLoadedFiles] = (0, import_react.useState)(() => {
+		try {
+			const saved = localStorage.getItem("cinter_saved_loaded_files");
+			return saved ? JSON.parse(saved) : [];
+		} catch {
+			return [];
+		}
+	});
+	(0, import_react.useEffect)(() => {
+		try {
+			localStorage.setItem("cinter_saved_parts", JSON.stringify(parts));
+			localStorage.setItem("cinter_saved_metadata", JSON.stringify(headerMetadata));
+			localStorage.setItem("cinter_saved_project_name", projectName);
+			localStorage.setItem("cinter_saved_raw_csv", rawCsvText);
+			localStorage.setItem("cinter_saved_loaded_files", JSON.stringify(loadedFiles));
+		} catch (err) {
+			console.error("Error saving state to localStorage", err);
+		}
+	}, [
+		parts,
+		headerMetadata,
+		projectName,
+		rawCsvText,
+		loadedFiles
+	]);
 	const handleClearAll = () => {
 		setParts([]);
 		setHeaderMetadata([]);
 		setProjectName("Nueva Obra");
 		setRawCsvText("");
 		setLoadedFiles([]);
+		try {
+			localStorage.removeItem("cinter_saved_parts");
+			localStorage.removeItem("cinter_saved_metadata");
+			localStorage.removeItem("cinter_saved_project_name");
+			localStorage.removeItem("cinter_saved_raw_csv");
+			localStorage.removeItem("cinter_saved_loaded_files");
+		} catch (err) {
+			console.error("Error clearing localStorage", err);
+		}
 	};
 	const { totalPartsCount, totalHolesProduction, diameterSummary } = (0, import_react.useMemo)(() => {
 		const totalParts = parts.reduce((sum, p) => sum + p.quantity, 0);

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { CsvAnalyzer } from './components/CsvAnalyzer';
 import { DxfViewer } from './components/DxfViewer';
@@ -16,14 +16,54 @@ export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
-  // Initialize clean: NO pre-loaded data on startup (user starts with empty slate)
-  const [parts, setParts] = useState<PartRecord[]>([]);
-  const [headerMetadata, setHeaderMetadata] = useState<string[]>([]);
+  // Initialize from localStorage for offline persistence across reloads
+  const [parts, setParts] = useState<PartRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem('cinter_saved_parts');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [headerMetadata, setHeaderMetadata] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('cinter_saved_metadata');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   
-  // Project Name: defaults to 'Nueva Obra' until first file is added, and is fully editable anytime
-  const [projectName, setProjectName] = useState<string>('Nueva Obra');
-  const [rawCsvText, setRawCsvText] = useState<string>('');
-  const [loadedFiles, setLoadedFiles] = useState<string[]>([]);
+  const [projectName, setProjectName] = useState<string>(() => {
+    return localStorage.getItem('cinter_saved_project_name') || 'Nueva Obra';
+  });
+
+  const [rawCsvText, setRawCsvText] = useState<string>(() => {
+    return localStorage.getItem('cinter_saved_raw_csv') || '';
+  });
+
+  const [loadedFiles, setLoadedFiles] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('cinter_saved_loaded_files');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Save to localStorage automatically on state changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('cinter_saved_parts', JSON.stringify(parts));
+      localStorage.setItem('cinter_saved_metadata', JSON.stringify(headerMetadata));
+      localStorage.setItem('cinter_saved_project_name', projectName);
+      localStorage.setItem('cinter_saved_raw_csv', rawCsvText);
+      localStorage.setItem('cinter_saved_loaded_files', JSON.stringify(loadedFiles));
+    } catch (err) {
+      console.error('Error saving state to localStorage', err);
+    }
+  }, [parts, headerMetadata, projectName, rawCsvText, loadedFiles]);
 
   // Clear all data (blank slate)
   const handleClearAll = () => {
@@ -32,6 +72,15 @@ export default function App() {
     setProjectName('Nueva Obra');
     setRawCsvText('');
     setLoadedFiles([]);
+    try {
+      localStorage.removeItem('cinter_saved_parts');
+      localStorage.removeItem('cinter_saved_metadata');
+      localStorage.removeItem('cinter_saved_project_name');
+      localStorage.removeItem('cinter_saved_raw_csv');
+      localStorage.removeItem('cinter_saved_loaded_files');
+    } catch (err) {
+      console.error('Error clearing localStorage', err);
+    }
   };
 
   // Recalculate summary metrics whenever parts change
