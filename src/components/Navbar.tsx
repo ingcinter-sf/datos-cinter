@@ -7,8 +7,10 @@ import {
   Moon,
   Edit3,
   Check,
-  RotateCcw
+  RotateCcw,
+  Upload
 } from 'lucide-react';
+import defaultLogo from '@/public/assets/aistudio/ImagotipoV_06__1__39317061.png';
 
 interface NavbarProps {
   activeTab: 'csv' | 'dxf' | 'ai' | 'calculator' | 'print';
@@ -37,6 +39,28 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(projectName);
+  const [logoSrc, setLogoSrc] = useState<string>(() => {
+    return localStorage.getItem('cinter_custom_logo') || defaultLogo;
+  });
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        if (result) {
+          setLogoSrc(result);
+          try {
+            localStorage.setItem('cinter_custom_logo', result);
+          } catch (err) {
+            console.error('Error saving custom logo', err);
+          }
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const isLight = theme === 'light';
 
@@ -64,15 +88,25 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between h-16 gap-3">
           {/* Logo & Brand */}
           <div className="flex items-center gap-3 shrink-0">
-            {/* CINTER Official Logo Container */}
-            <div className={`h-11 px-2 py-1 rounded-lg flex items-center justify-center transition-all ${
-              isLight ? 'bg-blue-50/70 border border-blue-100 shadow-xs' : 'bg-white p-1 rounded-lg shadow-sm border border-slate-700'
-            }`}>
-              <img 
-                src="/assets/aistudio/ImagotipoV_06__1__39317061.png" 
-                alt="CINTER Logo" 
-                className="h-9 w-auto max-w-[110px] object-contain"
-              />
+            {/* CINTER Official Logo Container with upload capability */}
+            <div className="relative group shrink-0">
+              <div className={`h-11 px-2 py-1 rounded-lg flex items-center justify-center transition-all ${
+                isLight ? 'bg-blue-50/70 border border-blue-100 shadow-xs' : 'bg-white p-1 rounded-lg shadow-sm border border-slate-700'
+              }`}>
+                <img 
+                  src={logoSrc} 
+                  alt="CINTER Logo" 
+                  className="h-9 w-auto max-w-[110px] object-contain"
+                />
+              </div>
+              <label 
+                className="absolute inset-0 bg-black/70 rounded-lg flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-[10px] font-bold gap-0.5 shadow-md"
+                title="Haga clic para cargar su propio archivo de logo"
+              >
+                <Upload className="w-3.5 h-3.5 text-amber-300" />
+                <span>Cambiar logo</span>
+                <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+              </label>
             </div>
             <div>
               <div className="flex items-center gap-2">
