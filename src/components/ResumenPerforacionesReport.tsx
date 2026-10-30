@@ -15,6 +15,7 @@ import {
 import * as XLSX from 'xlsx';
 import { PartRecord, DiameterSummary } from '../types';
 import { buildThicknessMatrix, exportPartsToReimportableCsv, exportThicknessMatrixToCsv } from '../utils/csvParser';
+import defaultLogo from '@/public/assets/aistudio/ImagotipoV_06__1__39317061.png';
 
 interface ResumenPerforacionesReportProps {
   parts: PartRecord[];
@@ -37,6 +38,8 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
   const [omitCorrederas, setOmitCorrederas] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(obraTitle);
+
+  const logoSrc = typeof window !== 'undefined' ? (localStorage.getItem('cinter_custom_logo') || defaultLogo) : defaultLogo;
 
   const isLight = theme === 'light';
 
@@ -437,7 +440,7 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
             {/* CINTER Logo */}
             <div className="h-14 w-auto flex items-center justify-center bg-white">
               <img 
-                src="/assets/aistudio/ImagotipoV_06__1__39317061.png" 
+                src={logoSrc} 
                 alt="CINTER Logo" 
                 className="h-12 w-auto object-contain"
               />

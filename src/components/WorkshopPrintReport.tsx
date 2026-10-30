@@ -1,6 +1,7 @@
 import React from 'react';
 import { Printer, Download, CheckSquare, Layers, Wrench, ShieldCheck } from 'lucide-react';
 import { PartRecord, DiameterSummary } from '../types';
+import defaultLogo from '@/public/assets/aistudio/ImagotipoV_06__1__39317061.png';
 
 interface WorkshopPrintReportProps {
   parts: PartRecord[];
@@ -26,6 +27,8 @@ export const WorkshopPrintReport: React.FC<WorkshopPrintReportProps> = ({
     month: '2-digit',
     year: 'numeric',
   });
+
+  const logoSrc = typeof window !== 'undefined' ? (localStorage.getItem('cinter_custom_logo') || defaultLogo) : defaultLogo;
 
   return (
     <div className="space-y-6">
@@ -54,20 +57,25 @@ export const WorkshopPrintReport: React.FC<WorkshopPrintReportProps> = ({
       <div className="bg-white text-slate-900 p-8 sm:p-10 rounded-2xl shadow-xl max-w-4xl mx-auto border border-slate-300 print:border-none print:shadow-none print:p-0 print:m-0 font-sans">
         {/* Header */}
         <div className="border-b-2 border-slate-900 pb-5 mb-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <div className="text-2xl font-black uppercase tracking-tight text-slate-950 flex items-center gap-2">
-                <span>Metalúrgica</span>
-                <span className="text-amber-600">Buyanor</span>
-              </div>
-              <div className="text-xs font-semibold text-slate-600 mt-1 uppercase tracking-wider">
-                Orden de Fabricación - Hoja de Perforado y Punzonado CNC
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <img 
+                src={logoSrc} 
+                alt="CINTER Logo" 
+                className="h-12 w-auto object-contain"
+              />
+              <div>
+                <div className="text-xl font-black uppercase tracking-tight text-slate-950">
+                  CINTER <span className="text-blue-600">- Fábrica</span>
+                </div>
+                <div className="text-xs font-semibold text-slate-600 mt-0.5 uppercase tracking-wider">
+                  Orden de Fabricación - Hoja de Perforado y Punzonado CNC
+                </div>
               </div>
             </div>
 
             <div className="text-right text-xs space-y-0.5">
               <div><strong>Fecha de Emisión:</strong> {currentDate}</div>
-              <div><strong>Orden Nº:</strong> ORD-PERF-29000-A</div>
               <div><strong>Estado:</strong> LISTO PARA PRODUCCIÓN</div>
             </div>
           </div>
