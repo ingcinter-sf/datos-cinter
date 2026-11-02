@@ -17,10 +17,26 @@ export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
-  // Initialize from localStorage for offline persistence across reloads
+  // Unique storage prefix per folder path to isolate data between different obra folders
+  const storagePrefix = useMemo(() => {
+    if (typeof window === 'undefined') return 'cinter_default';
+    try {
+      const path = window.location.pathname || 'default';
+      let hash = 0;
+      for (let i = 0; i < path.length; i++) {
+        hash = ((hash << 5) - hash) + path.charCodeAt(i);
+        hash |= 0;
+      }
+      return `cinter_obra_${Math.abs(hash)}`;
+    } catch {
+      return 'cinter_obra_fallback';
+    }
+  }, []);
+
+  // Initialize from localStorage for offline persistence across reloads (isolated per folder path)
   const [parts, setParts] = useState<PartRecord[]>(() => {
     try {
-      const saved = localStorage.getItem('cinter_saved_parts');
+      const saved = localStorage.getItem(`${storagePrefix}_parts`);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -29,7 +45,7 @@ export default function App() {
 
   const [headerMetadata, setHeaderMetadata] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('cinter_saved_metadata');
+      const saved = localStorage.getItem(`${storagePrefix}_metadata`);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -37,16 +53,16 @@ export default function App() {
   });
   
   const [projectName, setProjectName] = useState<string>(() => {
-    return localStorage.getItem('cinter_saved_project_name') || 'Nueva Obra';
+    return localStorage.getItem(`${storagePrefix}_project_name`) || 'Nueva Obra';
   });
 
   const [rawCsvText, setRawCsvText] = useState<string>(() => {
-    return localStorage.getItem('cinter_saved_raw_csv') || '';
+    return localStorage.getItem(`${storagePrefix}_raw_csv`) || '';
   });
 
   const [loadedFiles, setLoadedFiles] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('cinter_saved_loaded_files');
+      const saved = localStorage.getItem(`${storagePrefix}_loaded_files`);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -56,15 +72,15 @@ export default function App() {
   // Save to localStorage automatically on state changes
   useEffect(() => {
     try {
-      localStorage.setItem('cinter_saved_parts', JSON.stringify(parts));
-      localStorage.setItem('cinter_saved_metadata', JSON.stringify(headerMetadata));
-      localStorage.setItem('cinter_saved_project_name', projectName);
-      localStorage.setItem('cinter_saved_raw_csv', rawCsvText);
-      localStorage.setItem('cinter_saved_loaded_files', JSON.stringify(loadedFiles));
+      localStorage.setItem(`${storagePrefix}_parts`, JSON.stringify(parts));
+      localStorage.setItem(`${storagePrefix}_metadata`, JSON.stringify(headerMetadata));
+      localStorage.setItem(`${storagePrefix}_project_name`, projectName);
+      localStorage.setItem(`${storagePrefix}_raw_csv`, rawCsvText);
+      localStorage.setItem(`${storagePrefix}_loaded_files`, JSON.stringify(loadedFiles));
     } catch (err) {
       console.error('Error saving state to localStorage', err);
     }
-  }, [parts, headerMetadata, projectName, rawCsvText, loadedFiles]);
+  }, [storagePrefix, parts, headerMetadata, projectName, rawCsvText, loadedFiles]);
 
   // Clear all data (blank slate)
   const handleClearAll = () => {
@@ -74,11 +90,11 @@ export default function App() {
     setRawCsvText('');
     setLoadedFiles([]);
     try {
-      localStorage.removeItem('cinter_saved_parts');
-      localStorage.removeItem('cinter_saved_metadata');
-      localStorage.removeItem('cinter_saved_project_name');
-      localStorage.removeItem('cinter_saved_raw_csv');
-      localStorage.removeItem('cinter_saved_loaded_files');
+      localStorage.removeItem(`${storagePrefix}_parts`);
+      localStorage.removeItem(`${storagePrefix}_metadata`);
+      localStorage.removeItem(`${storagePrefix}_project_name`);
+      localStorage.removeItem(`${storagePrefix}_raw_csv`);
+      localStorage.removeItem(`${storagePrefix}_loaded_files`);
     } catch (err) {
       console.error('Error clearing localStorage', err);
     }
