@@ -8,13 +8,14 @@ import {
   Edit3,
   Check,
   RotateCcw,
-  Upload
+  Upload,
+  BarChart3
 } from 'lucide-react';
 import defaultLogo from '@/public/assets/aistudio/ImagotipoV_06__1__39317061.png';
 
 interface NavbarProps {
-  activeTab: 'csv' | 'dxf' | 'ai' | 'calculator' | 'print';
-  setActiveTab: (tab: 'csv' | 'dxf' | 'ai' | 'calculator' | 'print') => void;
+  activeTab: 'csv' | 'print' | 'analytics';
+  setActiveTab: (tab: 'csv' | 'print' | 'analytics') => void;
   totalParts: number;
   totalHoles: number;
   onLoadSample: (type: 'vmc' | 'n29000') => void;
@@ -307,6 +308,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {projectName}
               </span>
             </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
+              activeTab === 'analytics'
+                ? isLight
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]'
+                  : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]'
+                : isLight
+                  ? 'bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600'
+                  : 'bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            Análisis de Datos
           </button>
         </nav>
       </div>

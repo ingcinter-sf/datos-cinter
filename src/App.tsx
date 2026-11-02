@@ -5,6 +5,7 @@ import { DxfViewer } from './components/DxfViewer';
 import { BlueprintAiAnalyzer } from './components/BlueprintAiAnalyzer';
 import { MachiningCalculator } from './components/MachiningCalculator';
 import { ResumenPerforacionesReport } from './components/ResumenPerforacionesReport';
+import { WorkshopAnalytics } from './components/WorkshopAnalytics';
 import { parseMetallurgyCsv, mergePartRecords } from './utils/csvParser';
 import { SAMPLE_METALLURGY_CSV, SAMPLE_METALLURGY_VMC } from './utils/sampleData';
 import { PartRecord, DiameterSummary } from './types';
@@ -327,6 +328,17 @@ export default function App() {
             headerMetadata={headerMetadata}
             obraTitle={projectName}
             onObraTitleChange={setProjectName}
+            theme={theme}
+          />
+        )}
+
+        {activeTab === 'analytics' && (
+          <WorkshopAnalytics
+            parts={parts}
+            diameterSummary={diameterSummary}
+            totalPartsCount={totalPartsCount}
+            totalHolesProduction={totalHolesProduction}
+            obraTitle={projectName}
             theme={theme}
           />
         )}
