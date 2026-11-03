@@ -1,15 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { 
   BarChart3, 
-  TrendingUp, 
   Layers, 
   Wrench, 
-  PieChart, 
-  CheckCircle2, 
-  AlertTriangle,
-  Award,
   Zap,
-  Filter
+  Award,
+  CircleDot,
+  CheckCircle2,
+  Boxes,
+  Ruler
 } from 'lucide-react';
 import { PartRecord, DiameterSummary } from '../types';
 
@@ -32,16 +31,13 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
 }) => {
   const isLight = theme === 'light';
 
-  // 1. PARETO DE DIAMETROS (Opción 1)
+  // 1. PARETO DE DIAMETROS (Tarjetas visuales)
   const paretoData = useMemo(() => {
     const totalHoles = totalHolesProduction || 1;
     const sorted = [...diameterSummary].sort((a, b) => b.totalHolesProduction - a.totalHolesProduction);
     
-    let cumulative = 0;
     return sorted.map(item => {
       const percentage = (item.totalHolesProduction / totalHoles) * 100;
-      cumulative += percentage;
-      // Calculate total meters drilled for this diameter
       let meters = 0;
       parts.forEach(part => {
         part.holes.forEach(hole => {
@@ -55,13 +51,12 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
       return {
         ...item,
         percentage: Math.round(percentage * 10) / 10,
-        cumulativePercentage: Math.round(Math.min(100, cumulative) * 10) / 10,
         totalMeters: Math.round(meters * 100) / 100,
       };
     });
   }, [diameterSummary, totalHolesProduction, parts]);
 
-  // 2. RANKING Y CONSUMO POR TIPO DE PERFIL (Opción 2)
+  // 2. RANKING Y CONSUMO POR TIPO DE PERFIL (Tarjetas de familia)
   const profileRanking = useMemo(() => {
     const map = new Map<string, {
       profileGroup: string;
@@ -72,9 +67,8 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
     }>();
 
     parts.forEach(part => {
-      // Extract profile category prefix (e.g. W, HP, PL, HI, HF, Z, ZZ, etc.)
       const rawProfile = part.profile.trim().toUpperCase();
-      let group = 'OTRO / PLACA';
+      let group = 'PLACA / OTRO';
       if (rawProfile.startsWith('W ')) group = 'PERFIL W';
       else if (rawProfile.startsWith('HP')) group = 'PERFIL HP';
       else if (rawProfile.startsWith('HI')) group = 'PERFIL HI';
@@ -100,7 +94,6 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
       entry.totalPartsQty += part.quantity;
       entry.totalHoles += part.totalHolesAllPieces;
 
-      // calculate meters for this part
       let partMeters = 0;
       part.holes.forEach(h => {
         const th = h.thickness || part.thickness;
@@ -112,7 +105,7 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
     return Array.from(map.values()).sort((a, b) => b.totalPartsQty - a.totalPartsQty);
   }, [parts]);
 
-  // 4. DISTRIBUCIÓN DE CARGA POR ESPESORES (Opción 4)
+  // 4. DISTRIBUCIÓN DE CARGA POR ESPESORES
   const thicknessDistribution = useMemo(() => {
     const map = new Map<number, {
       thickness: number;
@@ -159,155 +152,175 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
     return Math.max(...thicknessDistribution.map(t => t.totalMeters), 1);
   }, [thicknessDistribution]);
 
+  // Top stats highlights
+  const topDiameter = paretoData[0];
+  const topProfile = profileRanking[0];
+
   return (
-    <div className="space-y-8 pb-12">
-      {/* Header Info Banner */}
+    <div className="space-y-6 pb-12 font-sans">
+      {/* Header Banner */}
       <div className={`p-6 rounded-2xl border transition-all ${
-        isLight ? 'bg-gradient-to-r from-blue-50 via-indigo-50/40 to-white border-blue-200 shadow-sm' : 'bg-slate-900 border-slate-800 shadow-md'
+        isLight ? 'bg-gradient-to-r from-blue-50 via-indigo-50/50 to-white border-blue-200 shadow-sm' : 'bg-slate-900 border-slate-800 shadow-md'
       }`}>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-wider ${
+              <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider ${
                 isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950'
               }`}>
-                Módulo Analítico
+                Panel Visual de Taller
               </span>
               <h2 className={`text-xl font-black uppercase tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                Análisis de Datos y Estadísticas de Taller
+                Resumen Gráfico de Obra: {obraTitle}
               </h2>
             </div>
-            <p className={`text-xs mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-              Obra actual: <strong className="font-mono">{obraTitle}</strong> — {totalPartsCount} piezas totales, {totalHolesProduction.toLocaleString()} perforaciones analizadas.
+            <p className={`text-xs mt-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              Vista rápida de diámetros principales, familias de perfiles y distribución de espesores para la producción CNC.
             </p>
           </div>
 
-          <div className={`px-4 py-2 rounded-xl border flex items-center gap-3 text-xs ${
-            isLight ? 'bg-white border-blue-200 text-blue-900' : 'bg-slate-950 border-amber-500/30 text-amber-300'
-          }`}>
-            <Zap className={`w-4 h-4 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-            <div>
-              <div className="font-bold">Optimización CNC Activa</div>
-              <div className="text-[10px] opacity-80">Parámetros de brocas y espesores listos</div>
+          <div className="flex items-center gap-3">
+            <div className={`px-4 py-2 rounded-xl border text-center ${
+              isLight ? 'bg-white border-blue-200 text-blue-900' : 'bg-slate-950 border-amber-500/30 text-amber-300'
+            }`}>
+              <div className="text-[10px] uppercase font-bold opacity-80">Total Perforaciones</div>
+              <div className="text-lg font-black font-mono">{totalHolesProduction.toLocaleString()}</div>
+            </div>
+            <div className={`px-4 py-2 rounded-xl border text-center ${
+              isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-white'
+            }`}>
+              <div className="text-[10px] uppercase font-bold opacity-80">Piezas Totales</div>
+              <div className="text-lg font-black font-mono">{totalPartsCount.toLocaleString()}</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 1. ANÁLISIS DE PARETO DE DIÁMETROS (Opción 1) */}
+      {/* SECCIÓN 1: DIÁMETROS PRINCIPALES (TARJETAS VISUALES - OPCIÓN 1) */}
       <div className={`p-6 rounded-2xl border shadow-sm ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
       }`}>
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+        <div className="mb-5 pb-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
             <h3 className="text-base font-black flex items-center gap-2">
-              <BarChart3 className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-              1. Análisis de Pareto de Diámetros (Optimización de Herramientas CNC)
+              <CircleDot className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+              1. Diámetros de Perforación Frecuentes (Herramientas CNC)
             </h3>
             <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-              Distribución de perforaciones por diámetro y porcentaje acumulado para alistamiento de brocas y punzones (Ley 80/20).
+              Tarjetas ordenadas por mayor demanda en la obra para preparar brocas y punzones.
             </p>
           </div>
+          {topDiameter && (
+            <span className={`text-xs font-bold px-3 py-1 rounded-full font-mono ${
+              isLight ? 'bg-blue-100 text-blue-800' : 'bg-amber-500/20 text-amber-300'
+            }`}>
+              Principal: Ø {topDiameter.diameter} mm ({topDiameter.percentage}%)
+            </span>
+          )}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead>
-              <tr className={`border-b uppercase tracking-wider text-[11px] ${
-                isLight ? 'bg-blue-50/70 border-blue-200 text-blue-900' : 'bg-slate-950 border-slate-800 text-amber-400'
-              }`}>
-                <th className="py-3 px-3">Diámetro</th>
-                <th className="py-3 px-3">Herramienta Sugerida</th>
-                <th className="py-3 px-3 text-right">Agujeros (Producción)</th>
-                <th className="py-3 px-3 text-right">% del Total</th>
-                <th className="py-3 px-3 text-right">% Acumulado</th>
-                <th className="py-3 px-3 text-right">Metros Lineales</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {paretoData.map((row, idx) => (
-                <tr key={row.diameter} className={`transition-colors ${
-                  isLight ? 'hover:bg-blue-50/40' : 'hover:bg-slate-800/40'
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {paretoData.map((item, idx) => (
+            <div key={item.diameter} className={`p-4 rounded-xl border transition-all relative overflow-hidden ${
+              isLight ? 'bg-slate-50/70 border-slate-200 hover:border-blue-400' : 'bg-slate-950 border-slate-800 hover:border-amber-500/40'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                  idx === 0 
+                    ? (isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950')
+                    : (isLight ? 'bg-slate-200 text-slate-700' : 'bg-slate-800 text-slate-300')
                 }`}>
-                  <td className="py-3 px-3 font-bold text-sm">
-                    Ø {row.diameter} mm
-                  </td>
-                  <td className="py-3 px-3 font-sans font-medium text-slate-700 dark:text-slate-300">
-                    {row.suggestedTool}
-                  </td>
-                  <td className="py-3 px-3 text-right font-bold">
-                    {row.totalHolesProduction.toLocaleString()} u.
-                  </td>
-                  <td className="py-3 px-3 text-right font-semibold text-blue-600 dark:text-amber-400">
-                    {row.percentage}%
-                  </td>
-                  <td className="py-3 px-3 text-right">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      row.cumulativePercentage <= 80 
-                        ? (isLight ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-950 text-emerald-300')
-                        : (isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-800 text-slate-300')
-                    }`}>
-                      {row.cumulativePercentage}% {row.cumulativePercentage <= 80 ? '(80% Clave)' : ''}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 text-right font-bold text-slate-800 dark:text-slate-200">
-                    {row.totalMeters.toFixed(2)} m
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  #{idx + 1} Prioridad
+                </span>
+                <span className="text-xs font-mono font-bold text-blue-600 dark:text-amber-400">
+                  {item.percentage}% del total
+                </span>
+              </div>
+
+              <div className={`text-3xl font-black font-mono tracking-tight my-2 ${isLight ? 'text-slate-950' : 'text-white'}`}>
+                Ø {item.diameter} <span className="text-sm font-sans font-medium text-slate-500">mm</span>
+              </div>
+
+              <div className={`text-xs font-medium mb-3 line-clamp-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`} title={item.suggestedTool}>
+                🔧 {item.suggestedTool}
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
+                <div>
+                  <span className="text-slate-500">Agujeros:</span> <strong className="font-black">{item.totalHolesProduction.toLocaleString()} u.</strong>
+                </div>
+                <div>
+                  <span className="text-slate-500">Metros:</span> <strong className="font-black">{item.totalMeters} m</strong>
+                </div>
+              </div>
+
+              {/* Progress bar background indicator */}
+              <div className={`absolute bottom-0 left-0 right-0 h-1 ${isLight ? 'bg-blue-100' : 'bg-slate-800'}`}>
+                <div 
+                  className={`h-full ${isLight ? 'bg-blue-600' : 'bg-amber-400'}`} 
+                  style={{ width: `${Math.max(item.percentage, 5)}%` }}
+                ></div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* 2. RANKING Y CONSUMO POR TIPO DE PERFIL / CHAPA (Opción 2) */}
+      {/* SECCIÓN 2: RANKING POR FAMILIA DE PERFILES (TARJETAS - OPCIÓN 2) */}
       <div className={`p-6 rounded-2xl border shadow-sm ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
       }`}>
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+        <div className="mb-5 pb-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
             <h3 className="text-base font-black flex items-center gap-2">
-              <Award className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-              2. Ranking y Consumo por Familia de Perfiles / Chapas
+              <Boxes className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+              2. Consumo por Tipo de Perfil / Chapa (Familias)
             </h3>
             <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-              Agrupamiento de carga de trabajo por tipo de perfil estructural (W, HP, HI, HF, Z, Chapas).
+              Distribución del trabajo agrupado por categoría estructural.
             </p>
           </div>
+          {topProfile && (
+            <span className={`text-xs font-bold px-3 py-1 rounded-full font-mono ${
+              isLight ? 'bg-blue-100 text-blue-800' : 'bg-amber-500/20 text-amber-300'
+            }`}>
+              Mayor volumen: {topProfile.profileGroup}
+            </span>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {profileRanking.map((group, idx) => (
-            <div key={group.profileGroup} className={`p-4 rounded-xl border transition-all ${
-              isLight ? 'bg-slate-50 border-slate-200 hover:border-blue-300' : 'bg-slate-950 border-slate-800 hover:border-amber-500/40'
+            <div key={group.profileGroup} className={`p-5 rounded-xl border transition-all ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
             }`}>
               <div className="flex items-center justify-between mb-2">
                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
-                  isLight ? 'bg-blue-100 text-blue-800' : 'bg-amber-500/20 text-amber-300'
+                  isLight ? 'bg-indigo-100 text-indigo-800' : 'bg-amber-500/20 text-amber-300'
                 }`}>
-                  #{idx + 1} Familia
+                  Categoría
                 </span>
-                <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
-                  {group.distinctPartsCount} marcas únicas
+                <span className="text-xs font-mono text-slate-500">
+                  {group.distinctPartsCount} marcas
                 </span>
               </div>
-              
-              <div className={`text-lg font-black font-mono tracking-tight mb-3 ${isLight ? 'text-blue-950' : 'text-slate-100'}`}>
+
+              <div className={`text-xl font-black font-mono tracking-tight mb-4 ${isLight ? 'text-blue-950' : 'text-slate-100'}`}>
                 {group.profileGroup}
               </div>
 
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-center">
-                <div>
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-200 dark:border-slate-800 text-center font-mono">
+                <div className={`p-2 rounded-lg ${isLight ? 'bg-white shadow-xs' : 'bg-slate-900'}`}>
                   <div className="text-[10px] uppercase font-bold text-slate-500">Piezas</div>
-                  <div className="text-sm font-black font-mono">{group.totalPartsQty} u.</div>
+                  <div className="text-sm font-black mt-0.5">{group.totalPartsQty} u.</div>
                 </div>
-                <div>
+                <div className={`p-2 rounded-lg ${isLight ? 'bg-white shadow-xs' : 'bg-slate-900'}`}>
                   <div className="text-[10px] uppercase font-bold text-slate-500">Agujeros</div>
-                  <div className="text-sm font-black font-mono text-blue-600 dark:text-amber-400">{group.totalHoles.toLocaleString()}</div>
+                  <div className="text-sm font-black mt-0.5 text-blue-600 dark:text-amber-400">{group.totalHoles.toLocaleString()}</div>
                 </div>
-                <div>
+                <div className={`p-2 rounded-lg ${isLight ? 'bg-white shadow-xs' : 'bg-slate-900'}`}>
                   <div className="text-[10px] uppercase font-bold text-slate-500">Metros</div>
-                  <div className="text-sm font-black font-mono">{group.totalMeters.toFixed(1)} m</div>
+                  <div className="text-sm font-black mt-0.5">{group.totalMeters.toFixed(1)} m</div>
                 </div>
               </div>
             </div>
@@ -315,20 +328,18 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
         </div>
       </div>
 
-      {/* 4. DISTRIBUCIÓN DE CARGA POR ESPESORES (Opción 4) */}
+      {/* SECCIÓN 4: DISTRIBUCIÓN DE CARGA POR ESPESORES (BARRAS VISUALES - OPCIÓN 4) */}
       <div className={`p-6 rounded-2xl border shadow-sm ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
       }`}>
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
-          <div>
-            <h3 className="text-base font-black flex items-center gap-2">
-              <Layers className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-              4. Distribución de Carga por Rango de Espesores
-            </h3>
-            <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-              Volumen de perforación y metraje acumulado agrupado según el espesor nominal de la chapa o perfil.
-            </p>
-          </div>
+        <div className="mb-5 pb-3 border-b border-slate-200 dark:border-slate-800">
+          <h3 className="text-base font-black flex items-center gap-2">
+            <Ruler className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+            4. Distribución de Carga por Espesores (mm)
+          </h3>
+          <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            Comparativa visual del metraje a mecanizar agrupado por espesor nominal.
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -339,29 +350,37 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
                 isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950 border-slate-800'
               }`}>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-lg text-sm font-black font-mono ${
+                  <div className="flex items-center gap-3">
+                    <div className={`px-3 py-1.5 rounded-lg text-sm font-black font-mono ${
                       isLight ? 'bg-blue-600 text-white shadow-xs' : 'bg-amber-500 text-slate-950'
                     }`}>
                       {item.thickness} mm
-                    </span>
-                    <span className={`text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                      Espesor Nominal ({item.distinctParts} marcas de piezas)
-                    </span>
+                    </div>
+                    <div>
+                      <div className={`text-xs font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                        Espesor Nominal ({item.distinctParts} marcas de piezas)
+                      </div>
+                      <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {item.partsCount} piezas totales fabricadas
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-4 text-xs font-mono">
-                    <div><span className="text-slate-500">Total Piezas:</span> <strong className="font-black">{item.partsCount} u.</strong></div>
-                    <div><span className="text-slate-500">Agujeros:</span> <strong className="font-black text-blue-600 dark:text-amber-400">{item.totalHoles.toLocaleString()}</strong></div>
-                    <div><span className="text-slate-500">Metros:</span> <strong className="font-black">{item.totalMeters} m</strong></div>
+                    <div className={`px-3 py-1 rounded-lg ${isLight ? 'bg-white border border-slate-200' : 'bg-slate-900 border border-slate-800'}`}>
+                      <span className="text-slate-500">Agujeros:</span> <strong className="font-black text-blue-600 dark:text-amber-400">{item.totalHoles.toLocaleString()}</strong>
+                    </div>
+                    <div className={`px-3 py-1 rounded-lg ${isLight ? 'bg-white border border-slate-200' : 'bg-slate-900 border border-slate-800'}`}>
+                      <span className="text-slate-500">Metros:</span> <strong className="font-black">{item.totalMeters} m</strong>
+                    </div>
                   </div>
                 </div>
 
-                {/* Visual Progress Bar */}
-                <div className={`w-full h-2.5 rounded-full overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
+                {/* Friendly Visual Progress Bar */}
+                <div className={`w-full h-3 rounded-full overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
                   <div 
                     className={`h-full rounded-full transition-all duration-500 ${
-                      isLight ? 'bg-blue-600' : 'bg-amber-400'
+                      isLight ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-amber-400 to-amber-500'
                     }`}
                     style={{ width: `${Math.max(widthPct, 4)}%` }}
                   ></div>
