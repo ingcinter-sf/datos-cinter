@@ -152,7 +152,6 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
     return Math.max(...thicknessDistribution.map(t => t.totalMeters), 1);
   }, [thicknessDistribution]);
 
-  // Top stats highlights
   const topDiameter = paretoData[0];
   const topProfile = profileRanking[0];
 
@@ -174,45 +173,45 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
                 Resumen Gráfico de Obra: {obraTitle}
               </h2>
             </div>
-            <p className={`text-xs mt-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <p className={`text-xs mt-1.5 font-medium ${isLight ? 'text-slate-700' : 'text-slate-400'}`}>
               Vista rápida de diámetros principales, familias de perfiles y distribución de espesores para la producción CNC.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <div className={`px-4 py-2 rounded-xl border text-center ${
-              isLight ? 'bg-white border-blue-200 text-blue-900' : 'bg-slate-950 border-amber-500/30 text-amber-300'
+              isLight ? 'bg-white border-blue-200 text-blue-950 shadow-xs' : 'bg-slate-950 border-amber-500/30 text-amber-300'
             }`}>
-              <div className="text-[10px] uppercase font-bold opacity-80">Total Perforaciones</div>
+              <div className={`text-[10px] uppercase font-bold ${isLight ? 'text-slate-700' : 'text-slate-400'}`}>Total Perforaciones</div>
               <div className="text-lg font-black font-mono">{totalHolesProduction.toLocaleString()}</div>
             </div>
             <div className={`px-4 py-2 rounded-xl border text-center ${
-              isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-white'
+              isLight ? 'bg-white border-slate-200 text-slate-950 shadow-xs' : 'bg-slate-950 border-slate-800 text-white'
             }`}>
-              <div className="text-[10px] uppercase font-bold opacity-80">Piezas Totales</div>
+              <div className={`text-[10px] uppercase font-bold ${isLight ? 'text-slate-700' : 'text-slate-400'}`}>Piezas Totales</div>
               <div className="text-lg font-black font-mono">{totalPartsCount.toLocaleString()}</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* SECCIÓN 1: DIÁMETROS PRINCIPALES (TARJETAS VISUALES - OPCIÓN 1) */}
+      {/* SECCIÓN 1: DIÁMETROS PRINCIPALES (TARJETAS VISUALES) */}
       <div className={`p-6 rounded-2xl border shadow-sm ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
       }`}>
         <div className="mb-5 pb-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <h3 className="text-base font-black flex items-center gap-2">
+            <h3 className={`text-base font-black flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
               <CircleDot className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
               1. Diámetros de Perforación Frecuentes (Herramientas CNC)
             </h3>
-            <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            <p className={`text-xs font-medium mt-0.5 ${isLight ? 'text-slate-700' : 'text-slate-400'}`}>
               Tarjetas ordenadas por mayor demanda en la obra para preparar brocas y punzones.
             </p>
           </div>
           {topDiameter && (
             <span className={`text-xs font-bold px-3 py-1 rounded-full font-mono ${
-              isLight ? 'bg-blue-100 text-blue-800' : 'bg-amber-500/20 text-amber-300'
+              isLight ? 'bg-blue-100 text-blue-900' : 'bg-amber-500/20 text-amber-300'
             }`}>
               Principal: Ø {topDiameter.diameter} mm ({topDiameter.percentage}%)
             </span>
@@ -222,40 +221,42 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {paretoData.map((item, idx) => (
             <div key={item.diameter} className={`p-4 rounded-xl border transition-all relative overflow-hidden ${
-              isLight ? 'bg-slate-50/70 border-slate-200 hover:border-blue-400' : 'bg-slate-950 border-slate-800 hover:border-amber-500/40'
+              isLight ? 'bg-slate-50 border-slate-300 hover:border-blue-500 shadow-xs' : 'bg-slate-950 border-slate-800 hover:border-amber-500/40'
             }`}>
               <div className="flex items-center justify-between mb-2">
                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
                   idx === 0 
                     ? (isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950')
-                    : (isLight ? 'bg-slate-200 text-slate-700' : 'bg-slate-800 text-slate-300')
+                    : (isLight ? 'bg-slate-200 text-slate-800 font-semibold' : 'bg-slate-800 text-slate-300')
                 }`}>
                   #{idx + 1} Prioridad
                 </span>
-                <span className="text-xs font-mono font-bold text-blue-600 dark:text-amber-400">
+                <span className="text-xs font-mono font-bold text-blue-700 dark:text-amber-400">
                   {item.percentage}% del total
                 </span>
               </div>
 
               <div className={`text-3xl font-black font-mono tracking-tight my-2 ${isLight ? 'text-slate-950' : 'text-white'}`}>
-                Ø {item.diameter} <span className="text-sm font-sans font-medium text-slate-500">mm</span>
+                Ø {item.diameter} <span className={`text-sm font-sans font-semibold ${isLight ? 'text-slate-700' : 'text-slate-400'}`}>mm</span>
               </div>
 
-              <div className={`text-xs font-medium mb-3 line-clamp-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`} title={item.suggestedTool}>
+              <div className={`text-xs font-semibold mb-3 line-clamp-1 ${isLight ? 'text-slate-800' : 'text-slate-300'}`} title={item.suggestedTool}>
                 🔧 {item.suggestedTool}
               </div>
 
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
+              <div className={`pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono ${
+                isLight ? 'text-slate-800 font-medium' : 'text-slate-300'
+              }`}>
                 <div>
-                  <span className="text-slate-500">Agujeros:</span> <strong className="font-black">{item.totalHolesProduction.toLocaleString()} u.</strong>
+                  <span className={isLight ? 'text-slate-600 font-semibold' : 'text-slate-400'}>Agujeros:</span> <strong className="font-black">{item.totalHolesProduction.toLocaleString()} u.</strong>
                 </div>
                 <div>
-                  <span className="text-slate-500">Metros:</span> <strong className="font-black">{item.totalMeters} m</strong>
+                  <span className={isLight ? 'text-slate-600 font-semibold' : 'text-slate-400'}>Metros:</span> <strong className="font-black">{item.totalMeters} m</strong>
                 </div>
               </div>
 
               {/* Progress bar background indicator */}
-              <div className={`absolute bottom-0 left-0 right-0 h-1 ${isLight ? 'bg-blue-100' : 'bg-slate-800'}`}>
+              <div className={`absolute bottom-0 left-0 right-0 h-1.5 ${isLight ? 'bg-blue-200' : 'bg-slate-800'}`}>
                 <div 
                   className={`h-full ${isLight ? 'bg-blue-600' : 'bg-amber-400'}`} 
                   style={{ width: `${Math.max(item.percentage, 5)}%` }}
@@ -266,23 +267,23 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
         </div>
       </div>
 
-      {/* SECCIÓN 2: RANKING POR FAMILIA DE PERFILES (TARJETAS - OPCIÓN 2) */}
+      {/* SECCIÓN 2: RANKING POR FAMILIA DE PERFILES (TARJETAS) */}
       <div className={`p-6 rounded-2xl border shadow-sm ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
       }`}>
         <div className="mb-5 pb-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <h3 className="text-base font-black flex items-center gap-2">
+            <h3 className={`text-base font-black flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
               <Boxes className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
               2. Consumo por Tipo de Perfil / Chapa (Familias)
             </h3>
-            <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            <p className={`text-xs font-medium mt-0.5 ${isLight ? 'text-slate-700' : 'text-slate-400'}`}>
               Distribución del trabajo agrupado por categoría estructural.
             </p>
           </div>
           {topProfile && (
             <span className={`text-xs font-bold px-3 py-1 rounded-full font-mono ${
-              isLight ? 'bg-blue-100 text-blue-800' : 'bg-amber-500/20 text-amber-300'
+              isLight ? 'bg-blue-100 text-blue-900' : 'bg-amber-500/20 text-amber-300'
             }`}>
               Mayor volumen: {topProfile.profileGroup}
             </span>
@@ -292,15 +293,15 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {profileRanking.map((group, idx) => (
             <div key={group.profileGroup} className={`p-5 rounded-xl border transition-all ${
-              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
+              isLight ? 'bg-slate-50 border-slate-300 shadow-xs' : 'bg-slate-950 border-slate-800'
             }`}>
               <div className="flex items-center justify-between mb-2">
                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
-                  isLight ? 'bg-indigo-100 text-indigo-800' : 'bg-amber-500/20 text-amber-300'
+                  isLight ? 'bg-indigo-100 text-indigo-900 font-semibold' : 'bg-amber-500/20 text-amber-300'
                 }`}>
                   Categoría
                 </span>
-                <span className="text-xs font-mono text-slate-500">
+                <span className={`text-xs font-mono font-bold ${isLight ? 'text-slate-700' : 'text-slate-400'}`}>
                   {group.distinctPartsCount} marcas
                 </span>
               </div>
@@ -310,16 +311,16 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
               </div>
 
               <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-200 dark:border-slate-800 text-center font-mono">
-                <div className={`p-2 rounded-lg ${isLight ? 'bg-white shadow-xs' : 'bg-slate-900'}`}>
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Piezas</div>
+                <div className={`p-2 rounded-lg border ${isLight ? 'bg-white border-slate-200 text-slate-900 shadow-xs' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+                  <div className={`text-[10px] uppercase font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Piezas</div>
                   <div className="text-sm font-black mt-0.5">{group.totalPartsQty} u.</div>
                 </div>
-                <div className={`p-2 rounded-lg ${isLight ? 'bg-white shadow-xs' : 'bg-slate-900'}`}>
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Agujeros</div>
-                  <div className="text-sm font-black mt-0.5 text-blue-600 dark:text-amber-400">{group.totalHoles.toLocaleString()}</div>
+                <div className={`p-2 rounded-lg border ${isLight ? 'bg-white border-slate-200 text-slate-900 shadow-xs' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+                  <div className={`text-[10px] uppercase font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Agujeros</div>
+                  <div className="text-sm font-black mt-0.5 text-blue-700 dark:text-amber-400">{group.totalHoles.toLocaleString()}</div>
                 </div>
-                <div className={`p-2 rounded-lg ${isLight ? 'bg-white shadow-xs' : 'bg-slate-900'}`}>
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Metros</div>
+                <div className={`p-2 rounded-lg border ${isLight ? 'bg-white border-slate-200 text-slate-900 shadow-xs' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+                  <div className={`text-[10px] uppercase font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Metros</div>
                   <div className="text-sm font-black mt-0.5">{group.totalMeters.toFixed(1)} m</div>
                 </div>
               </div>
@@ -328,16 +329,16 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
         </div>
       </div>
 
-      {/* SECCIÓN 4: DISTRIBUCIÓN DE CARGA POR ESPESORES (BARRAS VISUALES - OPCIÓN 4) */}
+      {/* SECCIÓN 4: DISTRIBUCIÓN DE CARGA POR ESPESORES */}
       <div className={`p-6 rounded-2xl border shadow-sm ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
       }`}>
         <div className="mb-5 pb-3 border-b border-slate-200 dark:border-slate-800">
-          <h3 className="text-base font-black flex items-center gap-2">
+          <h3 className={`text-base font-black flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
             <Ruler className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
             4. Distribución de Carga por Espesores (mm)
           </h3>
-          <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className={`text-xs font-medium mt-0.5 ${isLight ? 'text-slate-700' : 'text-slate-400'}`}>
             Comparativa visual del metraje a mecanizar agrupado por espesor nominal.
           </p>
         </div>
@@ -347,7 +348,7 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
             const widthPct = Math.round((item.totalMeters / maxThicknessMeters) * 100);
             return (
               <div key={item.thickness} className={`p-4 rounded-xl border ${
-                isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950 border-slate-800'
+                isLight ? 'bg-slate-50 border-slate-300 shadow-xs' : 'bg-slate-950 border-slate-800'
               }`}>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-3">
@@ -357,30 +358,30 @@ export const WorkshopAnalytics: React.FC<WorkshopAnalyticsProps> = ({
                       {item.thickness} mm
                     </div>
                     <div>
-                      <div className={`text-xs font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                      <div className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
                         Espesor Nominal ({item.distinctParts} marcas de piezas)
                       </div>
-                      <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                      <div className={`text-[11px] font-medium ${isLight ? 'text-slate-700' : 'text-slate-400'}`}>
                         {item.partsCount} piezas totales fabricadas
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs font-mono">
-                    <div className={`px-3 py-1 rounded-lg ${isLight ? 'bg-white border border-slate-200' : 'bg-slate-900 border border-slate-800'}`}>
-                      <span className="text-slate-500">Agujeros:</span> <strong className="font-black text-blue-600 dark:text-amber-400">{item.totalHoles.toLocaleString()}</strong>
+                  <div className="flex items-center gap-3 text-xs font-mono">
+                    <div className={`px-3 py-1 rounded-lg border ${isLight ? 'bg-white border-slate-300 text-slate-900 font-medium' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+                      <span className={isLight ? 'text-slate-700 font-bold' : 'text-slate-400'}>Agujeros:</span> <strong className="font-black text-blue-700 dark:text-amber-400">{item.totalHoles.toLocaleString()}</strong>
                     </div>
-                    <div className={`px-3 py-1 rounded-lg ${isLight ? 'bg-white border border-slate-200' : 'bg-slate-900 border border-slate-800'}`}>
-                      <span className="text-slate-500">Metros:</span> <strong className="font-black">{item.totalMeters} m</strong>
+                    <div className={`px-3 py-1 rounded-lg border ${isLight ? 'bg-white border-slate-300 text-slate-900 font-medium' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+                      <span className={isLight ? 'text-slate-700 font-bold' : 'text-slate-400'}>Metros:</span> <strong className="font-black">{item.totalMeters} m</strong>
                     </div>
                   </div>
                 </div>
 
                 {/* Friendly Visual Progress Bar */}
-                <div className={`w-full h-3 rounded-full overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
+                <div className={`w-full h-3.5 rounded-full overflow-hidden border ${isLight ? 'bg-slate-200 border-slate-300' : 'bg-slate-800 border-slate-700'}`}>
                   <div 
                     className={`h-full rounded-full transition-all duration-500 ${
-                      isLight ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-amber-400 to-amber-500'
+                      isLight ? 'bg-blue-600' : 'bg-amber-400'
                     }`}
                     style={{ width: `${Math.max(widthPct, 4)}%` }}
                   ></div>

@@ -48859,23 +48859,23 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 							children: ["Resumen Gráfico de Obra: ", obraTitle]
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						className: `text-xs mt-1.5 ${isLight ? "text-slate-600" : "text-slate-400"}`,
+						className: `text-xs mt-1.5 font-medium ${isLight ? "text-slate-700" : "text-slate-400"}`,
 						children: "Vista rápida de diámetros principales, familias de perfiles y distribución de espesores para la producción CNC."
 					})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "flex items-center gap-3",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: `px-4 py-2 rounded-xl border text-center ${isLight ? "bg-white border-blue-200 text-blue-900" : "bg-slate-950 border-amber-500/30 text-amber-300"}`,
+							className: `px-4 py-2 rounded-xl border text-center ${isLight ? "bg-white border-blue-200 text-blue-950 shadow-xs" : "bg-slate-950 border-amber-500/30 text-amber-300"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: "text-[10px] uppercase font-bold opacity-80",
+								className: `text-[10px] uppercase font-bold ${isLight ? "text-slate-700" : "text-slate-400"}`,
 								children: "Total Perforaciones"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								className: "text-lg font-black font-mono",
 								children: totalHolesProduction.toLocaleString()
 							})]
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: `px-4 py-2 rounded-xl border text-center ${isLight ? "bg-white border-slate-200 text-slate-900" : "bg-slate-950 border-slate-800 text-white"}`,
+							className: `px-4 py-2 rounded-xl border text-center ${isLight ? "bg-white border-slate-200 text-slate-950 shadow-xs" : "bg-slate-950 border-slate-800 text-white"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: "text-[10px] uppercase font-bold opacity-80",
+								className: `text-[10px] uppercase font-bold ${isLight ? "text-slate-700" : "text-slate-400"}`,
 								children: "Piezas Totales"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								className: "text-lg font-black font-mono",
@@ -48890,13 +48890,13 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "mb-5 pb-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h3", {
-						className: "text-base font-black flex items-center gap-2",
+						className: `text-base font-black flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`,
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleDot, { className: `w-5 h-5 ${isLight ? "text-blue-600" : "text-amber-400"}` }), "1. Diámetros de Perforación Frecuentes (Herramientas CNC)"]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						className: `text-xs ${isLight ? "text-slate-500" : "text-slate-400"}`,
+						className: `text-xs font-medium mt-0.5 ${isLight ? "text-slate-700" : "text-slate-400"}`,
 						children: "Tarjetas ordenadas por mayor demanda en la obra para preparar brocas y punzones."
 					})] }), topDiameter && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-						className: `text-xs font-bold px-3 py-1 rounded-full font-mono ${isLight ? "bg-blue-100 text-blue-800" : "bg-amber-500/20 text-amber-300"}`,
+						className: `text-xs font-bold px-3 py-1 rounded-full font-mono ${isLight ? "bg-blue-100 text-blue-900" : "bg-amber-500/20 text-amber-300"}`,
 						children: [
 							"Principal: Ø ",
 							topDiameter.diameter,
@@ -48908,19 +48908,19 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4",
 					children: paretoData.map((item, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: `p-4 rounded-xl border transition-all relative overflow-hidden ${isLight ? "bg-slate-50/70 border-slate-200 hover:border-blue-400" : "bg-slate-950 border-slate-800 hover:border-amber-500/40"}`,
+						className: `p-4 rounded-xl border transition-all relative overflow-hidden ${isLight ? "bg-slate-50 border-slate-300 hover:border-blue-500 shadow-xs" : "bg-slate-950 border-slate-800 hover:border-amber-500/40"}`,
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "flex items-center justify-between mb-2",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: `text-[10px] font-black uppercase px-2 py-0.5 rounded ${idx === 0 ? isLight ? "bg-blue-600 text-white" : "bg-amber-500 text-slate-950" : isLight ? "bg-slate-200 text-slate-700" : "bg-slate-800 text-slate-300"}`,
+									className: `text-[10px] font-black uppercase px-2 py-0.5 rounded ${idx === 0 ? isLight ? "bg-blue-600 text-white" : "bg-amber-500 text-slate-950" : isLight ? "bg-slate-200 text-slate-800 font-semibold" : "bg-slate-800 text-slate-300"}`,
 									children: [
 										"#",
 										idx + 1,
 										" Prioridad"
 									]
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: "text-xs font-mono font-bold text-blue-600 dark:text-amber-400",
+									className: "text-xs font-mono font-bold text-blue-700 dark:text-amber-400",
 									children: [item.percentage, "% del total"]
 								})]
 							}),
@@ -48931,21 +48931,21 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 									item.diameter,
 									" ",
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: "text-sm font-sans font-medium text-slate-500",
+										className: `text-sm font-sans font-semibold ${isLight ? "text-slate-700" : "text-slate-400"}`,
 										children: "mm"
 									})
 								]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: `text-xs font-medium mb-3 line-clamp-1 ${isLight ? "text-slate-600" : "text-slate-400"}`,
+								className: `text-xs font-semibold mb-3 line-clamp-1 ${isLight ? "text-slate-800" : "text-slate-300"}`,
 								title: item.suggestedTool,
 								children: ["🔧 ", item.suggestedTool]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono",
+								className: `pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono ${isLight ? "text-slate-800 font-medium" : "text-slate-300"}`,
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: "text-slate-500",
+										className: isLight ? "text-slate-600 font-semibold" : "text-slate-400",
 										children: "Agujeros:"
 									}),
 									" ",
@@ -48955,7 +48955,7 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 									})
 								] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: "text-slate-500",
+										className: isLight ? "text-slate-600 font-semibold" : "text-slate-400",
 										children: "Metros:"
 									}),
 									" ",
@@ -48966,7 +48966,7 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 								] })]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: `absolute bottom-0 left-0 right-0 h-1 ${isLight ? "bg-blue-100" : "bg-slate-800"}`,
+								className: `absolute bottom-0 left-0 right-0 h-1.5 ${isLight ? "bg-blue-200" : "bg-slate-800"}`,
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 									className: `h-full ${isLight ? "bg-blue-600" : "bg-amber-400"}`,
 									style: { width: `${Math.max(item.percentage, 5)}%` }
@@ -48981,27 +48981,27 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "mb-5 pb-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h3", {
-						className: "text-base font-black flex items-center gap-2",
+						className: `text-base font-black flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`,
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Boxes, { className: `w-5 h-5 ${isLight ? "text-blue-600" : "text-amber-400"}` }), "2. Consumo por Tipo de Perfil / Chapa (Familias)"]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						className: `text-xs ${isLight ? "text-slate-500" : "text-slate-400"}`,
+						className: `text-xs font-medium mt-0.5 ${isLight ? "text-slate-700" : "text-slate-400"}`,
 						children: "Distribución del trabajo agrupado por categoría estructural."
 					})] }), topProfile && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-						className: `text-xs font-bold px-3 py-1 rounded-full font-mono ${isLight ? "bg-blue-100 text-blue-800" : "bg-amber-500/20 text-amber-300"}`,
+						className: `text-xs font-bold px-3 py-1 rounded-full font-mono ${isLight ? "bg-blue-100 text-blue-900" : "bg-amber-500/20 text-amber-300"}`,
 						children: ["Mayor volumen: ", topProfile.profileGroup]
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4",
 					children: profileRanking.map((group, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: `p-5 rounded-xl border transition-all ${isLight ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`,
+						className: `p-5 rounded-xl border transition-all ${isLight ? "bg-slate-50 border-slate-300 shadow-xs" : "bg-slate-950 border-slate-800"}`,
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "flex items-center justify-between mb-2",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: `text-[10px] font-black uppercase px-2 py-0.5 rounded ${isLight ? "bg-indigo-100 text-indigo-800" : "bg-amber-500/20 text-amber-300"}`,
+									className: `text-[10px] font-black uppercase px-2 py-0.5 rounded ${isLight ? "bg-indigo-100 text-indigo-900 font-semibold" : "bg-amber-500/20 text-amber-300"}`,
 									children: "Categoría"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: "text-xs font-mono text-slate-500",
+									className: `text-xs font-mono font-bold ${isLight ? "text-slate-700" : "text-slate-400"}`,
 									children: [group.distinctPartsCount, " marcas"]
 								})]
 							}),
@@ -49013,9 +49013,9 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 								className: "grid grid-cols-3 gap-2 pt-3 border-t border-slate-200 dark:border-slate-800 text-center font-mono",
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: `p-2 rounded-lg ${isLight ? "bg-white shadow-xs" : "bg-slate-900"}`,
+										className: `p-2 rounded-lg border ${isLight ? "bg-white border-slate-200 text-slate-900 shadow-xs" : "bg-slate-900 border-slate-800 text-slate-100"}`,
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-											className: "text-[10px] uppercase font-bold text-slate-500",
+											className: `text-[10px] uppercase font-bold ${isLight ? "text-slate-600" : "text-slate-400"}`,
 											children: "Piezas"
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 											className: "text-sm font-black mt-0.5",
@@ -49023,19 +49023,19 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 										})]
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: `p-2 rounded-lg ${isLight ? "bg-white shadow-xs" : "bg-slate-900"}`,
+										className: `p-2 rounded-lg border ${isLight ? "bg-white border-slate-200 text-slate-900 shadow-xs" : "bg-slate-900 border-slate-800 text-slate-100"}`,
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-											className: "text-[10px] uppercase font-bold text-slate-500",
+											className: `text-[10px] uppercase font-bold ${isLight ? "text-slate-600" : "text-slate-400"}`,
 											children: "Agujeros"
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-											className: "text-sm font-black mt-0.5 text-blue-600 dark:text-amber-400",
+											className: "text-sm font-black mt-0.5 text-blue-700 dark:text-amber-400",
 											children: group.totalHoles.toLocaleString()
 										})]
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: `p-2 rounded-lg ${isLight ? "bg-white shadow-xs" : "bg-slate-900"}`,
+										className: `p-2 rounded-lg border ${isLight ? "bg-white border-slate-200 text-slate-900 shadow-xs" : "bg-slate-900 border-slate-800 text-slate-100"}`,
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-											className: "text-[10px] uppercase font-bold text-slate-500",
+											className: `text-[10px] uppercase font-bold ${isLight ? "text-slate-600" : "text-slate-400"}`,
 											children: "Metros"
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 											className: "text-sm font-black mt-0.5",
@@ -49053,10 +49053,10 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "mb-5 pb-3 border-b border-slate-200 dark:border-slate-800",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h3", {
-						className: "text-base font-black flex items-center gap-2",
+						className: `text-base font-black flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`,
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Ruler, { className: `w-5 h-5 ${isLight ? "text-blue-600" : "text-amber-400"}` }), "4. Distribución de Carga por Espesores (mm)"]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						className: `text-xs ${isLight ? "text-slate-500" : "text-slate-400"}`,
+						className: `text-xs font-medium mt-0.5 ${isLight ? "text-slate-700" : "text-slate-400"}`,
 						children: "Comparativa visual del metraje a mecanizar agrupado por espesor nominal."
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -49064,7 +49064,7 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 					children: thicknessDistribution.map((item) => {
 						const widthPct = Math.round(item.totalMeters / maxThicknessMeters * 100);
 						return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: `p-4 rounded-xl border ${isLight ? "bg-slate-50/80 border-slate-200" : "bg-slate-950 border-slate-800"}`,
+							className: `p-4 rounded-xl border ${isLight ? "bg-slate-50 border-slate-300 shadow-xs" : "bg-slate-950 border-slate-800"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -49073,36 +49073,36 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 										className: `px-3 py-1.5 rounded-lg text-sm font-black font-mono ${isLight ? "bg-blue-600 text-white shadow-xs" : "bg-amber-500 text-slate-950"}`,
 										children: [item.thickness, " mm"]
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: `text-xs font-bold ${isLight ? "text-slate-800" : "text-slate-200"}`,
+										className: `text-xs font-bold ${isLight ? "text-slate-900" : "text-slate-200"}`,
 										children: [
 											"Espesor Nominal (",
 											item.distinctParts,
 											" marcas de piezas)"
 										]
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: `text-[11px] ${isLight ? "text-slate-500" : "text-slate-400"}`,
+										className: `text-[11px] font-medium ${isLight ? "text-slate-700" : "text-slate-400"}`,
 										children: [item.partsCount, " piezas totales fabricadas"]
 									})] })]
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "flex items-center gap-4 text-xs font-mono",
+									className: "flex items-center gap-3 text-xs font-mono",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: `px-3 py-1 rounded-lg ${isLight ? "bg-white border border-slate-200" : "bg-slate-900 border border-slate-800"}`,
+										className: `px-3 py-1 rounded-lg border ${isLight ? "bg-white border-slate-300 text-slate-900 font-medium" : "bg-slate-900 border-slate-800 text-slate-100"}`,
 										children: [
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-												className: "text-slate-500",
+												className: isLight ? "text-slate-700 font-bold" : "text-slate-400",
 												children: "Agujeros:"
 											}),
 											" ",
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
-												className: "font-black text-blue-600 dark:text-amber-400",
+												className: "font-black text-blue-700 dark:text-amber-400",
 												children: item.totalHoles.toLocaleString()
 											})
 										]
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: `px-3 py-1 rounded-lg ${isLight ? "bg-white border border-slate-200" : "bg-slate-900 border border-slate-800"}`,
+										className: `px-3 py-1 rounded-lg border ${isLight ? "bg-white border-slate-300 text-slate-900 font-medium" : "bg-slate-900 border-slate-800 text-slate-100"}`,
 										children: [
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-												className: "text-slate-500",
+												className: isLight ? "text-slate-700 font-bold" : "text-slate-400",
 												children: "Metros:"
 											}),
 											" ",
@@ -49114,9 +49114,9 @@ var WorkshopAnalytics = ({ parts, diameterSummary, totalPartsCount, totalHolesPr
 									})]
 								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: `w-full h-3 rounded-full overflow-hidden ${isLight ? "bg-slate-200" : "bg-slate-800"}`,
+								className: `w-full h-3.5 rounded-full overflow-hidden border ${isLight ? "bg-slate-200 border-slate-300" : "bg-slate-800 border-slate-700"}`,
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: `h-full rounded-full transition-all duration-500 ${isLight ? "bg-gradient-to-r from-blue-600 to-indigo-600" : "bg-gradient-to-r from-amber-400 to-amber-500"}`,
+									className: `h-full rounded-full transition-all duration-500 ${isLight ? "bg-blue-600" : "bg-amber-400"}`,
 									style: { width: `${Math.max(widthPct, 4)}%` }
 								})
 							})]
@@ -50189,12 +50189,12 @@ function App() {
     height: var(--spacing);
   }
 
-  .h-2 {
-    height: calc(var(--spacing) * 2);
+  .h-1\.5 {
+    height: calc(var(--spacing) * 1.5);
   }
 
-  .h-2\.5 {
-    height: calc(var(--spacing) * 2.5);
+  .h-2 {
+    height: calc(var(--spacing) * 2);
   }
 
   .h-3 {
@@ -51866,21 +51866,6 @@ function App() {
     --tw-gradient-stops: var(--tw-gradient-via-stops);
   }
 
-  .via-indigo-50\/40 {
-    --tw-gradient-via: #eef2ff66;
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .via-indigo-50\/40 {
-      --tw-gradient-via: color-mix(in oklab, var(--color-indigo-50) 40%, transparent);
-    }
-  }
-
-  .via-indigo-50\/40 {
-    --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position);
-    --tw-gradient-stops: var(--tw-gradient-via-stops);
-  }
-
   .via-indigo-50\/50 {
     --tw-gradient-via: #eef2ff80;
   }
@@ -52904,10 +52889,6 @@ function App() {
       }
     }
 
-    .hover\:border-blue-300:hover {
-      border-color: var(--color-blue-300);
-    }
-
     .hover\:border-blue-400:hover {
       border-color: var(--color-blue-400);
     }
@@ -53430,7 +53411,7 @@ function App() {
   }
 
   @media (prefers-color-scheme: dark) {
-    :where(.dark\:divide-slate-800 > :not(:last-child)), .dark\:border-slate-800 {
+    .dark\:border-slate-800 {
       border-color: var(--color-slate-800);
     }
 
@@ -53444,14 +53425,6 @@ function App() {
 
     .dark\:text-sky-300 {
       color: var(--color-sky-300);
-    }
-
-    .dark\:text-slate-200 {
-      color: var(--color-slate-200);
-    }
-
-    .dark\:text-slate-300 {
-      color: var(--color-slate-300);
     }
 
     .dark\:text-slate-400 {
