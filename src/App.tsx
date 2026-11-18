@@ -7,7 +7,7 @@ import { WorkshopAnalytics } from './components/WorkshopAnalytics';
 import { parseMetallurgyCsv, mergePartRecords } from './utils/csvParser';
 import { SAMPLE_METALLURGY_CSV, SAMPLE_METALLURGY_VMC } from './utils/sampleData';
 import { getPortalStoragePrefix, loadObrasFromStorage, saveObrasToStorage } from './utils/obraStorage';
-import { readSpreadsheetFileAsText, ScannedObraFolder } from './utils/folderScanner';
+import { readSpreadsheetFileAsText, readImageFileAsDataUrl, ScannedObraFolder } from './utils/folderScanner';
 import { PartRecord, DiameterSummary, ObraProject, FolderSyncResult } from './types';
 
 export default function App() {
@@ -220,6 +220,7 @@ export default function App() {
     // Parse all scanned folders first
     const parsedFoldersData: {
       folderName: string;
+      logoDataUrl?: string;
       parts: PartRecord[];
       headerMetadata: string[];
       rawCsvText: string;
@@ -229,6 +230,15 @@ export default function App() {
     for (const folder of scannedFolders) {
       if (folder.files.length === 0) {
         skippedEmptyFolders.push(folder.folderName);
+      }
+
+      let logoDataUrl: string | undefined;
+      if (folder.logoFile) {
+        try {
+          logoDataUrl = await readImageFileAsDataUrl(folder.logoFile);
+        } catch (err) {
+          console.error('Error reading logo image for', folder.folderName, err);
+        }
       }
 
       let combinedParts: PartRecord[] = [];
@@ -250,6 +260,7 @@ export default function App() {
 
       parsedFoldersData.push({
         folderName: folder.folderName,
+        logoDataUrl,
         parts: combinedParts,
         headerMetadata: combinedMetadata,
         rawCsvText: lastRawText,
@@ -257,54 +268,53 @@ export default function App() {
       });
     }
 
-    setObras(prevObras => {
-      const nextObras = [...prevObras];
+    const nextObras = [...obras];
 
-      for (const item of parsedFoldersData) {
-        const normalizedFolder = item.folderName.trim().toLowerCase();
-        const existingIndex = nextObras.findIndex(
-          o =>
-            (o.folderName && o.folderName.trim().toLowerCase() === normalizedFolder) ||
-            o.name.trim().toLowerCase() === normalizedFolder
-        );
+    for (const item of parsedFoldersData) {
+      const normalizedFolder = item.folderName.trim().toLowerCase();
+      const existingIndex = nextObras.findIndex(
+        o =>
+          (o.folderName && o.folderName.trim().toLowerCase() === normalizedFolder) ||
+          o.name.trim().toLowerCase() === normalizedFolder
+      );
 
-        if (existingIndex !== -1) {
-          const existing = nextObras[existingIndex];
-          nextObras[existingIndex] = {
-            ...existing,
-            folderName: item.folderName,
-            parts: item.parts,
-            headerMetadata: item.headerMetadata,
-            rawCsvText: item.rawCsvText,
-            loadedFiles: item.loadedFiles,
-            updatedAt: new Date().toISOString(),
-            sourceType: 'folder',
-          };
-          updatedNames.push(existing.name);
-          changeBadges[existing.id] = 'updated';
-        } else {
-          // New folder detected -> create a new obra card automatically!
-          const newId = `obra-folder-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-          const newObra: ObraProject = {
-            id: newId,
-            name: item.folderName,
-            folderName: item.folderName,
-            parts: item.parts,
-            headerMetadata: item.headerMetadata,
-            rawCsvText: item.rawCsvText,
-            loadedFiles: item.loadedFiles,
-            updatedAt: new Date().toISOString(),
-            sourceType: 'folder',
-          };
-          nextObras.push(newObra);
-          createdNames.push(item.folderName);
-          changeBadges[newId] = 'created';
-        }
+      if (existingIndex !== -1) {
+        const existing = nextObras[existingIndex];
+        nextObras[existingIndex] = {
+          ...existing,
+          folderName: item.folderName,
+          logoDataUrl: item.logoDataUrl !== undefined ? item.logoDataUrl : existing.logoDataUrl,
+          parts: item.parts,
+          headerMetadata: item.headerMetadata,
+          rawCsvText: item.rawCsvText,
+          loadedFiles: item.loadedFiles,
+          updatedAt: new Date().toISOString(),
+          sourceType: 'folder',
+        };
+        updatedNames.push(existing.name);
+        changeBadges[existing.id] = 'updated';
+      } else {
+        // New folder detected -> create a new obra card automatically!
+        const newId = `obra-folder-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        const newObra: ObraProject = {
+          id: newId,
+          name: item.folderName,
+          folderName: item.folderName,
+          logoDataUrl: item.logoDataUrl,
+          parts: item.parts,
+          headerMetadata: item.headerMetadata,
+          rawCsvText: item.rawCsvText,
+          loadedFiles: item.loadedFiles,
+          updatedAt: new Date().toISOString(),
+          sourceType: 'folder',
+        };
+        nextObras.push(newObra);
+        createdNames.push(item.folderName);
+        changeBadges[newId] = 'created';
       }
+    }
 
-      return nextObras;
-    });
-
+    setObras(nextObras);
     setRecentlyChangedMap(changeBadges);
     const result: FolderSyncResult = {
       createdNames,

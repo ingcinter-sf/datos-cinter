@@ -1,17 +1,37 @@
 import * as XLSX from 'xlsx';
 
 const SUPPORTED_EXTENSIONS = ['.csv', '.txt', '.xlsx', '.xls'];
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif', '.bmp'];
 const IGNORED_FOLDERS = new Set(['node_modules', '.git', '.vscode', '.idea', '__macosx']);
 
 export interface ScannedObraFolder {
   folderName: string;
   files: File[];
+  logoFile?: File;
 }
 
 export function isSupportedSpreadsheetFile(filename: string): boolean {
   const lower = filename.toLowerCase();
   if (lower.startsWith('~$')) return false; // Ignore Excel temporary lock files
   return SUPPORTED_EXTENSIONS.some(ext => lower.endsWith(ext));
+}
+
+export function isLogoImageFile(filename: string): boolean {
+  const lower = filename.toLowerCase().trim();
+  const lastDot = lower.lastIndexOf('.');
+  if (lastDot === -1) return false;
+  const baseName = lower.slice(0, lastDot);
+  const ext = lower.slice(lastDot);
+  return baseName === 'logo' && IMAGE_EXTENSIONS.includes(ext);
+}
+
+export function readImageFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error || new Error('Error reading logo image'));
+    reader.readAsDataURL(file);
+  });
 }
 
 export async function readSpreadsheetFileAsText(file: File): Promise<string> {
@@ -48,24 +68,26 @@ export async function readSpreadsheetFileAsText(file: File): Promise<string> {
  * Groups a FileList from <input type="file" webkitdirectory /> into ScannedObraFolder[].
  * Supports either:
  * - Selecting the parent folder "calculadora" containing subfolders "MASA/", "PAE/", etc.
- * - Selecting a single obra folder directly (e.g. "MASA/") containing CSV/Excel files.
+ * - Selecting a single obra folder directly (e.g. "MASA/") containing CSV/Excel files and optional "logo.*".
  */
 export function groupDirectoryInputFiles(fileList: FileList | File[]): ScannedObraFolder[] {
   const files = Array.from(fileList);
-  const validFiles = files.filter(f => isSupportedSpreadsheetFile(f.name));
+  const relevantFiles = files.filter(
+    f => isSupportedSpreadsheetFile(f.name) || isLogoImageFile(f.name)
+  );
 
-  if (validFiles.length === 0) return [];
+  if (relevantFiles.length === 0) return [];
 
-  // Check if there are nested subfolder files (webkitRelativePath has >= 3 segments: root/obra/file.csv)
-  const hasNestedSubfolders = validFiles.some(f => {
+  // Check if there are nested subfolder files (webkitRelativePath has >= 3 segments: root/obra/file)
+  const hasNestedSubfolders = relevantFiles.some(f => {
     const rel = f.webkitRelativePath || f.name;
     const segments = rel.split('/').filter(Boolean);
     return segments.length >= 3;
   });
 
-  const folderMap = new Map<string, File[]>();
+  const folderMap = new Map<string, { files: File[]; logoFile?: File }>();
 
-  for (const file of validFiles) {
+  for (const file of relevantFiles) {
     const rel = file.webkitRelativePath || file.name;
     const segments = rel.split('/').filter(Boolean);
 
@@ -74,26 +96,35 @@ export function groupDirectoryInputFiles(fileList: FileList | File[]): ScannedOb
       if (segments.length >= 3) {
         targetFolderName = segments[1];
       } else {
-        // Loose file directly inside the root folder
         targetFolderName = segments[0] || 'General';
       }
     } else {
-      // User selected a single obra folder directly (e.g. MASA/file.csv)
       targetFolderName = segments.length >= 2 ? segments[0] : 'Obra Importada';
     }
 
     if (IGNORED_FOLDERS.has(targetFolderName.toLowerCase())) continue;
 
     if (!folderMap.has(targetFolderName)) {
-      folderMap.set(targetFolderName, []);
+      folderMap.set(targetFolderName, { files: [] });
     }
-    folderMap.get(targetFolderName)!.push(file);
+    const bucket = folderMap.get(targetFolderName)!;
+
+    if (isLogoImageFile(file.name)) {
+      // Prefer top-level logo inside the obra folder if multiple exist
+      if (!bucket.logoFile || segments.length <= 3) {
+        bucket.logoFile = file;
+      }
+    } else if (isSupportedSpreadsheetFile(file.name)) {
+      bucket.files.push(file);
+    }
   }
 
   return Array.from(folderMap.entries())
-    .map(([folderName, folderFiles]) => ({
+    .filter(([, data]) => data.files.length > 0 || data.logoFile !== undefined)
+    .map(([folderName, data]) => ({
       folderName,
-      files: folderFiles.sort((a, b) => a.name.localeCompare(b.name)),
+      files: data.files.sort((a, b) => a.name.localeCompare(b.name)),
+      logoFile: data.logoFile,
     }))
     .sort((a, b) => a.folderName.localeCompare(b.folderName));
 }
@@ -128,16 +159,20 @@ function getFileFromEntry(entry: FileSystemFileEntry): Promise<File> {
 
 async function collectFilesRecursively(dirEntry: FileSystemDirectoryEntry): Promise<{
   directFiles: File[];
-  subdirectories: { name: string; files: File[] }[];
+  directLogoFile?: File;
+  subdirectories: { name: string; files: File[]; logoFile?: File }[];
 }> {
   const entries = await readAllDirectoryEntries(dirEntry.createReader());
   const directFiles: File[] = [];
-  const subdirectories: { name: string; files: File[] }[] = [];
+  let directLogoFile: File | undefined;
+  const subdirectories: { name: string; files: File[]; logoFile?: File }[] = [];
 
   for (const entry of entries) {
     if (entry.isFile) {
       const file = await getFileFromEntry(entry as FileSystemFileEntry);
-      if (isSupportedSpreadsheetFile(file.name)) {
+      if (isLogoImageFile(file.name)) {
+        directLogoFile = file;
+      } else if (isSupportedSpreadsheetFile(file.name)) {
         directFiles.push(file);
       }
     } else if (entry.isDirectory) {
@@ -145,39 +180,46 @@ async function collectFilesRecursively(dirEntry: FileSystemDirectoryEntry): Prom
       const nested = await collectAllFilesFlat(entry as FileSystemDirectoryEntry);
       subdirectories.push({
         name: entry.name,
-        files: nested,
+        files: nested.files,
+        logoFile: nested.logoFile,
       });
     }
   }
 
-  return { directFiles, subdirectories };
+  return { directFiles, directLogoFile, subdirectories };
 }
 
-async function collectAllFilesFlat(dirEntry: FileSystemDirectoryEntry): Promise<File[]> {
+async function collectAllFilesFlat(dirEntry: FileSystemDirectoryEntry): Promise<{
+  files: File[];
+  logoFile?: File;
+}> {
   const entries = await readAllDirectoryEntries(dirEntry.createReader());
   const files: File[] = [];
+  let logoFile: File | undefined;
 
   for (const entry of entries) {
     if (entry.isFile) {
       const file = await getFileFromEntry(entry as FileSystemFileEntry);
-      if (isSupportedSpreadsheetFile(file.name)) {
+      if (isLogoImageFile(file.name)) {
+        logoFile = file;
+      } else if (isSupportedSpreadsheetFile(file.name)) {
         files.push(file);
       }
     } else if (entry.isDirectory && !IGNORED_FOLDERS.has(entry.name.toLowerCase())) {
-      const subFiles = await collectAllFilesFlat(entry as FileSystemDirectoryEntry);
-      files.push(...subFiles);
+      const sub = await collectAllFilesFlat(entry as FileSystemDirectoryEntry);
+      files.push(...sub.files);
+      if (!logoFile && sub.logoFile) {
+        logoFile = sub.logoFile;
+      }
     }
   }
 
-  return files;
+  return { files, logoFile };
 }
 
 /**
  * Scans dragged & dropped folders/files from Windows Explorer / Finder.
- * - If user drops a parent folder (e.g. "calculadora") with subfolders ("MASA", "PAE"),
- *   returns one ScannedObraFolder per subfolder!
- * - If user drops multiple obra folders together ("MASA", "PAE"), returns one per dropped folder.
- * - If user drops a single obra folder directly containing CSVs (no subfolders), returns that single folder.
+ * Detects spreadsheets AND "logo.*" image files inside each obra folder.
  */
 export async function scanDroppedItems(dataTransfer: DataTransfer): Promise<ScannedObraFolder[]> {
   const items = dataTransfer.items ? Array.from(dataTransfer.items) : [];
@@ -186,7 +228,6 @@ export async function scanDroppedItems(dataTransfer: DataTransfer): Promise<Scan
     .filter((entry): entry is FileSystemEntry => entry !== null);
 
   if (entries.length === 0) {
-    // Fallback if browser does not expose webkitGetAsEntry
     if (dataTransfer.files && dataTransfer.files.length > 0) {
       return groupDirectoryInputFiles(dataTransfer.files);
     }
@@ -196,48 +237,64 @@ export async function scanDroppedItems(dataTransfer: DataTransfer): Promise<Scan
   const dirEntries = entries.filter((e): e is FileSystemDirectoryEntry => e.isDirectory);
   const fileEntries = entries.filter((e): e is FileSystemFileEntry => e.isFile);
 
-  const resultMap = new Map<string, File[]>();
+  const resultMap = new Map<string, { files: File[]; logoFile?: File }>();
 
   if (dirEntries.length === 1 && fileEntries.length === 0) {
-    // Single folder dropped: could be root "calculadora" (with subfolders) OR a single obra "MASA"
     const rootDir = dirEntries[0];
-    const { directFiles, subdirectories } = await collectFilesRecursively(rootDir);
-    const hasSubdirsWithSpreadsheets = subdirectories.some(s => s.files.length > 0);
+    const { directFiles, directLogoFile, subdirectories } = await collectFilesRecursively(rootDir);
+    const hasSubdirsWithContent = subdirectories.some(s => s.files.length > 0 || s.logoFile !== undefined);
 
-    if (hasSubdirsWithSpreadsheets || (directFiles.length === 0 && subdirectories.length > 0)) {
-      // Parent folder mode (e.g. "calculadora"): each subdirectory is an obra!
+    if (hasSubdirsWithContent || (directFiles.length === 0 && !directLogoFile && subdirectories.length > 0)) {
+      // Parent folder mode (e.g. "calculadora"): each subdirectory is an obra
       for (const sub of subdirectories) {
-        resultMap.set(sub.name, sub.files.sort((a, b) => a.name.localeCompare(b.name)));
+        resultMap.set(sub.name, {
+          files: sub.files.sort((a, b) => a.name.localeCompare(b.name)),
+          logoFile: sub.logoFile,
+        });
       }
       if (directFiles.length > 0) {
-        resultMap.set(rootDir.name, directFiles.sort((a, b) => a.name.localeCompare(b.name)));
+        resultMap.set(rootDir.name, {
+          files: directFiles.sort((a, b) => a.name.localeCompare(b.name)),
+          logoFile: directLogoFile,
+        });
       }
     } else {
-      // Single obra folder mode (e.g. "MASA" with CSVs directly inside)
-      resultMap.set(rootDir.name, directFiles.sort((a, b) => a.name.localeCompare(b.name)));
+      // Single obra folder mode (e.g. "MASA" with CSVs + optional logo directly inside)
+      resultMap.set(rootDir.name, {
+        files: directFiles.sort((a, b) => a.name.localeCompare(b.name)),
+        logoFile: directLogoFile,
+      });
     }
   } else {
-    // Multiple folders dropped together, or mix of folders and files
     for (const dir of dirEntries) {
       if (IGNORED_FOLDERS.has(dir.name.toLowerCase())) continue;
-      const files = await collectAllFilesFlat(dir);
-      resultMap.set(dir.name, files.sort((a, b) => a.name.localeCompare(b.name)));
+      const scanned = await collectAllFilesFlat(dir);
+      resultMap.set(dir.name, {
+        files: scanned.files.sort((a, b) => a.name.localeCompare(b.name)),
+        logoFile: scanned.logoFile,
+      });
     }
 
     if (fileEntries.length > 0) {
       const looseFiles: File[] = [];
+      let looseLogo: File | undefined;
       for (const fe of fileEntries) {
         const f = await getFileFromEntry(fe);
-        if (isSupportedSpreadsheetFile(f.name)) looseFiles.push(f);
+        if (isLogoImageFile(f.name)) looseLogo = f;
+        else if (isSupportedSpreadsheetFile(f.name)) looseFiles.push(f);
       }
       if (looseFiles.length > 0) {
         const defaultName = looseFiles[0].name.replace(/\.[^/.]+$/, '');
-        resultMap.set(defaultName, looseFiles);
+        resultMap.set(defaultName, { files: looseFiles, logoFile: looseLogo });
       }
     }
   }
 
   return Array.from(resultMap.entries())
-    .map(([folderName, files]) => ({ folderName, files }))
+    .map(([folderName, data]) => ({
+      folderName,
+      files: data.files,
+      logoFile: data.logoFile,
+    }))
     .sort((a, b) => a.folderName.localeCompare(b.folderName));
 }

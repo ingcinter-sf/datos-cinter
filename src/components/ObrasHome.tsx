@@ -429,8 +429,8 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
           >
             <div>📁 calculadora/</div>
             <div className="pl-4">├── 🌐 portal_metalurgico_offline.html</div>
-            <div className="pl-4">├── 📁 MASA/ <span className="opacity-70">(despiece_1.csv, agregado.csv...)</span></div>
-            <div className="pl-4">└── 📁 PAE/ <span className="opacity-70">(perforaciones_pae.csv...)</span></div>
+            <div className="pl-4">├── 📁 MASA/ <span className="opacity-70">(despiece.csv, logo.png...)</span></div>
+            <div className="pl-4">└── 📁 PAE/ <span className="opacity-70">(perforaciones.csv, logo.jpg...)</span></div>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
@@ -566,24 +566,50 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
                     )}
                   </div>
 
-                  {/* Obra Title */}
-                  <h3
+                  {/* Obra Logo + Title */}
+                  <div
                     onClick={() => onSelectObra(obra.id, 'csv')}
-                    className={`text-lg font-black font-mono tracking-tight cursor-pointer truncate mb-1 ${
-                      isLight ? 'text-slate-950 hover:text-blue-700' : 'text-white hover:text-amber-300'
-                    }`}
-                    title={obra.name}
+                    className="flex items-center gap-3 mb-4 cursor-pointer group"
                   >
-                    {obra.name}
-                  </h3>
-                  <div className={`text-[11px] mb-4 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    Actualizado: {new Date(obra.updatedAt).toLocaleString('es-AR', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {obra.logoDataUrl ? (
+                      <div className={`w-14 h-14 rounded-xl border p-1.5 flex items-center justify-center shrink-0 bg-white overflow-hidden transition-transform group-hover:scale-105 ${
+                        isLight ? 'border-slate-200 shadow-xs' : 'border-slate-700 shadow-sm'
+                      }`}>
+                        <img
+                          src={obra.logoDataUrl}
+                          alt={`Logo ${obra.name}`}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 ${
+                        isLight
+                          ? 'bg-blue-50 border-blue-200 text-blue-600'
+                          : 'bg-slate-950 border-slate-800 text-amber-400'
+                      }`}>
+                        <FolderOpen className="w-5 h-5" />
+                      </div>
+                    )}
+
+                    <div className="min-w-0 flex-1">
+                      <h3
+                        className={`text-lg font-black font-mono tracking-tight truncate ${
+                          isLight ? 'text-slate-950 group-hover:text-blue-700' : 'text-white group-hover:text-amber-300'
+                        }`}
+                        title={obra.name}
+                      >
+                        {obra.name}
+                      </h3>
+                      <div className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                        Actualizado: {new Date(obra.updatedAt).toLocaleString('es-AR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Metrics Grid */}

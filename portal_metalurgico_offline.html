@@ -38985,6 +38985,15 @@ var SUPPORTED_EXTENSIONS = [
 	".xlsx",
 	".xls"
 ];
+var IMAGE_EXTENSIONS = [
+	".png",
+	".jpg",
+	".jpeg",
+	".webp",
+	".svg",
+	".gif",
+	".bmp"
+];
 var IGNORED_FOLDERS = /* @__PURE__ */ new Set([
 	"node_modules",
 	".git",
@@ -38996,6 +39005,22 @@ function isSupportedSpreadsheetFile(filename) {
 	const lower = filename.toLowerCase();
 	if (lower.startsWith("~$")) return false;
 	return SUPPORTED_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}
+function isLogoImageFile(filename) {
+	const lower = filename.toLowerCase().trim();
+	const lastDot = lower.lastIndexOf(".");
+	if (lastDot === -1) return false;
+	const baseName = lower.slice(0, lastDot);
+	const ext = lower.slice(lastDot);
+	return baseName === "logo" && IMAGE_EXTENSIONS.includes(ext);
+}
+function readImageFileAsDataUrl(file) {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onload = () => resolve(reader.result);
+		reader.onerror = () => reject(reader.error || /* @__PURE__ */ new Error("Error reading logo image"));
+		reader.readAsDataURL(file);
+	});
 }
 async function readSpreadsheetFileAsText(file) {
 	try {
@@ -39026,16 +39051,16 @@ async function readSpreadsheetFileAsText(file) {
 * Groups a FileList from <input type="file" webkitdirectory /> into ScannedObraFolder[].
 * Supports either:
 * - Selecting the parent folder "calculadora" containing subfolders "MASA/", "PAE/", etc.
-* - Selecting a single obra folder directly (e.g. "MASA/") containing CSV/Excel files.
+* - Selecting a single obra folder directly (e.g. "MASA/") containing CSV/Excel files and optional "logo.*".
 */
 function groupDirectoryInputFiles(fileList) {
-	const validFiles = Array.from(fileList).filter((f) => isSupportedSpreadsheetFile(f.name));
-	if (validFiles.length === 0) return [];
-	const hasNestedSubfolders = validFiles.some((f) => {
+	const relevantFiles = Array.from(fileList).filter((f) => isSupportedSpreadsheetFile(f.name) || isLogoImageFile(f.name));
+	if (relevantFiles.length === 0) return [];
+	const hasNestedSubfolders = relevantFiles.some((f) => {
 		return (f.webkitRelativePath || f.name).split("/").filter(Boolean).length >= 3;
 	});
 	const folderMap = /* @__PURE__ */ new Map();
-	for (const file of validFiles) {
+	for (const file of relevantFiles) {
 		const segments = (file.webkitRelativePath || file.name).split("/").filter(Boolean);
 		let targetFolderName;
 		if (hasNestedSubfolders) {
@@ -39043,12 +39068,16 @@ function groupDirectoryInputFiles(fileList) {
 			else targetFolderName = segments[0] || "General";
 		} else targetFolderName = segments.length >= 2 ? segments[0] : "Obra Importada";
 		if (IGNORED_FOLDERS.has(targetFolderName.toLowerCase())) continue;
-		if (!folderMap.has(targetFolderName)) folderMap.set(targetFolderName, []);
-		folderMap.get(targetFolderName).push(file);
+		if (!folderMap.has(targetFolderName)) folderMap.set(targetFolderName, { files: [] });
+		const bucket = folderMap.get(targetFolderName);
+		if (isLogoImageFile(file.name)) {
+			if (!bucket.logoFile || segments.length <= 3) bucket.logoFile = file;
+		} else if (isSupportedSpreadsheetFile(file.name)) bucket.files.push(file);
 	}
-	return Array.from(folderMap.entries()).map(([folderName, folderFiles]) => ({
+	return Array.from(folderMap.entries()).filter(([, data]) => data.files.length > 0 || data.logoFile !== void 0).map(([folderName, data]) => ({
 		folderName,
-		files: folderFiles.sort((a, b) => a.name.localeCompare(b.name))
+		files: data.files.sort((a, b) => a.name.localeCompare(b.name)),
+		logoFile: data.logoFile
 	})).sort((a, b) => a.folderName.localeCompare(b.folderName));
 }
 function readAllDirectoryEntries(reader) {
@@ -39074,41 +39103,48 @@ function getFileFromEntry(entry) {
 async function collectFilesRecursively(dirEntry) {
 	const entries = await readAllDirectoryEntries(dirEntry.createReader());
 	const directFiles = [];
+	let directLogoFile;
 	const subdirectories = [];
 	for (const entry of entries) if (entry.isFile) {
 		const file = await getFileFromEntry(entry);
-		if (isSupportedSpreadsheetFile(file.name)) directFiles.push(file);
+		if (isLogoImageFile(file.name)) directLogoFile = file;
+		else if (isSupportedSpreadsheetFile(file.name)) directFiles.push(file);
 	} else if (entry.isDirectory) {
 		if (IGNORED_FOLDERS.has(entry.name.toLowerCase())) continue;
 		const nested = await collectAllFilesFlat(entry);
 		subdirectories.push({
 			name: entry.name,
-			files: nested
+			files: nested.files,
+			logoFile: nested.logoFile
 		});
 	}
 	return {
 		directFiles,
+		directLogoFile,
 		subdirectories
 	};
 }
 async function collectAllFilesFlat(dirEntry) {
 	const entries = await readAllDirectoryEntries(dirEntry.createReader());
 	const files = [];
+	let logoFile;
 	for (const entry of entries) if (entry.isFile) {
 		const file = await getFileFromEntry(entry);
-		if (isSupportedSpreadsheetFile(file.name)) files.push(file);
+		if (isLogoImageFile(file.name)) logoFile = file;
+		else if (isSupportedSpreadsheetFile(file.name)) files.push(file);
 	} else if (entry.isDirectory && !IGNORED_FOLDERS.has(entry.name.toLowerCase())) {
-		const subFiles = await collectAllFilesFlat(entry);
-		files.push(...subFiles);
+		const sub = await collectAllFilesFlat(entry);
+		files.push(...sub.files);
+		if (!logoFile && sub.logoFile) logoFile = sub.logoFile;
 	}
-	return files;
+	return {
+		files,
+		logoFile
+	};
 }
 /**
 * Scans dragged & dropped folders/files from Windows Explorer / Finder.
-* - If user drops a parent folder (e.g. "calculadora") with subfolders ("MASA", "PAE"),
-*   returns one ScannedObraFolder per subfolder!
-* - If user drops multiple obra folders together ("MASA", "PAE"), returns one per dropped folder.
-* - If user drops a single obra folder directly containing CSVs (no subfolders), returns that single folder.
+* Detects spreadsheets AND "logo.*" image files inside each obra folder.
 */
 async function scanDroppedItems(dataTransfer) {
 	const entries = (dataTransfer.items ? Array.from(dataTransfer.items) : []).map((item) => item.webkitGetAsEntry ? item.webkitGetAsEntry() : null).filter((entry) => entry !== null);
@@ -39121,32 +39157,50 @@ async function scanDroppedItems(dataTransfer) {
 	const resultMap = /* @__PURE__ */ new Map();
 	if (dirEntries.length === 1 && fileEntries.length === 0) {
 		const rootDir = dirEntries[0];
-		const { directFiles, subdirectories } = await collectFilesRecursively(rootDir);
-		if (subdirectories.some((s) => s.files.length > 0) || directFiles.length === 0 && subdirectories.length > 0) {
-			for (const sub of subdirectories) resultMap.set(sub.name, sub.files.sort((a, b) => a.name.localeCompare(b.name)));
-			if (directFiles.length > 0) resultMap.set(rootDir.name, directFiles.sort((a, b) => a.name.localeCompare(b.name)));
-		} else resultMap.set(rootDir.name, directFiles.sort((a, b) => a.name.localeCompare(b.name)));
+		const { directFiles, directLogoFile, subdirectories } = await collectFilesRecursively(rootDir);
+		if (subdirectories.some((s) => s.files.length > 0 || s.logoFile !== void 0) || directFiles.length === 0 && !directLogoFile && subdirectories.length > 0) {
+			for (const sub of subdirectories) resultMap.set(sub.name, {
+				files: sub.files.sort((a, b) => a.name.localeCompare(b.name)),
+				logoFile: sub.logoFile
+			});
+			if (directFiles.length > 0) resultMap.set(rootDir.name, {
+				files: directFiles.sort((a, b) => a.name.localeCompare(b.name)),
+				logoFile: directLogoFile
+			});
+		} else resultMap.set(rootDir.name, {
+			files: directFiles.sort((a, b) => a.name.localeCompare(b.name)),
+			logoFile: directLogoFile
+		});
 	} else {
 		for (const dir of dirEntries) {
 			if (IGNORED_FOLDERS.has(dir.name.toLowerCase())) continue;
-			const files = await collectAllFilesFlat(dir);
-			resultMap.set(dir.name, files.sort((a, b) => a.name.localeCompare(b.name)));
+			const scanned = await collectAllFilesFlat(dir);
+			resultMap.set(dir.name, {
+				files: scanned.files.sort((a, b) => a.name.localeCompare(b.name)),
+				logoFile: scanned.logoFile
+			});
 		}
 		if (fileEntries.length > 0) {
 			const looseFiles = [];
+			let looseLogo;
 			for (const fe of fileEntries) {
 				const f = await getFileFromEntry(fe);
-				if (isSupportedSpreadsheetFile(f.name)) looseFiles.push(f);
+				if (isLogoImageFile(f.name)) looseLogo = f;
+				else if (isSupportedSpreadsheetFile(f.name)) looseFiles.push(f);
 			}
 			if (looseFiles.length > 0) {
 				const defaultName = looseFiles[0].name.replace(/\.[^/.]+$/, "");
-				resultMap.set(defaultName, looseFiles);
+				resultMap.set(defaultName, {
+					files: looseFiles,
+					logoFile: looseLogo
+				});
 			}
 		}
 	}
-	return Array.from(resultMap.entries()).map(([folderName, files]) => ({
+	return Array.from(resultMap.entries()).map(([folderName, data]) => ({
 		folderName,
-		files
+		files: data.files,
+		logoFile: data.logoFile
 	})).sort((a, b) => a.folderName.localeCompare(b.folderName));
 }
 //#endregion
@@ -39478,14 +39532,14 @@ var ObrasHome = ({ obras, activeObraId, onSelectObra, onCreateManualObra, onDele
 								className: "pl-4",
 								children: ["├── 📁 MASA/ ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 									className: "opacity-70",
-									children: "(despiece_1.csv, agregado.csv...)"
+									children: "(despiece.csv, logo.png...)"
 								})]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "pl-4",
 								children: ["└── 📁 PAE/ ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 									className: "opacity-70",
-									children: "(perforaciones_pae.csv...)"
+									children: "(perforaciones.csv, logo.jpg...)"
 								})]
 							})
 						]
@@ -39569,20 +39623,35 @@ var ObrasHome = ({ obras, activeObraId, onSelectObra, onCreateManualObra, onDele
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "w-3.5 h-3.5" })
 								})]
 							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
-								onClick: () => onSelectObra(obra.id, "csv"),
-								className: `text-lg font-black font-mono tracking-tight cursor-pointer truncate mb-1 ${isLight ? "text-slate-950 hover:text-blue-700" : "text-white hover:text-amber-300"}`,
-								title: obra.name,
-								children: obra.name
-							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: `text-[11px] mb-4 ${isLight ? "text-slate-600" : "text-slate-400"}`,
-								children: ["Actualizado: ", new Date(obra.updatedAt).toLocaleString("es-AR", {
-									day: "2-digit",
-									month: "2-digit",
-									year: "2-digit",
-									hour: "2-digit",
-									minute: "2-digit"
+								onClick: () => onSelectObra(obra.id, "csv"),
+								className: "flex items-center gap-3 mb-4 cursor-pointer group",
+								children: [obra.logoDataUrl ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: `w-14 h-14 rounded-xl border p-1.5 flex items-center justify-center shrink-0 bg-white overflow-hidden transition-transform group-hover:scale-105 ${isLight ? "border-slate-200 shadow-xs" : "border-slate-700 shadow-sm"}`,
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+										src: obra.logoDataUrl,
+										alt: `Logo ${obra.name}`,
+										className: "w-full h-full object-contain"
+									})
+								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: `w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 ${isLight ? "bg-blue-50 border-blue-200 text-blue-600" : "bg-slate-950 border-slate-800 text-amber-400"}`,
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderOpen, { className: "w-5 h-5" })
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "min-w-0 flex-1",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+										className: `text-lg font-black font-mono tracking-tight truncate ${isLight ? "text-slate-950 group-hover:text-blue-700" : "text-white group-hover:text-amber-300"}`,
+										title: obra.name,
+										children: obra.name
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: `text-[11px] ${isLight ? "text-slate-600" : "text-slate-400"}`,
+										children: ["Actualizado: ", new Date(obra.updatedAt).toLocaleString("es-AR", {
+											day: "2-digit",
+											month: "2-digit",
+											year: "2-digit",
+											hour: "2-digit",
+											minute: "2-digit"
+										})]
+									})]
 								})]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -47773,6 +47842,12 @@ function App() {
 		const parsedFoldersData = [];
 		for (const folder of scannedFolders) {
 			if (folder.files.length === 0) skippedEmptyFolders.push(folder.folderName);
+			let logoDataUrl;
+			if (folder.logoFile) try {
+				logoDataUrl = await readImageFileAsDataUrl(folder.logoFile);
+			} catch (err) {
+				console.error("Error reading logo image for", folder.folderName, err);
+			}
 			let combinedParts = [];
 			let combinedMetadata = [];
 			let lastRawText = "";
@@ -47788,51 +47863,52 @@ function App() {
 			}
 			parsedFoldersData.push({
 				folderName: folder.folderName,
+				logoDataUrl,
 				parts: combinedParts,
 				headerMetadata: combinedMetadata,
 				rawCsvText: lastRawText,
 				loadedFiles: fileNames
 			});
 		}
-		setObras((prevObras) => {
-			const nextObras = [...prevObras];
-			for (const item of parsedFoldersData) {
-				const normalizedFolder = item.folderName.trim().toLowerCase();
-				const existingIndex = nextObras.findIndex((o) => o.folderName && o.folderName.trim().toLowerCase() === normalizedFolder || o.name.trim().toLowerCase() === normalizedFolder);
-				if (existingIndex !== -1) {
-					const existing = nextObras[existingIndex];
-					nextObras[existingIndex] = {
-						...existing,
-						folderName: item.folderName,
-						parts: item.parts,
-						headerMetadata: item.headerMetadata,
-						rawCsvText: item.rawCsvText,
-						loadedFiles: item.loadedFiles,
-						updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
-						sourceType: "folder"
-					};
-					updatedNames.push(existing.name);
-					changeBadges[existing.id] = "updated";
-				} else {
-					const newId = `obra-folder-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-					const newObra = {
-						id: newId,
-						name: item.folderName,
-						folderName: item.folderName,
-						parts: item.parts,
-						headerMetadata: item.headerMetadata,
-						rawCsvText: item.rawCsvText,
-						loadedFiles: item.loadedFiles,
-						updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
-						sourceType: "folder"
-					};
-					nextObras.push(newObra);
-					createdNames.push(item.folderName);
-					changeBadges[newId] = "created";
-				}
+		const nextObras = [...obras];
+		for (const item of parsedFoldersData) {
+			const normalizedFolder = item.folderName.trim().toLowerCase();
+			const existingIndex = nextObras.findIndex((o) => o.folderName && o.folderName.trim().toLowerCase() === normalizedFolder || o.name.trim().toLowerCase() === normalizedFolder);
+			if (existingIndex !== -1) {
+				const existing = nextObras[existingIndex];
+				nextObras[existingIndex] = {
+					...existing,
+					folderName: item.folderName,
+					logoDataUrl: item.logoDataUrl !== void 0 ? item.logoDataUrl : existing.logoDataUrl,
+					parts: item.parts,
+					headerMetadata: item.headerMetadata,
+					rawCsvText: item.rawCsvText,
+					loadedFiles: item.loadedFiles,
+					updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+					sourceType: "folder"
+				};
+				updatedNames.push(existing.name);
+				changeBadges[existing.id] = "updated";
+			} else {
+				const newId = `obra-folder-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+				const newObra = {
+					id: newId,
+					name: item.folderName,
+					folderName: item.folderName,
+					logoDataUrl: item.logoDataUrl,
+					parts: item.parts,
+					headerMetadata: item.headerMetadata,
+					rawCsvText: item.rawCsvText,
+					loadedFiles: item.loadedFiles,
+					updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+					sourceType: "folder"
+				};
+				nextObras.push(newObra);
+				createdNames.push(item.folderName);
+				changeBadges[newId] = "created";
 			}
-			return nextObras;
-		});
+		}
+		setObras(nextObras);
 		setRecentlyChangedMap(changeBadges);
 		const result = {
 			createdNames,
@@ -48063,6 +48139,9 @@ function App() {
       --tw-backdrop-saturate: initial;
       --tw-backdrop-sepia: initial;
       --tw-duration: initial;
+      --tw-scale-x: 1;
+      --tw-scale-y: 1;
+      --tw-scale-z: 1;
       --tw-divide-x-reverse: 0;
     }
   }
@@ -51359,6 +51438,16 @@ function App() {
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
 
+  .shadow-amber-500 {
+    --tw-shadow-color: oklch(76.9% .188 70.08);
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .shadow-amber-500 {
+      --tw-shadow-color: color-mix(in oklab, var(--color-amber-500) var(--tw-shadow-alpha), transparent);
+    }
+  }
+
   .shadow-amber-500\/20 {
     --tw-shadow-color: #f99c0033;
   }
@@ -51386,6 +51475,16 @@ function App() {
   @supports (color: color-mix(in lab, red, red)) {
     .shadow-black\/80 {
       --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-black) 80%, transparent) var(--tw-shadow-alpha), transparent);
+    }
+  }
+
+  .shadow-blue-600 {
+    --tw-shadow-color: oklch(54.6% .245 262.881);
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .shadow-blue-600 {
+      --tw-shadow-color: color-mix(in oklab, var(--color-blue-600) var(--tw-shadow-alpha), transparent);
     }
   }
 
@@ -51437,6 +51536,10 @@ function App() {
     .shadow-slate-300\/50 {
       --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-slate-300) 50%, transparent) var(--tw-shadow-alpha), transparent);
     }
+  }
+
+  .ring-amber-500 {
+    --tw-ring-color: var(--color-amber-500);
   }
 
   .ring-amber-500\/20 {
@@ -51551,12 +51654,23 @@ function App() {
   }
 
   @media (hover: hover) {
+    .group-hover\:scale-105:is(:where(.group):hover *) {
+      --tw-scale-x: 105%;
+      --tw-scale-y: 105%;
+      --tw-scale-z: 105%;
+      scale: var(--tw-scale-x) var(--tw-scale-y);
+    }
+
     .group-hover\:text-amber-300:is(:where(.group):hover *) {
       color: var(--color-amber-300);
     }
 
     .group-hover\:text-blue-600:is(:where(.group):hover *) {
       color: var(--color-blue-600);
+    }
+
+    .group-hover\:text-blue-700:is(:where(.group):hover *) {
+      color: var(--color-blue-700);
     }
 
     .group-hover\:opacity-100:is(:where(.group):hover *) {
@@ -52672,6 +52786,24 @@ function App() {
 @property --tw-duration {
   syntax: "*";
   inherits: false
+}
+
+@property --tw-scale-x {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --tw-scale-y {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --tw-scale-z {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
 }
 
 @property --tw-divide-x-reverse {

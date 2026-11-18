@@ -160,6 +160,7 @@ export interface ObraProject {
   id: string;
   name: string;
   folderName?: string;
+  logoDataUrl?: string;
   parts: PartRecord[];
   headerMetadata: string[];
   rawCsvText: string;
