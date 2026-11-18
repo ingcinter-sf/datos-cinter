@@ -9,13 +9,16 @@ import {
   Check,
   RotateCcw,
   Upload,
-  BarChart3
+  BarChart3,
+  LayoutGrid
 } from 'lucide-react';
 import defaultLogo from '@/public/assets/aistudio/ImagotipoV_06__1__39317061.png';
 
 interface NavbarProps {
-  activeTab: 'csv' | 'print' | 'analytics';
-  setActiveTab: (tab: 'csv' | 'print' | 'analytics') => void;
+  activeTab: 'home' | 'csv' | 'print' | 'analytics';
+  setActiveTab: (tab: 'home' | 'csv' | 'print' | 'analytics') => void;
+  hasActiveObra: boolean;
+  totalObras: number;
   totalParts: number;
   totalHoles: number;
   onLoadSample: (type: 'vmc' | 'n29000') => void;
@@ -29,9 +32,10 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
+  hasActiveObra,
+  totalObras,
   totalParts,
   totalHoles,
-  onLoadSample,
   onClearAll,
   projectName,
   onProjectNameChange,
@@ -40,6 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(projectName);
+  const [confirmClear, setConfirmClear] = useState(false);
   const [logoSrc, setLogoSrc] = useState<string>(() => {
     return localStorage.getItem('cinter_custom_logo') || defaultLogo;
   });
@@ -128,97 +133,133 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Center: EDITABLE PROJECT TITLE ("por defecto el nombre del archivo y editable a gusto") */}
+          {/* Center: EDITABLE PROJECT TITLE (only when an obra is active) */}
           <div className="flex-1 max-w-md mx-2 hidden md:block">
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
-              isLight 
-                ? 'bg-slate-50 border-slate-300 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100' 
-                : 'bg-slate-950 border-slate-700 focus-within:border-amber-400'
-            }`}>
-              <span className={`text-[10px] uppercase tracking-wider font-bold shrink-0 ${isLight ? 'text-blue-700' : 'text-amber-400'}`}>
-                Obra / Archivo:
-              </span>
+            {hasActiveObra ? (
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
+                isLight 
+                  ? 'bg-slate-50 border-slate-300 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100' 
+                  : 'bg-slate-950 border-slate-700 focus-within:border-amber-400'
+              }`}>
+                <span className={`text-[10px] uppercase tracking-wider font-bold shrink-0 ${isLight ? 'text-blue-700' : 'text-amber-400'}`}>
+                  Obra Activa:
+                </span>
 
-              {isEditingTitle ? (
-                <div className="flex items-center gap-1.5 w-full">
-                  <input
-                    type="text"
-                    value={tempTitle}
-                    onChange={(e) => setTempTitle(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    autoFocus
-                    placeholder="Escriba el nombre de obra o archivo..."
-                    className={`w-full text-xs font-bold font-mono bg-transparent outline-none ${
-                      isLight ? 'text-slate-900' : 'text-amber-300'
-                    }`}
-                  />
-                  <button
-                    onClick={handleSaveTitle}
-                    className={`p-1 rounded cursor-pointer ${isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950'}`}
-                    title="Guardar nombre"
+                {isEditingTitle ? (
+                  <div className="flex items-center gap-1.5 w-full">
+                    <input
+                      type="text"
+                      value={tempTitle}
+                      onChange={(e) => setTempTitle(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      autoFocus
+                      placeholder="Escriba el nombre de obra o archivo..."
+                      className={`w-full text-xs font-bold font-mono bg-transparent outline-none ${
+                        isLight ? 'text-slate-900' : 'text-amber-300'
+                      }`}
+                    />
+                    <button
+                      onClick={handleSaveTitle}
+                      className={`p-1 rounded cursor-pointer ${isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950'}`}
+                      title="Guardar nombre"
+                    >
+                      <Check className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div 
+                    onClick={() => {
+                      setTempTitle(projectName);
+                      setIsEditingTitle(true);
+                    }}
+                    className="flex items-center justify-between w-full cursor-pointer group"
+                    title="Haga clic para editar el nombre de la obra"
                   >
-                    <Check className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <div 
-                  onClick={() => {
-                    setTempTitle(projectName);
-                    setIsEditingTitle(true);
-                  }}
-                  className="flex items-center justify-between w-full cursor-pointer group"
-                  title="Haga clic para editar el nombre del proyecto u obra a su gusto"
-                >
-                  <span className={`text-xs font-bold font-mono truncate ${isLight ? 'text-slate-800 group-hover:text-blue-600' : 'text-slate-200 group-hover:text-amber-300'}`}>
-                    {projectName || 'Sin título'}
-                  </span>
-                  <Edit3 className={`w-3.5 h-3.5 shrink-0 ml-1 transition-opacity opacity-40 group-hover:opacity-100 ${
-                    isLight ? 'text-blue-600' : 'text-amber-400'
-                  }`} />
-                </div>
-              )}
-            </div>
+                    <span className={`text-xs font-bold font-mono truncate ${isLight ? 'text-slate-800 group-hover:text-blue-600' : 'text-slate-200 group-hover:text-amber-300'}`}>
+                      {projectName || 'Sin título'}
+                    </span>
+                    <Edit3 className={`w-3.5 h-3.5 shrink-0 ml-1 transition-opacity opacity-40 group-hover:opacity-100 ${
+                      isLight ? 'text-blue-600' : 'text-amber-400'
+                    }`} />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className={`text-center text-xs font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                Selecciona una tarjeta de obra o sincroniza tu carpeta <span className="font-mono font-bold">calculadora</span>
+              </div>
+            )}
           </div>
 
           {/* Quick Stats & Controls */}
           <div className="flex items-center gap-2">
             {/* Quick Stats Pill */}
-            <div className={`hidden lg:flex items-center gap-3 px-3 py-1.5 rounded-lg border text-xs ${
-              isLight 
-                ? 'bg-slate-50 border-slate-200 text-slate-700' 
-                : 'bg-slate-800/80 border-slate-700/60 text-slate-200'
-            }`}>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Piezas:</span>
-                <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{totalParts}</span>
+            {hasActiveObra ? (
+              <div className={`hidden lg:flex items-center gap-3 px-3 py-1.5 rounded-lg border text-xs ${
+                isLight 
+                  ? 'bg-slate-50 border-slate-200 text-slate-700' 
+                  : 'bg-slate-800/80 border-slate-700/60 text-slate-200'
+              }`}>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Piezas:</span>
+                  <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{totalParts}</span>
+                </div>
+                <div className={`h-3 w-px ${isLight ? 'bg-slate-300' : 'bg-slate-700'}`}></div>
+                <div className="flex items-center gap-1.5">
+                  <Wrench className={`w-3.5 h-3.5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+                  <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Agujeros:</span>
+                  <span className={`font-bold ${isLight ? 'text-blue-700' : 'text-amber-300'}`}>{totalHoles}</span>
+                </div>
               </div>
-              <div className={`h-3 w-px ${isLight ? 'bg-slate-300' : 'bg-slate-700'}`}></div>
-              <div className="flex items-center gap-1.5">
-                <Wrench className={`w-3.5 h-3.5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-                <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Agujeros:</span>
-                <span className={`font-bold ${isLight ? 'text-blue-700' : 'text-amber-300'}`}>{totalHoles}</span>
+            ) : (
+              <div className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs ${
+                isLight 
+                  ? 'bg-slate-50 border-slate-200 text-slate-700' 
+                  : 'bg-slate-800/80 border-slate-700/60 text-slate-200'
+              }`}>
+                <LayoutGrid className={`w-3.5 h-3.5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+                <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Obras:</span>
+                <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{totalObras}</span>
               </div>
-            </div>
+            )}
 
-            {/* Clear / New Sheet Button */}
-            {totalParts > 0 && onClearAll && (
-              <button
-                onClick={() => {
-                  if (confirm('¿Vaciar la planilla actual para comenzar de cero con un archivo nuevo?')) {
-                    onClearAll();
-                  }
-                }}
-                className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
-                  isLight 
-                    ? 'bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-700' 
-                    : 'bg-rose-950/40 hover:bg-rose-900/60 border-rose-800 text-rose-300'
-                }`}
-                title="Vaciar planilla y empezar en blanco"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Limpiar Planilla</span>
-              </button>
+            {/* Clear / New Sheet Button (only inside an active obra with parts) */}
+            {hasActiveObra && activeTab !== 'home' && totalParts > 0 && onClearAll && (
+              confirmClear ? (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      onClearAll();
+                      setConfirmClear(false);
+                    }}
+                    className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer"
+                  >
+                    Confirmar vaciar
+                  </button>
+                  <button
+                    onClick={() => setConfirmClear(false)}
+                    className={`px-2 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer ${
+                      isLight ? 'bg-slate-100 border-slate-300 text-slate-700' : 'bg-slate-800 border-slate-700 text-slate-300'
+                    }`}
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmClear(true)}
+                  className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                    isLight 
+                      ? 'bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-700' 
+                      : 'bg-rose-950/40 hover:bg-rose-900/60 border-rose-800 text-rose-300'
+                  }`}
+                  title="Vaciar la planilla de esta obra y empezar en blanco"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Limpiar Planilla</span>
+                </button>
+              )
             )}
 
             {/* THEME SWITCHER BUTTON (TEMA CLARO / TEMA OSCURO) */}
@@ -247,32 +288,34 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Mobile editable project title */}
-        <div className="block md:hidden pb-2">
-          <div className={`flex items-center justify-between px-2.5 py-1 rounded border text-xs ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
-          }`}>
-            <span className={`text-[10px] font-bold uppercase ${isLight ? 'text-blue-700' : 'text-amber-400'}`}>
-              Obra:
-            </span>
-            <input
-              type="text"
-              value={projectName}
-              onChange={(e) => onProjectNameChange(e.target.value)}
-              className={`text-xs font-bold font-mono bg-transparent outline-none text-right w-48 ${
-                isLight ? 'text-slate-900' : 'text-slate-200'
-              }`}
-            />
+        {hasActiveObra && (
+          <div className="block md:hidden pb-2">
+            <div className={`flex items-center justify-between px-2.5 py-1 rounded border text-xs ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
+            }`}>
+              <span className={`text-[10px] font-bold uppercase ${isLight ? 'text-blue-700' : 'text-amber-400'}`}>
+                Obra:
+              </span>
+              <input
+                type="text"
+                value={projectName}
+                onChange={(e) => onProjectNameChange(e.target.value)}
+                className={`text-xs font-bold font-mono bg-transparent outline-none text-right w-48 ${
+                  isLight ? 'text-slate-900' : 'text-slate-200'
+                }`}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Navigation Tabs */}
         <nav className={`flex space-x-1 sm:space-x-2 border-t pt-1 pb-2 overflow-x-auto ${
           isLight ? 'border-slate-200' : 'border-slate-800/80'
         }`}>
           <button
-            onClick={() => setActiveTab('csv')}
+            onClick={() => setActiveTab('home')}
             className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
-              activeTab === 'csv'
+              activeTab === 'home'
                 ? isLight
                   ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]'
                   : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]'
@@ -281,50 +324,77 @@ export const Navbar: React.FC<NavbarProps> = ({
                   : 'bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400'
             }`}
           >
-            <FileSpreadsheet className="w-4 h-4" />
-            Planilla CSV / Excel
-          </button>
-
-          <button
-            onClick={() => setActiveTab('print')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
-              activeTab === 'print'
-                ? isLight
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]'
-                  : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]'
-                : isLight
-                  ? 'bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600'
-                  : 'bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400'
-            }`}
-          >
-            <Printer className="w-4 h-4" />
-            <span className="flex items-center gap-1.5">
-              <span>RESUMEN PERFORACIONES</span>
-              <span className={`text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${
-                activeTab === 'print' 
-                  ? isLight ? 'bg-blue-800 text-blue-100' : 'bg-slate-950 text-amber-400'
-                  : isLight ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
-              }`}>
-                {projectName}
-              </span>
+            <LayoutGrid className="w-4 h-4" />
+            <span>Inicio (Obras)</span>
+            <span className={`text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${
+              activeTab === 'home'
+                ? isLight ? 'bg-blue-800 text-blue-100' : 'bg-slate-950 text-amber-400'
+                : isLight ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+            }`}>
+              {totalObras}
             </span>
           </button>
 
-          <button
-            onClick={() => setActiveTab('analytics')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
-              activeTab === 'analytics'
-                ? isLight
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]'
-                  : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]'
-                : isLight
-                  ? 'bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600'
-                  : 'bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4" />
-            Análisis de Datos
-          </button>
+          {hasActiveObra && (
+            <>
+              <button
+                onClick={() => setActiveTab('csv')}
+                className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                  activeTab === 'csv'
+                    ? isLight
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]'
+                      : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]'
+                    : isLight
+                      ? 'bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600'
+                      : 'bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400'
+                }`}
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                Planilla CSV / Excel
+              </button>
+
+              <button
+                onClick={() => setActiveTab('print')}
+                className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                  activeTab === 'print'
+                    ? isLight
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]'
+                      : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]'
+                    : isLight
+                      ? 'bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600'
+                      : 'bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400'
+                }`}
+              >
+                <Printer className="w-4 h-4" />
+                <span className="flex items-center gap-1.5">
+                  <span>RESUMEN PERFORACIONES</span>
+                  <span className={`text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${
+                    activeTab === 'print' 
+                      ? isLight ? 'bg-blue-800 text-blue-100' : 'bg-slate-950 text-amber-400'
+                      : isLight ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+                  }`}>
+                    {projectName}
+                  </span>
+                </span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                  activeTab === 'analytics'
+                    ? isLight
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]'
+                      : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]'
+                    : isLight
+                      ? 'bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600'
+                      : 'bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4" />
+                Análisis de Datos
+              </button>
+            </>
+          )}
         </nav>
       </div>
     </header>

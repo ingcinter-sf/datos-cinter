@@ -155,3 +155,23 @@ export interface BlueprintAnalysisResult {
   technicalObservations: string[];
   confidenceScore?: number;
 }
+
+export interface ObraProject {
+  id: string;
+  name: string;
+  folderName?: string;
+  parts: PartRecord[];
+  headerMetadata: string[];
+  rawCsvText: string;
+  loadedFiles: string[];
+  updatedAt: string;
+  sourceType: 'folder' | 'manual';
+}
+
+export interface FolderSyncResult {
+  createdNames: string[];
+  updatedNames: string[];
+  totalFilesProcessed: number;
+  skippedEmptyFolders: string[];
+}
+

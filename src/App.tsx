@@ -1,106 +1,129 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
+import { ObrasHome } from './components/ObrasHome';
 import { CsvAnalyzer } from './components/CsvAnalyzer';
-import { DxfViewer } from './components/DxfViewer';
-import { BlueprintAiAnalyzer } from './components/BlueprintAiAnalyzer';
-import { MachiningCalculator } from './components/MachiningCalculator';
 import { ResumenPerforacionesReport } from './components/ResumenPerforacionesReport';
 import { WorkshopAnalytics } from './components/WorkshopAnalytics';
 import { parseMetallurgyCsv, mergePartRecords } from './utils/csvParser';
 import { SAMPLE_METALLURGY_CSV, SAMPLE_METALLURGY_VMC } from './utils/sampleData';
-import { PartRecord, DiameterSummary } from './types';
+import { getPortalStoragePrefix, loadObrasFromStorage, saveObrasToStorage } from './utils/obraStorage';
+import { readSpreadsheetFileAsText, ScannedObraFolder } from './utils/folderScanner';
+import { PartRecord, DiameterSummary, ObraProject, FolderSyncResult } from './types';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'csv' | 'dxf' | 'ai' | 'calculator' | 'print'>('csv');
+  const [activeTab, setActiveTab] = useState<'home' | 'csv' | 'print' | 'analytics'>('home');
   
   // Theme state: 'light' (white background & blue accents) vs 'dark' (slate-950 & amber)
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
-
-  // Unique storage prefix per folder path to isolate data between different obra folders
-  const storagePrefix = useMemo(() => {
-    if (typeof window === 'undefined') return 'cinter_default';
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
-      const path = window.location.pathname || 'default';
-      let hash = 0;
-      for (let i = 0; i < path.length; i++) {
-        hash = ((hash << 5) - hash) + path.charCodeAt(i);
-        hash |= 0;
+      const saved = localStorage.getItem('cinter_portal_theme');
+      return saved === 'dark' ? 'dark' : 'light';
+    } catch {
+      return 'light';
+    }
+  });
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem('cinter_portal_theme', next);
+      } catch {
+        // ignore
       }
-      return `cinter_obra_${Math.abs(hash)}`;
-    } catch {
-      return 'cinter_obra_fallback';
-    }
-  }, []);
-
-  // Initialize from localStorage for offline persistence across reloads (isolated per folder path)
-  const [parts, setParts] = useState<PartRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem(`${storagePrefix}_parts`);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [headerMetadata, setHeaderMetadata] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem(`${storagePrefix}_metadata`);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-  
-  const [projectName, setProjectName] = useState<string>(() => {
-    return localStorage.getItem(`${storagePrefix}_project_name`) || 'Nueva Obra';
-  });
-
-  const [rawCsvText, setRawCsvText] = useState<string>(() => {
-    return localStorage.getItem(`${storagePrefix}_raw_csv`) || '';
-  });
-
-  const [loadedFiles, setLoadedFiles] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem(`${storagePrefix}_loaded_files`);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  // Save to localStorage automatically on state changes
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${storagePrefix}_parts`, JSON.stringify(parts));
-      localStorage.setItem(`${storagePrefix}_metadata`, JSON.stringify(headerMetadata));
-      localStorage.setItem(`${storagePrefix}_project_name`, projectName);
-      localStorage.setItem(`${storagePrefix}_raw_csv`, rawCsvText);
-      localStorage.setItem(`${storagePrefix}_loaded_files`, JSON.stringify(loadedFiles));
-    } catch (err) {
-      console.error('Error saving state to localStorage', err);
-    }
-  }, [storagePrefix, parts, headerMetadata, projectName, rawCsvText, loadedFiles]);
-
-  // Clear all data (blank slate)
-  const handleClearAll = () => {
-    setParts([]);
-    setHeaderMetadata([]);
-    setProjectName('Nueva Obra');
-    setRawCsvText('');
-    setLoadedFiles([]);
-    try {
-      localStorage.removeItem(`${storagePrefix}_parts`);
-      localStorage.removeItem(`${storagePrefix}_metadata`);
-      localStorage.removeItem(`${storagePrefix}_project_name`);
-      localStorage.removeItem(`${storagePrefix}_raw_csv`);
-      localStorage.removeItem(`${storagePrefix}_loaded_files`);
-    } catch (err) {
-      console.error('Error clearing localStorage', err);
-    }
+      return next;
+    });
   };
 
-  // Recalculate summary metrics whenever parts change
+  // Unique storage prefix per folder path to keep separate portal copies isolated
+  const storagePrefix = useMemo(() => getPortalStoragePrefix(), []);
+
+  const [obras, setObras] = useState<ObraProject[]>([]);
+  const [isStorageLoaded, setIsStorageLoaded] = useState(false);
+  const [activeObraId, setActiveObraId] = useState<string | null>(null);
+
+  const [lastSyncResult, setLastSyncResult] = useState<FolderSyncResult | null>(null);
+  const [recentlyChangedMap, setRecentlyChangedMap] = useState<Record<string, 'created' | 'updated'>>({});
+
+  // Load saved obras from IndexedDB / localStorage on mount
+  useEffect(() => {
+    let cancelled = false;
+    loadObrasFromStorage(storagePrefix).then((loaded) => {
+      if (cancelled) return;
+      setObras(loaded);
+      setIsStorageLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [storagePrefix]);
+
+  // Persist obras automatically whenever they change (only after initial load completes)
+  useEffect(() => {
+    if (!isStorageLoaded) return;
+    saveObrasToStorage(storagePrefix, obras);
+  }, [storagePrefix, obras, isStorageLoaded]);
+
+  const activeObra = useMemo(
+    () => obras.find(o => o.id === activeObraId) || null,
+    [obras, activeObraId]
+  );
+
+  const parts = activeObra?.parts || [];
+  const headerMetadata = activeObra?.headerMetadata || [];
+  const projectName = activeObra?.name || 'Nueva Obra';
+  const rawCsvText = activeObra?.rawCsvText || '';
+  const loadedFiles = activeObra?.loadedFiles || [];
+
+  const updateActiveObra = useCallback(
+    (updater: (obra: ObraProject) => ObraProject) => {
+      if (!activeObraId) return;
+      setObras(prev =>
+        prev.map(o => (o.id === activeObraId ? updater(o) : o))
+      );
+    },
+    [activeObraId]
+  );
+
+  // Compatible React.Dispatch<React.SetStateAction<PartRecord[]>> for CsvAnalyzer
+  const setParts: React.Dispatch<React.SetStateAction<PartRecord[]>> = useCallback(
+    (value) => {
+      updateActiveObra((obra) => {
+        const nextParts = typeof value === 'function' ? value(obra.parts) : value;
+        return {
+          ...obra,
+          parts: nextParts,
+          updatedAt: new Date().toISOString(),
+        };
+      });
+    },
+    [updateActiveObra]
+  );
+
+  const setProjectName = useCallback(
+    (newName: string) => {
+      updateActiveObra((obra) => ({
+        ...obra,
+        name: newName,
+        updatedAt: new Date().toISOString(),
+      }));
+    },
+    [updateActiveObra]
+  );
+
+  // Clear all parts inside the currently active obra
+  const handleClearAll = () => {
+    updateActiveObra((obra) => ({
+      ...obra,
+      parts: [],
+      headerMetadata: [],
+      rawCsvText: '',
+      loadedFiles: [],
+      updatedAt: new Date().toISOString(),
+    }));
+  };
+
+  // Recalculate summary metrics for the active obra
   const { totalPartsCount, totalHolesProduction, diameterSummary } = useMemo(() => {
     const totalParts = parts.reduce((sum, p) => sum + p.quantity, 0);
     const totalHoles = parts.reduce((sum, p) => sum + p.totalHolesAllPieces, 0);
@@ -152,126 +175,233 @@ export default function App() {
     };
   }, [parts]);
 
-  // Load preset sample data if user explicitly requests it
+  // Select an obra card from Home
+  const handleSelectObra = (obraId: string, targetTab: 'csv' | 'print' | 'analytics' = 'csv') => {
+    setActiveObraId(obraId);
+    setActiveTab(targetTab);
+  };
+
+  // Create a new manual obra card
+  const handleCreateManualObra = (name: string) => {
+    const newId = `obra-manual-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const newObra: ObraProject = {
+      id: newId,
+      name,
+      parts: [],
+      headerMetadata: [],
+      rawCsvText: '',
+      loadedFiles: [],
+      updatedAt: new Date().toISOString(),
+      sourceType: 'manual',
+    };
+    setObras(prev => [...prev, newObra]);
+    setRecentlyChangedMap(prev => ({ ...prev, [newId]: 'created' }));
+    setActiveObraId(newId);
+    setActiveTab('csv');
+  };
+
+  // Delete an obra card
+  const handleDeleteObra = (obraId: string) => {
+    setObras(prev => prev.filter(o => o.id !== obraId));
+    if (activeObraId === obraId) {
+      setActiveObraId(null);
+      setActiveTab('home');
+    }
+  };
+
+  // Sync folders from "calculadora/" (updates existing cards and creates new cards for newly detected folders)
+  const handleSyncFolders = async (scannedFolders: ScannedObraFolder[]): Promise<FolderSyncResult> => {
+    const createdNames: string[] = [];
+    const updatedNames: string[] = [];
+    const skippedEmptyFolders: string[] = [];
+    const changeBadges: Record<string, 'created' | 'updated'> = {};
+    let totalFilesProcessed = 0;
+
+    // Parse all scanned folders first
+    const parsedFoldersData: {
+      folderName: string;
+      parts: PartRecord[];
+      headerMetadata: string[];
+      rawCsvText: string;
+      loadedFiles: string[];
+    }[] = [];
+
+    for (const folder of scannedFolders) {
+      if (folder.files.length === 0) {
+        skippedEmptyFolders.push(folder.folderName);
+      }
+
+      let combinedParts: PartRecord[] = [];
+      let combinedMetadata: string[] = [];
+      let lastRawText = '';
+      const fileNames: string[] = [];
+
+      for (const file of folder.files) {
+        const text = await readSpreadsheetFileAsText(file);
+        const parsed = parseMetallurgyCsv(text);
+        combinedParts = mergePartRecords(combinedParts, parsed.parts);
+        if (parsed.headerMetadata.length > 0) {
+          combinedMetadata = Array.from(new Set([...combinedMetadata, ...parsed.headerMetadata]));
+        }
+        lastRawText = text;
+        fileNames.push(file.name);
+        totalFilesProcessed += 1;
+      }
+
+      parsedFoldersData.push({
+        folderName: folder.folderName,
+        parts: combinedParts,
+        headerMetadata: combinedMetadata,
+        rawCsvText: lastRawText,
+        loadedFiles: fileNames,
+      });
+    }
+
+    setObras(prevObras => {
+      const nextObras = [...prevObras];
+
+      for (const item of parsedFoldersData) {
+        const normalizedFolder = item.folderName.trim().toLowerCase();
+        const existingIndex = nextObras.findIndex(
+          o =>
+            (o.folderName && o.folderName.trim().toLowerCase() === normalizedFolder) ||
+            o.name.trim().toLowerCase() === normalizedFolder
+        );
+
+        if (existingIndex !== -1) {
+          const existing = nextObras[existingIndex];
+          nextObras[existingIndex] = {
+            ...existing,
+            folderName: item.folderName,
+            parts: item.parts,
+            headerMetadata: item.headerMetadata,
+            rawCsvText: item.rawCsvText,
+            loadedFiles: item.loadedFiles,
+            updatedAt: new Date().toISOString(),
+            sourceType: 'folder',
+          };
+          updatedNames.push(existing.name);
+          changeBadges[existing.id] = 'updated';
+        } else {
+          // New folder detected -> create a new obra card automatically!
+          const newId = `obra-folder-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+          const newObra: ObraProject = {
+            id: newId,
+            name: item.folderName,
+            folderName: item.folderName,
+            parts: item.parts,
+            headerMetadata: item.headerMetadata,
+            rawCsvText: item.rawCsvText,
+            loadedFiles: item.loadedFiles,
+            updatedAt: new Date().toISOString(),
+            sourceType: 'folder',
+          };
+          nextObras.push(newObra);
+          createdNames.push(item.folderName);
+          changeBadges[newId] = 'created';
+        }
+      }
+
+      return nextObras;
+    });
+
+    setRecentlyChangedMap(changeBadges);
+    const result: FolderSyncResult = {
+      createdNames,
+      updatedNames,
+      totalFilesProcessed,
+      skippedEmptyFolders,
+    };
+    setLastSyncResult(result);
+    return result;
+  };
+
+  // Load preset sample data into the active obra OR as a new card if called from Home
   const handleLoadSample = (type: 'vmc' | 'n29000' = 'vmc') => {
     const targetData = type === 'vmc' ? SAMPLE_METALLURGY_VMC : SAMPLE_METALLURGY_CSV;
     const parsed = parseMetallurgyCsv(targetData);
-    setParts(parsed.parts);
-    setHeaderMetadata(parsed.headerMetadata);
-    setRawCsvText(targetData);
-    setProjectName(type === 'vmc' ? 'ep14_84099c8a (VMC)' : 'N29000_CC150');
-    setLoadedFiles([type === 'vmc' ? 'ep14_84099c8a.csv (VMC)' : 'N29000_CC150.csv']);
-    setActiveTab('csv');
+    const sampleName = type === 'vmc' ? 'VMC_Ejemplo' : 'N29000_Ejemplo';
+    const sampleFile = type === 'vmc' ? 'ep14_84099c8a.csv (VMC)' : 'N29000_CC150.csv';
+
+    if (activeObraId) {
+      updateActiveObra((obra) => ({
+        ...obra,
+        parts: parsed.parts,
+        headerMetadata: parsed.headerMetadata,
+        rawCsvText: targetData,
+        loadedFiles: [sampleFile],
+        updatedAt: new Date().toISOString(),
+      }));
+      setActiveTab('csv');
+    } else {
+      const newId = `obra-sample-${Date.now()}`;
+      const newObra: ObraProject = {
+        id: newId,
+        name: sampleName,
+        parts: parsed.parts,
+        headerMetadata: parsed.headerMetadata,
+        rawCsvText: targetData,
+        loadedFiles: [sampleFile],
+        updatedAt: new Date().toISOString(),
+        sourceType: 'manual',
+      };
+      setObras(prev => [...prev, newObra]);
+      setActiveObraId(newId);
+      setActiveTab('csv');
+    }
   };
 
-  // When a user drops/uploads a single CSV/Excel file
+  // When a user drops/uploads a single CSV/Excel file inside CsvAnalyzer
   const handleFileLoaded = (rawContent: string, filename: string) => {
-    setRawCsvText(rawContent);
     const parsed = parseMetallurgyCsv(rawContent);
-    setParts(parsed.parts);
-    setHeaderMetadata(parsed.headerMetadata);
-    
-    // Set project name by default to the name of the file added (clean filename without extension)
     const defaultName = filename.replace(/\.[^/.]+$/, '');
-    setProjectName(defaultName);
-    setLoadedFiles([filename]);
+
+    updateActiveObra((obra) => ({
+      ...obra,
+      parts: parsed.parts,
+      headerMetadata: parsed.headerMetadata,
+      rawCsvText: rawContent,
+      name: obra.sourceType === 'manual' && obra.parts.length === 0 ? defaultName : obra.name,
+      loadedFiles: [filename],
+      updatedAt: new Date().toISOString(),
+    }));
     setActiveTab('csv');
   };
 
-  // When a user drops/uploads multiple CSV/Excel files at once or appends to existing
+  // When a user drops/uploads multiple CSV/Excel files inside CsvAnalyzer
   const handleMultipleFilesLoaded = (filesData: { content: string; filename: string }[], mode: 'replace' | 'append') => {
-    // If there were no parts loaded yet, always start fresh
-    const effectiveMode = parts.length === 0 ? 'replace' : mode;
-    let combinedParts = effectiveMode === 'append' ? [...parts] : [];
-    const newFileNames = filesData.map(f => f.filename);
+    updateActiveObra((obra) => {
+      const effectiveMode = obra.parts.length === 0 ? 'replace' : mode;
+      let combinedParts = effectiveMode === 'append' ? [...obra.parts] : [];
+      let combinedMetadata = effectiveMode === 'append' ? [...obra.headerMetadata] : [];
+      const newFileNames = filesData.map(f => f.filename);
 
-    for (const item of filesData) {
-      const parsed = parseMetallurgyCsv(item.content);
-      combinedParts = mergePartRecords(combinedParts, parsed.parts);
-    }
-
-    setParts(combinedParts);
-    
-    // If replacing or initial load, set default title to the first file uploaded
-    if (effectiveMode === 'replace' && filesData.length > 0) {
-      const firstDefaultName = filesData[0].filename.replace(/\.[^/.]+$/, '');
-      setProjectName(firstDefaultName);
-    }
-
-    setLoadedFiles(prev => (effectiveMode === 'append' ? Array.from(new Set([...prev, ...newFileNames])) : newFileNames));
-    setActiveTab('csv');
-  };
-
-  // Import holes from DXF Drawing into parts list
-  const handleImportFromDxf = (partId: string, profile: string, holes: { diameter: number; count: number }[]) => {
-    setParts(prev => {
-      // Check if part already exists
-      const existingIdx = prev.findIndex(p => p.partId.toLowerCase() === partId.toLowerCase());
-      const newHoleDetails = holes.map(h => ({
-        id: `h-dxf-${h.diameter}-${Math.random().toString(36).slice(2, 6)}`,
-        diameter: h.diameter,
-        countPerPiece: h.count,
-        type: 'pasante' as const,
-      }));
-      const totalPerPiece = newHoleDetails.reduce((sum, h) => sum + h.countPerPiece, 0);
-
-      if (existingIdx !== -1) {
-        const updated = [...prev];
-        const existing = updated[existingIdx];
-        updated[existingIdx] = {
-          ...existing,
-          holes: newHoleDetails,
-          totalHolesPerPiece: totalPerPiece,
-          totalHolesAllPieces: totalPerPiece * existing.quantity,
-        };
-        return updated;
-      } else {
-        const newRecord: PartRecord = {
-          id: `part-${partId}-${Date.now()}`,
-          partId: partId.toUpperCase(),
-          profile: profile || 'CC150',
-          thickness: 6.4,
-          quantity: 5,
-          holes: newHoleDetails,
-          totalHolesPerPiece: totalPerPiece,
-          totalHolesAllPieces: totalPerPiece * 5,
-        };
-        return [...prev, newRecord];
+      for (const item of filesData) {
+        const parsed = parseMetallurgyCsv(item.content);
+        combinedParts = mergePartRecords(combinedParts, parsed.parts);
+        if (parsed.headerMetadata.length > 0) {
+          combinedMetadata = Array.from(new Set([...combinedMetadata, ...parsed.headerMetadata]));
+        }
       }
-    });
-  };
 
-  // Import detected parts from AI Blueprint analysis
-  const handleImportFromAi = (aiParts: any[]) => {
-    const converted: PartRecord[] = aiParts.map(p => {
-      const holes = (p.holes || []).map((h: any) => ({
-        id: `h-ai-${h.diameter}-${Math.random().toString(36).slice(2, 6)}`,
-        diameter: Number(h.diameter) || 14,
-        countPerPiece: Number(h.countPerPiece) || 1,
-        type: h.type || 'pasante',
-      }));
-      const totalHolesPerPiece = holes.reduce((sum: number, h: any) => sum + h.countPerPiece, 0);
-      const qty = Number(p.quantity) || 1;
+      const nextName =
+        effectiveMode === 'replace' && obra.sourceType === 'manual' && obra.parts.length === 0 && filesData.length > 0
+          ? filesData[0].filename.replace(/\.[^/.]+$/, '')
+          : obra.name;
 
       return {
-        id: `part-ai-${p.partId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        partId: String(p.partId || 'PIEZA-IA').toUpperCase(),
-        profile: String(p.profile || 'ESTÁNDAR'),
-        thickness: 6.4,
-        quantity: qty,
-        holes,
-        totalHolesPerPiece,
-        totalHolesAllPieces: totalHolesPerPiece * qty,
+        ...obra,
+        name: nextName,
+        parts: combinedParts,
+        headerMetadata: combinedMetadata,
+        rawCsvText: filesData[filesData.length - 1]?.content || obra.rawCsvText,
+        loadedFiles: effectiveMode === 'append'
+          ? Array.from(new Set([...obra.loadedFiles, ...newFileNames]))
+          : newFileNames,
+        updatedAt: new Date().toISOString(),
       };
     });
-
-    setParts(prev => {
-      const existingMap = new Map(prev.map(p => [p.partId.toUpperCase(), p]));
-      converted.forEach(cp => {
-        existingMap.set(cp.partId.toUpperCase(), cp);
-      });
-      return Array.from(existingMap.values());
-    });
+    setActiveTab('csv');
   };
 
   return (
@@ -280,10 +410,12 @@ export default function App() {
         ? 'bg-slate-100 text-slate-900' 
         : 'bg-slate-950 text-slate-100'
     } flex flex-col font-sans transition-colors duration-200 selection:bg-blue-600 selection:text-white`}>
-      {/* Navigation with Theme Switcher, CINTER Logo, and Editable Project Title */}
+      {/* Navigation with Home (Obras), Theme Switcher, CINTER Logo, and Editable Project Title */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        hasActiveObra={Boolean(activeObra)}
+        totalObras={obras.length}
         totalParts={totalPartsCount}
         totalHoles={totalHolesProduction}
         onLoadSample={handleLoadSample}
@@ -296,7 +428,23 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 print:p-0 print:m-0 print:max-w-none print:w-full">
-        {activeTab === 'csv' && (
+        {(activeTab === 'home' || !activeObra) && (
+          <ObrasHome
+            obras={obras}
+            activeObraId={activeObraId}
+            onSelectObra={handleSelectObra}
+            onCreateManualObra={handleCreateManualObra}
+            onDeleteObra={handleDeleteObra}
+            onSyncFolders={handleSyncFolders}
+            onLoadSampleAsObra={handleLoadSample}
+            lastSyncResult={lastSyncResult}
+            onDismissSyncResult={() => setLastSyncResult(null)}
+            recentlyChangedMap={recentlyChangedMap}
+            theme={theme}
+          />
+        )}
+
+        {activeTab === 'csv' && activeObra && (
           <CsvAnalyzer
             parts={parts}
             setParts={setParts}
@@ -313,29 +461,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'dxf' && (
-          <DxfViewer 
-            onImportHolesToCsv={handleImportFromDxf} 
-            onNavigateToTab={setActiveTab}
-          />
-        )}
-
-        {activeTab === 'ai' && (
-          <BlueprintAiAnalyzer
-            currentCsvParts={parts}
-            onImportAiParts={handleImportFromAi}
-          />
-        )}
-
-        {activeTab === 'calculator' && (
-          <MachiningCalculator
-            diameterSummary={diameterSummary}
-            parts={parts}
-            totalHolesProduction={totalHolesProduction}
-          />
-        )}
-
-        {activeTab === 'print' && (
+        {activeTab === 'print' && activeObra && (
           <ResumenPerforacionesReport
             parts={parts}
             diameterSummary={diameterSummary}
@@ -348,7 +474,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'analytics' && (
+        {activeTab === 'analytics' && activeObra && (
           <WorkshopAnalytics
             parts={parts}
             diameterSummary={diameterSummary}
@@ -368,7 +494,7 @@ export default function App() {
       }`}>
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span className="font-medium">CINTER S.A. - Plataforma de Análisis de Perforaciones y Planos Metalúrgicos</span>
-          <span>Formatos admitidos: CSV, TXT, Excel (.xlsx, .xls), AutoCAD DXF, Planos PDF</span>
+          <span>Formatos admitidos: CSV, TXT, Excel (.xlsx, .xls)</span>
         </div>
       </footer>
     </div>
