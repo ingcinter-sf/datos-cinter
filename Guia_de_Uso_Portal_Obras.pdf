@@ -1,0 +1,357 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Length 12128 >>
+stream
+0.02 0.34 0.64 rg
+0 792 595 50 re f
+1 1 1 rg
+BT /F2 15.5 Tf 20 811 Td (GU\315A DE USO - PORTAL Y CALCULADORA POR OBRA) Tj ET
+BT /F2 9.5 Tf 515 813 Td (CINTER S.A.) Tj ET
+1 1 1 rg
+0.04 0.39 0.71 RG
+1.0 w
+25.00 657.80 m
+570.00 657.80 l
+573.87 657.80 577.00 660.93 577.00 664.80 c
+577.00 769.00 l
+577.00 772.87 573.87 776.00 570.00 776.00 c
+25.00 776.00 l
+21.13 776.00 18.00 772.87 18.00 769.00 c
+18.00 664.80 l
+18.00 660.93 21.13 657.80 25.00 657.80 c
+h
+B
+0.03 0.35 0.66 rg
+BT /F2 10.2 Tf 32 759.00 Td (1. Organizaci\363n de Carpetas y Carga desde CALCULADORA) Tj ET
+0.12 0.16 0.23 rg
+37.60 746.00 m
+37.60 746.88 36.88 747.60 36.00 747.60 c
+35.12 747.60 34.40 746.88 34.40 746.00 c
+34.40 745.12 35.12 744.40 36.00 744.40 c
+36.88 744.40 37.60 745.12 37.60 746.00 c
+h
+f
+BT /F1 9.0 Tf 44.00 743.00 Td (Dentro de la carpeta ) Tj ET
+BT /F2 9.0 Tf 128.04 743.00 Td (CALCULADORA) Tj ET
+BT /F1 9.0 Tf 198.03 743.00 Td ( se guarda el portal \() Tj ET
+BT /F2 9.0 Tf 280.56 743.00 Td (portal_metalurgico_offline.html) Tj ET
+BT /F1 9.0 Tf 415.09 743.00 Td (\) junto con una subcarpeta) Tj ET
+BT /F1 9.0 Tf 44.00 730.80 Td (individual para cada obra \(por ejemplo: ) Tj ET
+BT /F2 9.0 Tf 202.07 730.80 Td (MASA) Tj ET
+BT /F1 9.0 Tf 228.56 730.80 Td (, ) Tj ET
+BT /F2 9.0 Tf 233.57 730.80 Td (PAE) Tj ET
+BT /F1 9.0 Tf 252.07 730.80 Td (, etc.\).) Tj ET
+37.60 718.10 m
+37.60 718.98 36.88 719.70 36.00 719.70 c
+35.12 719.70 34.40 718.98 34.40 718.10 c
+34.40 717.22 35.12 716.50 36.00 716.50 c
+36.88 716.50 37.60 717.22 37.60 718.10 c
+h
+f
+BT /F1 9.0 Tf 44.00 715.10 Td (Dentro de la carpeta de cada obra se guardan sus archivos ) Tj ET
+BT /F2 9.0 Tf 283.12 715.10 Td (CSV / Excel) Tj ET
+BT /F1 9.0 Tf 332.65 715.10 Td ( de perforaciones y, opcionalmente, una imagen llamada) Tj ET
+BT /F2 9.0 Tf 44.00 702.90 Td (logo) Tj ET
+BT /F1 9.0 Tf 63.00 702.90 Td ( para identificar visualmente su tarjeta.) Tj ET
+37.60 690.20 m
+37.60 691.08 36.88 691.80 36.00 691.80 c
+35.12 691.80 34.40 691.08 34.40 690.20 c
+34.40 689.32 35.12 688.60 36.00 688.60 c
+36.88 688.60 37.60 689.32 37.60 690.20 c
+h
+f
+BT /F1 9.0 Tf 44.00 687.20 Td (En ) Tj ET
+BT /F2 9.0 Tf 57.51 687.20 Td (Inicio \(Obras\)) Tj ET
+BT /F1 9.0 Tf 115.52 687.20 Td (, haz clic en ) Tj ET
+BT /F2 9.0 Tf 165.54 687.20 Td (Actualizar desde Carpeta) Tj ET
+BT /F1 9.0 Tf 273.08 687.20 Td (, ub\355cate en la carpeta ) Tj ET
+BT /F2 9.0 Tf 364.63 687.20 Td (CALCULADORA) Tj ET
+BT /F1 9.0 Tf 434.62 687.20 Td ( y presiona ) Tj ET
+BT /F2 9.0 Tf 481.14 687.20 Td (Cargar) Tj ET
+BT /F1 9.0 Tf 510.15 687.20 Td ( \(o arrastra) Tj ET
+BT /F1 9.0 Tf 44.00 675.00 Td (y suelta la carpeta ) Tj ET
+BT /F2 9.0 Tf 119.54 675.00 Td (CALCULADORA) Tj ET
+BT /F1 9.0 Tf 189.52 675.00 Td ( sobre la pantalla\).) Tj ET
+1 1 1 rg
+0.04 0.39 0.71 RG
+1.0 w
+25.00 542.30 m
+570.00 542.30 l
+573.87 542.30 577.00 545.43 577.00 549.30 c
+577.00 641.30 l
+577.00 645.17 573.87 648.30 570.00 648.30 c
+25.00 648.30 l
+21.13 648.30 18.00 645.17 18.00 641.30 c
+18.00 549.30 l
+18.00 545.43 21.13 542.30 25.00 542.30 c
+h
+B
+0.03 0.35 0.66 rg
+BT /F2 10.2 Tf 32 631.30 Td (2. Creaci\363n Autom\341tica de Tarjetas y Actualizaci\363n) Tj ET
+0.12 0.16 0.23 rg
+37.60 618.30 m
+37.60 619.18 36.88 619.90 36.00 619.90 c
+35.12 619.90 34.40 619.18 34.40 618.30 c
+34.40 617.42 35.12 616.70 36.00 616.70 c
+36.88 616.70 37.60 617.42 37.60 618.30 c
+h
+f
+BT /F1 9.0 Tf 44.00 615.30 Td (Al cargar ) Tj ET
+BT /F2 9.0 Tf 82.51 615.30 Td (CALCULADORA) Tj ET
+BT /F1 9.0 Tf 152.50 615.30 Td (, el portal detecta todas las subcarpetas y muestra una tarjeta por cada obra con su ) Tj ET
+BT /F2 9.0 Tf 488.17 615.30 Td (logo) Tj ET
+BT /F1 9.0 Tf 507.17 615.30 Td (, cantidad de) Tj ET
+BT /F1 9.0 Tf 44.00 603.10 Td (piezas, agujeros, metros y archivos cargados.) Tj ET
+37.60 590.40 m
+37.60 591.28 36.88 592.00 36.00 592.00 c
+35.12 592.00 34.40 591.28 34.40 590.40 c
+34.40 589.52 35.12 588.80 36.00 588.80 c
+36.88 588.80 37.60 589.52 37.60 590.40 c
+h
+f
+BT /F1 9.0 Tf 44.00 587.40 Td (Cuando agregues nuevos archivos CSV en la carpeta de una obra, vuelve a presionar ) Tj ET
+BT /F2 9.0 Tf 390.18 587.40 Td (Actualizar desde Carpeta) Tj ET
+BT /F1 9.0 Tf 497.71 587.40 Td ( sobre) Tj ET
+BT /F2 9.0 Tf 44.00 575.20 Td (CALCULADORA) Tj ET
+BT /F1 9.0 Tf 113.98 575.20 Td ( para actualizar esa obra autom\341ticamente.) Tj ET
+37.60 562.50 m
+37.60 563.38 36.88 564.10 36.00 564.10 c
+35.12 564.10 34.40 563.38 34.40 562.50 c
+34.40 561.62 35.12 560.90 36.00 560.90 c
+36.88 560.90 37.60 561.62 37.60 562.50 c
+h
+f
+BT /F1 9.0 Tf 44.00 559.50 Td (Si creas una subcarpeta nueva para una obra nueva, el sistema crear\341 ) Tj ET
+BT /F2 9.0 Tf 329.64 559.50 Td (autom\341ticamente una tarjeta nueva) Tj ET
+BT /F1 9.0 Tf 480.19 559.50 Td ( al actualizar.) Tj ET
+1 1 1 rg
+0.04 0.39 0.71 RG
+1.0 w
+25.00 426.80 m
+570.00 426.80 l
+573.87 426.80 577.00 429.93 577.00 433.80 c
+577.00 525.80 l
+577.00 529.67 573.87 532.80 570.00 532.80 c
+25.00 532.80 l
+21.13 532.80 18.00 529.67 18.00 525.80 c
+18.00 433.80 l
+18.00 429.93 21.13 426.80 25.00 426.80 c
+h
+B
+0.03 0.35 0.66 rg
+BT /F2 10.2 Tf 32 515.80 Td (3. C\341lculo Autom\341tico por Espesores y Perfiles) Tj ET
+0.12 0.16 0.23 rg
+37.60 502.80 m
+37.60 503.68 36.88 504.40 36.00 504.40 c
+35.12 504.40 34.40 503.68 34.40 502.80 c
+34.40 501.92 35.12 501.20 36.00 501.20 c
+36.88 501.20 37.60 501.92 37.60 502.80 c
+h
+f
+BT /F1 9.0 Tf 44.00 499.80 Td (Haz clic en ) Tj ET
+BT /F2 9.0 Tf 90.51 499.80 Td (Abrir Planilla) Tj ET
+BT /F1 9.0 Tf 146.03 499.80 Td ( sobre la tarjeta de la obra que deseas consultar para ingresar a su calculadora propia.) Tj ET
+37.60 487.10 m
+37.60 487.98 36.88 488.70 36.00 488.70 c
+35.12 488.70 34.40 487.98 34.40 487.10 c
+34.40 486.22 35.12 485.50 36.00 485.50 c
+36.88 485.50 37.60 486.22 37.60 487.10 c
+h
+f
+BT /F1 9.0 Tf 44.00 484.10 Td (La calculadora procesa instant\341neamente todas las piezas y aplica las reglas de espesor \() Tj ET
+BT /F2 9.0 Tf 404.67 484.10 Td (Alma/Web) Tj ET
+BT /F1 9.0 Tf 448.17 484.10 Td ( para el espesor m\355nimo y) Tj ET
+BT /F2 9.0 Tf 44.00 471.90 Td (Ala/Flange) Tj ET
+BT /F1 9.0 Tf 89.51 471.90 Td ( para el espesor m\341ximo en perfiles W, HP, HI, HF, Z, ZZ, chapas, etc.\).) Tj ET
+37.60 459.20 m
+37.60 460.08 36.88 460.80 36.00 460.80 c
+35.12 460.80 34.40 460.08 34.40 459.20 c
+34.40 458.32 35.12 457.60 36.00 457.60 c
+36.88 457.60 37.60 458.32 37.60 459.20 c
+h
+f
+BT /F1 9.0 Tf 44.00 456.20 Td (Cada obra mantiene su propia ) Tj ET
+BT /F2 9.0 Tf 167.56 456.20 Td (Matriz de Perforaciones) Tj ET
+BT /F1 9.0 Tf 269.09 456.20 Td (, agrupando cu\341ntos agujeros de cada di\341metro se deben mecanizar por) Tj ET
+BT /F1 9.0 Tf 44.00 444.00 Td (cada espesor.) Tj ET
+1 1 1 rg
+0.04 0.39 0.71 RG
+1.0 w
+25.00 299.10 m
+570.00 299.10 l
+573.87 299.10 577.00 302.23 577.00 306.10 c
+577.00 410.30 l
+577.00 414.17 573.87 417.30 570.00 417.30 c
+25.00 417.30 l
+21.13 417.30 18.00 414.17 18.00 410.30 c
+18.00 306.10 l
+18.00 302.23 21.13 299.10 25.00 299.10 c
+h
+B
+0.03 0.35 0.66 rg
+BT /F2 10.2 Tf 32 400.30 Td (4. Metros Lineales a Mecanizar y An\341lisis de Datos) Tj ET
+0.12 0.16 0.23 rg
+37.60 387.30 m
+37.60 388.18 36.88 388.90 36.00 388.90 c
+35.12 388.90 34.40 388.18 34.40 387.30 c
+34.40 386.42 35.12 385.70 36.00 385.70 c
+36.88 385.70 37.60 386.42 37.60 387.30 c
+h
+f
+BT /F1 9.0 Tf 44.00 384.30 Td (En ) Tj ET
+BT /F2 9.0 Tf 57.51 384.30 Td (RESUMEN PERFORACIONES) Tj ET
+BT /F1 9.0 Tf 183.52 384.30 Td (, el sistema calcula los metros lineales totales \() Tj ET
+BT /F2 9.0 Tf 371.08 384.30 Td (Cantidad de agujeros x Espesor / 1000) Tj ET
+BT /F1 9.0 Tf 535.64 384.30 Td (\)) Tj ET
+BT /F1 9.0 Tf 44.00 372.10 Td (espec\355ficos de esa obra.) Tj ET
+37.60 359.40 m
+37.60 360.28 36.88 361.00 36.00 361.00 c
+35.12 361.00 34.40 360.28 34.40 359.40 c
+34.40 358.52 35.12 357.80 36.00 357.80 c
+36.88 357.80 37.60 358.52 37.60 359.40 c
+h
+f
+BT /F2 9.0 Tf 44.00 356.40 Td (Opcional por Obra:) Tj ET
+BT /F1 9.0 Tf 126.02 356.40 Td ( Puedes activar la casilla ) Tj ET
+BT /F2 9.0 Tf 227.56 356.40 Td (Omitir correderas) Tj ET
+BT /F1 9.0 Tf 303.08 356.40 Td ( si deseas recalcular la matriz excluyendo las) Tj ET
+BT /F1 9.0 Tf 44.00 344.20 Td (ranuras/correderas para esa obra en particular.) Tj ET
+37.60 331.50 m
+37.60 332.38 36.88 333.10 36.00 333.10 c
+35.12 333.10 34.40 332.38 34.40 331.50 c
+34.40 330.62 35.12 329.90 36.00 329.90 c
+36.88 329.90 37.60 330.62 37.60 331.50 c
+h
+f
+BT /F1 9.0 Tf 44.00 328.50 Td (En la pesta\361a ) Tj ET
+BT /F2 9.0 Tf 101.54 328.50 Td (An\341lisis de Datos) Tj ET
+BT /F1 9.0 Tf 176.56 328.50 Td ( puedes ver de forma gr\341fica los di\341metros principales \(herramientas CNC\), el consumo por) Tj ET
+BT /F1 9.0 Tf 44.00 316.30 Td (familia de perfiles y la carga por espesores.) Tj ET
+1 1 1 rg
+0.04 0.39 0.71 RG
+1.0 w
+25.00 208.00 m
+570.00 208.00 l
+573.87 208.00 577.00 211.13 577.00 215.00 c
+577.00 282.60 l
+577.00 286.47 573.87 289.60 570.00 289.60 c
+25.00 289.60 l
+21.13 289.60 18.00 286.47 18.00 282.60 c
+18.00 215.00 l
+18.00 211.13 21.13 208.00 25.00 208.00 c
+h
+B
+0.03 0.35 0.66 rg
+BT /F2 10.2 Tf 32 272.60 Td (5. Impresi\363n de la Hoja de Ruta de la Obra) Tj ET
+0.12 0.16 0.23 rg
+37.60 259.60 m
+37.60 260.48 36.88 261.20 36.00 261.20 c
+35.12 261.20 34.40 260.48 34.40 259.60 c
+34.40 258.72 35.12 258.00 36.00 258.00 c
+36.88 258.00 37.60 258.72 37.60 259.60 c
+h
+f
+BT /F1 9.0 Tf 44.00 256.60 Td (Ingresa a la secci\363n ) Tj ET
+BT /F2 9.0 Tf 126.54 256.60 Td (RESUMEN PERFORACIONES) Tj ET
+BT /F1 9.0 Tf 252.55 256.60 Td ( de la obra seleccionada.) Tj ET
+37.60 243.90 m
+37.60 244.78 36.88 245.50 36.00 245.50 c
+35.12 245.50 34.40 244.78 34.40 243.90 c
+34.40 243.02 35.12 242.30 36.00 242.30 c
+36.88 242.30 37.60 243.02 37.60 243.90 c
+h
+f
+BT /F1 9.0 Tf 44.00 240.90 Td (Ver\341s los totales de piezas, perforaciones, marcas y di\341metros requeridos ) Tj ET
+BT /F2 9.0 Tf 342.12 240.90 Td (exclusivos de esa obra) Tj ET
+BT /F1 9.0 Tf 440.67 240.90 Td (.) Tj ET
+37.60 228.20 m
+37.60 229.08 36.88 229.80 36.00 229.80 c
+35.12 229.80 34.40 229.08 34.40 228.20 c
+34.40 227.32 35.12 226.60 36.00 226.60 c
+36.88 226.60 37.60 227.32 37.60 228.20 c
+h
+f
+BT /F1 9.0 Tf 44.00 225.20 Td (Haz clic en ) Tj ET
+BT /F2 9.0 Tf 90.51 225.20 Td (Imprimir / Guardar PDF) Tj ET
+BT /F1 9.0 Tf 189.54 225.20 Td ( para generar la hoja de resumen imprimible para el operario de taller.) Tj ET
+1 1 1 rg
+0.04 0.39 0.71 RG
+1.0 w
+25.00 80.30 m
+570.00 80.30 l
+573.87 80.30 577.00 83.43 577.00 87.30 c
+577.00 191.50 l
+577.00 195.37 573.87 198.50 570.00 198.50 c
+25.00 198.50 l
+21.13 198.50 18.00 195.37 18.00 191.50 c
+18.00 87.30 l
+18.00 83.43 21.13 80.30 25.00 80.30 c
+h
+B
+0.03 0.35 0.66 rg
+BT /F2 10.2 Tf 32 181.50 Td (6. Persistencia de Datos y Cambio entre Obras) Tj ET
+0.12 0.16 0.23 rg
+37.60 168.50 m
+37.60 169.38 36.88 170.10 36.00 170.10 c
+35.12 170.10 34.40 169.38 34.40 168.50 c
+34.40 167.62 35.12 166.90 36.00 166.90 c
+36.88 166.90 37.60 167.62 37.60 168.50 c
+h
+f
+BT /F1 9.0 Tf 44.00 165.50 Td (Gracias a la persistencia offline, todas las tarjetas y los datos de cada obra se mantienen guardados en la PC aunque recargues) Tj ET
+BT /F1 9.0 Tf 44.00 153.30 Td (o cierres el navegador.) Tj ET
+37.60 140.60 m
+37.60 141.48 36.88 142.20 36.00 142.20 c
+35.12 142.20 34.40 141.48 34.40 140.60 c
+34.40 139.72 35.12 139.00 36.00 139.00 c
+36.88 139.00 37.60 139.72 37.60 140.60 c
+h
+f
+BT /F1 9.0 Tf 44.00 137.60 Td (Para pasar de una obra a otra, presiona ) Tj ET
+BT /F2 9.0 Tf 206.09 137.60 Td (Inicio \(Obras\)) Tj ET
+BT /F1 9.0 Tf 264.10 137.60 Td ( en la barra superior y selecciona otra tarjeta; los datos nunca se mezclan) Tj ET
+BT /F1 9.0 Tf 44.00 125.40 Td (entre obras.) Tj ET
+37.60 112.70 m
+37.60 113.58 36.88 114.30 36.00 114.30 c
+35.12 114.30 34.40 113.58 34.40 112.70 c
+34.40 111.82 35.12 111.10 36.00 111.10 c
+36.88 111.10 37.60 111.82 37.60 112.70 c
+h
+f
+BT /F1 9.0 Tf 44.00 109.70 Td (Si necesitas vaciar manualmente las piezas de una obra espec\355fica para dejarla en blanco, haz clic en ) Tj ET
+BT /F2 9.0 Tf 453.69 109.70 Td (Limpiar Planilla) Tj ET
+BT /F1 9.0 Tf 520.22 109.70 Td ( dentro de) Tj ET
+BT /F1 9.0 Tf 44.00 97.50 Td (esa obra.) Tj ET
+0.42 0.48 0.56 rg
+BT /F1 7.8 Tf 20 18 Td (Portal Metal\372rgico Offline CINTER - Sincronizaci\363n por Carpeta CALCULADORA y Tarjetas por Obra) Tj ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000348 00000 n 
+0000000450 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+12631
+%%EOF
