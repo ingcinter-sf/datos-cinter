@@ -17,7 +17,8 @@ import {
   RefreshCw,
   AlertCircle,
   X,
-  FolderTree
+  FolderTree,
+  Clock
 } from 'lucide-react';
 import { ObraProject, FolderSyncResult } from '../types';
 import { groupDirectoryInputFiles, scanDroppedItems, ScannedObraFolder } from '../utils/folderScanner';
@@ -33,6 +34,7 @@ interface ObrasHomeProps {
   lastSyncResult: FolderSyncResult | null;
   onDismissSyncResult: () => void;
   recentlyChangedMap: Record<string, 'created' | 'updated'>;
+  lastFolderSyncAt?: string | null;
   theme: 'light' | 'dark';
 }
 
@@ -47,10 +49,26 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
   lastSyncResult,
   onDismissSyncResult,
   recentlyChangedMap,
+  lastFolderSyncAt,
   theme,
 }) => {
   const isLight = theme === 'light';
   const dirInputRef = useRef<HTMLInputElement>(null);
+
+  const formattedLastSync = useMemo(() => {
+    if (!lastFolderSyncAt) return 'Sin sincronizar aún desde carpeta';
+    const d = new Date(lastFolderSyncAt);
+    if (isNaN(d.getTime())) return 'Sin sincronizar aún desde carpeta';
+    const now = new Date();
+    const isToday =
+      d.getDate() === now.getDate() &&
+      d.getMonth() === now.getMonth() &&
+      d.getFullYear() === now.getFullYear();
+    const timeStr = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    if (isToday) return `Hoy ${timeStr}`;
+    const dateStr = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    return `${dateStr} ${timeStr}`;
+  }, [lastFolderSyncAt]);
 
   const [isDragging, setIsDragging] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -269,6 +287,15 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
                   <span className="hidden sm:inline">·</span>
                   <span className="font-mono text-[11px]">
                     <strong>{globalStats.totalObras}</strong> obras · <strong>{globalStats.totalParts.toLocaleString()}</strong> pzas · <strong>{globalStats.totalMeters} m</strong>
+                  </span>
+                </div>
+                <div className={`mt-1 text-[11px] flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <Clock className={`w-3.5 h-3.5 shrink-0 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+                  <span>
+                    Última sincronización en esta PC:{' '}
+                    <strong className={`font-mono ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
+                      {formattedLastSync}
+                    </strong>
                   </span>
                 </div>
               </div>

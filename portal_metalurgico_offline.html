@@ -11839,6 +11839,21 @@ var ClipboardCopy = createLucideIcon("clipboard-copy", [
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+var Clock = createLucideIcon("clock", [["path", {
+	d: "M12 6v6l4 2",
+	key: "mmk7yg"
+}], ["circle", {
+	cx: "12",
+	cy: "12",
+	r: "10",
+	key: "1mglay"
+}]]);
+/**
+* @license lucide-react v0.546.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
 var Download = createLucideIcon("download", [
 	["path", {
 		d: "M12 15V3",
@@ -39199,9 +39214,26 @@ async function scanDroppedItems(dataTransfer) {
 }
 //#endregion
 //#region src/components/ObrasHome.tsx
-var ObrasHome = ({ obras, activeObraId, onSelectObra, onCreateManualObra, onDeleteObra, onSyncFolders, onLoadSampleAsObra, lastSyncResult, onDismissSyncResult, recentlyChangedMap, theme }) => {
+var ObrasHome = ({ obras, activeObraId, onSelectObra, onCreateManualObra, onDeleteObra, onSyncFolders, onLoadSampleAsObra, lastSyncResult, onDismissSyncResult, recentlyChangedMap, lastFolderSyncAt, theme }) => {
 	const isLight = theme === "light";
 	const dirInputRef = (0, import_react.useRef)(null);
+	const formattedLastSync = (0, import_react.useMemo)(() => {
+		if (!lastFolderSyncAt) return "Sin sincronizar aún desde carpeta";
+		const d = new Date(lastFolderSyncAt);
+		if (isNaN(d.getTime())) return "Sin sincronizar aún desde carpeta";
+		const now = /* @__PURE__ */ new Date();
+		const isToday = d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+		const timeStr = d.toLocaleTimeString("es-AR", {
+			hour: "2-digit",
+			minute: "2-digit"
+		});
+		if (isToday) return `Hoy ${timeStr}`;
+		return `${d.toLocaleDateString("es-AR", {
+			day: "2-digit",
+			month: "2-digit",
+			year: "2-digit"
+		})} ${timeStr}`;
+	}, [lastFolderSyncAt]);
 	const [isDragging, setIsDragging] = (0, import_react.useState)(false);
 	const [isSyncing, setIsSyncing] = (0, import_react.useState)(false);
 	const [syncError, setSyncError] = (0, import_react.useState)(null);
@@ -39370,36 +39402,50 @@ var ObrasHome = ({ obras, activeObraId, onSelectObra, onCreateManualObra, onDele
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 							className: `w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isLight ? "bg-blue-50 text-blue-600 border border-blue-200" : "bg-amber-500/10 text-amber-400 border border-amber-500/30"}`,
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderTree, { className: "w-4 h-4" })
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-							className: `text-base sm:text-lg font-black tracking-tight ${isLight ? "text-slate-900" : "text-white"}`,
-							children: "Portal de Obras"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: `text-xs flex items-center gap-2 flex-wrap ${isLight ? "text-slate-600" : "text-slate-400"}`,
-							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
-									"Arrastra tu carpeta ",
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
-										className: "font-mono",
-										children: "CALCULADORA"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+								className: `text-base sm:text-lg font-black tracking-tight ${isLight ? "text-slate-900" : "text-white"}`,
+								children: "Portal de Obras"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: `text-xs flex items-center gap-2 flex-wrap ${isLight ? "text-slate-600" : "text-slate-400"}`,
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+										"Arrastra tu carpeta ",
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+											className: "font-mono",
+											children: "CALCULADORA"
+										}),
+										" aquí o actualiza:"
+									] }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "hidden sm:inline",
+										children: "·"
 									}),
-									" aquí o actualiza:"
-								] }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "hidden sm:inline",
-									children: "·"
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: "font-mono text-[11px]",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: globalStats.totalObras }),
-										" obras · ",
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: globalStats.totalParts.toLocaleString() }),
-										" pzas · ",
-										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: [globalStats.totalMeters, " m"] })
-									]
-								})
-							]
-						})] })]
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+										className: "font-mono text-[11px]",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: globalStats.totalObras }),
+											" obras · ",
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: globalStats.totalParts.toLocaleString() }),
+											" pzas · ",
+											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: [globalStats.totalMeters, " m"] })
+										]
+									})
+								]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: `mt-1 text-[11px] flex items-center gap-1.5 ${isLight ? "text-slate-600" : "text-slate-400"}`,
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { className: `w-3.5 h-3.5 shrink-0 ${isLight ? "text-blue-600" : "text-amber-400"}` }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+									"Última sincronización en esta PC:",
+									" ",
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+										className: `font-mono ${isLight ? "text-slate-900" : "text-slate-200"}`,
+										children: formattedLastSync
+									})
+								] })]
+							})
+						] })]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "flex flex-wrap items-center gap-2 shrink-0",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
@@ -48054,6 +48100,20 @@ async function saveObrasToStorage(storagePrefix, obras) {
 		}
 	}
 }
+function loadLastFolderSyncAt(storagePrefix) {
+	if (typeof window === "undefined") return null;
+	try {
+		return localStorage.getItem(`${storagePrefix}_last_folder_sync_at`);
+	} catch {
+		return null;
+	}
+}
+function saveLastFolderSyncAt(storagePrefix, isoTimestamp) {
+	if (typeof window === "undefined") return;
+	try {
+		localStorage.setItem(`${storagePrefix}_last_folder_sync_at`, isoTimestamp);
+	} catch {}
+}
 //#endregion
 //#region src/App.tsx
 function App() {
@@ -48080,6 +48140,7 @@ function App() {
 	const [activeObraId, setActiveObraId] = (0, import_react.useState)(null);
 	const [lastSyncResult, setLastSyncResult] = (0, import_react.useState)(null);
 	const [recentlyChangedMap, setRecentlyChangedMap] = (0, import_react.useState)({});
+	const [lastFolderSyncAt, setLastFolderSyncAt] = (0, import_react.useState)(() => loadLastFolderSyncAt(storagePrefix));
 	(0, import_react.useEffect)(() => {
 		let cancelled = false;
 		loadObrasFromStorage(storagePrefix).then((loaded) => {
@@ -48277,6 +48338,9 @@ function App() {
 		}
 		setObras(nextObras);
 		setRecentlyChangedMap(changeBadges);
+		const syncNow = (/* @__PURE__ */ new Date()).toISOString();
+		setLastFolderSyncAt(syncNow);
+		saveLastFolderSyncAt(storagePrefix, syncNow);
 		const result = {
 			createdNames,
 			updatedNames,
@@ -48387,6 +48451,7 @@ function App() {
 						lastSyncResult,
 						onDismissSyncResult: () => setLastSyncResult(null),
 						recentlyChangedMap,
+						lastFolderSyncAt,
 						theme
 					}),
 					activeTab === "csv" && activeObra && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CsvAnalyzer, {
@@ -49066,6 +49131,10 @@ function App() {
     margin: var(--spacing);
   }
 
+  .mx-0 {
+    margin-inline: 0;
+  }
+
   .mx-0\.5 {
     margin-inline: calc(var(--spacing) * .5);
   }
@@ -49718,12 +49787,6 @@ function App() {
     --tw-space-x-reverse: 0;
     margin-inline-start: calc(var(--spacing) * var(--tw-space-x-reverse));
     margin-inline-end: calc(var(--spacing) * calc(1 - var(--tw-space-x-reverse)));
-  }
-
-  :where(.space-x-1\.5 > :not(:last-child)) {
-    --tw-space-x-reverse: 0;
-    margin-inline-start: calc(calc(var(--spacing) * 1.5) * var(--tw-space-x-reverse));
-    margin-inline-end: calc(calc(var(--spacing) * 1.5) * calc(1 - var(--tw-space-x-reverse)));
   }
 
   :where(.space-x-2 > :not(:last-child)) {
@@ -52456,16 +52519,6 @@ function App() {
     @supports (color: color-mix(in lab, red, red)) {
       .hover\:bg-slate-800\/60:hover {
         background-color: color-mix(in oklab, var(--color-slate-800) 60%, transparent);
-      }
-    }
-
-    .hover\:bg-slate-800\/80:hover {
-      background-color: #1d293dcc;
-    }
-
-    @supports (color: color-mix(in lab, red, red)) {
-      .hover\:bg-slate-800\/80:hover {
-        background-color: color-mix(in oklab, var(--color-slate-800) 80%, transparent);
       }
     }
 

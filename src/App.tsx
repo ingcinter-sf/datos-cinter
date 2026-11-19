@@ -6,7 +6,13 @@ import { ResumenPerforacionesReport } from './components/ResumenPerforacionesRep
 import { WorkshopAnalytics } from './components/WorkshopAnalytics';
 import { parseMetallurgyCsv, mergePartRecords } from './utils/csvParser';
 import { SAMPLE_METALLURGY_CSV, SAMPLE_METALLURGY_VMC } from './utils/sampleData';
-import { getPortalStoragePrefix, loadObrasFromStorage, saveObrasToStorage } from './utils/obraStorage';
+import {
+  getPortalStoragePrefix,
+  loadObrasFromStorage,
+  saveObrasToStorage,
+  loadLastFolderSyncAt,
+  saveLastFolderSyncAt,
+} from './utils/obraStorage';
 import { readSpreadsheetFileAsText, readImageFileAsDataUrl, ScannedObraFolder } from './utils/folderScanner';
 import { PartRecord, DiameterSummary, ObraProject, FolderSyncResult } from './types';
 
@@ -44,6 +50,7 @@ export default function App() {
 
   const [lastSyncResult, setLastSyncResult] = useState<FolderSyncResult | null>(null);
   const [recentlyChangedMap, setRecentlyChangedMap] = useState<Record<string, 'created' | 'updated'>>({});
+  const [lastFolderSyncAt, setLastFolderSyncAt] = useState<string | null>(() => loadLastFolderSyncAt(storagePrefix));
 
   // Load saved obras from IndexedDB / localStorage on mount
   useEffect(() => {
@@ -316,6 +323,9 @@ export default function App() {
 
     setObras(nextObras);
     setRecentlyChangedMap(changeBadges);
+    const syncNow = new Date().toISOString();
+    setLastFolderSyncAt(syncNow);
+    saveLastFolderSyncAt(storagePrefix, syncNow);
     const result: FolderSyncResult = {
       createdNames,
       updatedNames,
@@ -450,6 +460,7 @@ export default function App() {
             lastSyncResult={lastSyncResult}
             onDismissSyncResult={() => setLastSyncResult(null)}
             recentlyChangedMap={recentlyChangedMap}
+            lastFolderSyncAt={lastFolderSyncAt}
             theme={theme}
           />
         )}
