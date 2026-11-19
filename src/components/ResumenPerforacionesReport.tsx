@@ -10,7 +10,10 @@ import {
   SlidersHorizontal,
   Edit2,
   Check,
-  Download
+  Download,
+  BarChart3,
+  Boxes,
+  CircleDot
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { PartRecord, DiameterSummary } from '../types';
@@ -36,6 +39,7 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
   onObraTitleChange,
 }) => {
   const [omitCorrederas, setOmitCorrederas] = useState(false);
+  const [includeAnalytics, setIncludeAnalytics] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(obraTitle);
 
@@ -110,6 +114,128 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
 
     return { list, totalCorrederasCount, totalCorrederasMeters };
   }, [parts]);
+
+  // Analytics summary (Pareto by diameter, profile families, thickness load) respecting omitCorrederas
+  const analyticsData = useMemo(() => {
+    const diameterMap = new Map<number, { holes: number; meters: number }>();
+    const profileMap = new Map<string, {
+      profileGroup: string;
+      distinctPartsCount: number;
+      totalPartsQty: number;
+      totalHoles: number;
+      totalMeters: number;
+    }>();
+    const thicknessMap = new Map<number, {
+      thickness: number;
+      partsCount: number;
+      totalHoles: number;
+      totalMeters: number;
+      partsList: Set<string>;
+    }>();
+
+    let totalFilteredHoles = 0;
+
+    parts.forEach(part => {
+      const rawProfile = part.profile.trim().toUpperCase();
+      let group = 'PLACA / OTRO';
+      if (rawProfile.startsWith('W ')) group = 'PERFIL W';
+      else if (rawProfile.startsWith('HP')) group = 'PERFIL HP';
+      else if (rawProfile.startsWith('HI')) group = 'PERFIL HI';
+      else if (rawProfile.startsWith('HF')) group = 'PERFIL HF';
+      else if (rawProfile.startsWith('Z') || rawProfile.startsWith('ZZ')) group = 'PERFIL Z / ZZ';
+      else if (rawProfile.startsWith('PL') || rawProfile.includes('*') || rawProfile.includes('X')) {
+        group = rawProfile.startsWith('PL') ? 'CHAPA PL' : 'PERFIL / CHAPA';
+      }
+
+      if (!profileMap.has(group)) {
+        profileMap.set(group, {
+          profileGroup: group,
+          distinctPartsCount: 0,
+          totalPartsQty: 0,
+          totalHoles: 0,
+          totalMeters: 0,
+        });
+      }
+      const pEntry = profileMap.get(group)!;
+      pEntry.distinctPartsCount += 1;
+      pEntry.totalPartsQty += part.quantity;
+
+      const partTh = part.thickness;
+      if (!thicknessMap.has(partTh)) {
+        thicknessMap.set(partTh, {
+          thickness: partTh,
+          partsCount: 0,
+          totalHoles: 0,
+          totalMeters: 0,
+          partsList: new Set(),
+        });
+      }
+      const tEntry = thicknessMap.get(partTh)!;
+      tEntry.partsCount += part.quantity;
+      tEntry.partsList.add(part.partId);
+
+      part.holes.forEach(hole => {
+        if (omitCorrederas && (hole.type === 'corredera' || hole.slot)) return;
+        const count = hole.countPerPiece * part.quantity;
+        const th = hole.thickness || part.thickness;
+        const meters = (count * th) / 1000;
+
+        totalFilteredHoles += count;
+
+        const dCurrent = diameterMap.get(hole.diameter) || { holes: 0, meters: 0 };
+        dCurrent.holes += count;
+        dCurrent.meters += meters;
+        diameterMap.set(hole.diameter, dCurrent);
+
+        pEntry.totalHoles += count;
+        pEntry.totalMeters += meters;
+
+        if (!thicknessMap.has(th)) {
+          thicknessMap.set(th, {
+            thickness: th,
+            partsCount: 0,
+            totalHoles: 0,
+            totalMeters: 0,
+            partsList: new Set([part.partId]),
+          });
+        }
+        const holeTEntry = thicknessMap.get(th)!;
+        holeTEntry.totalHoles += count;
+        holeTEntry.totalMeters += meters;
+        holeTEntry.partsList.add(part.partId);
+      });
+    });
+
+    const divisor = totalFilteredHoles || 1;
+    const paretoData = Array.from(diameterMap.entries())
+      .map(([diameter, data]) => ({
+        diameter,
+        suggestedTool: diameter <= 26 ? `Broca / Punzón Ø${diameter}mm` : `Fresa / Mecha especial Ø${diameter}mm`,
+        totalHolesProduction: data.holes,
+        percentage: Math.round((data.holes / divisor) * 1000) / 10,
+        totalMeters: Math.round(data.meters * 100) / 100,
+      }))
+      .sort((a, b) => b.totalHolesProduction - a.totalHolesProduction);
+
+    const profileRanking = Array.from(profileMap.values())
+      .map(p => ({ ...p, totalMeters: Math.round(p.totalMeters * 100) / 100 }))
+      .sort((a, b) => b.totalPartsQty - a.totalPartsQty);
+
+    const thicknessDistribution = Array.from(thicknessMap.values())
+      .map(t => ({
+        thickness: t.thickness,
+        partsCount: t.partsCount,
+        totalHoles: t.totalHoles,
+        distinctParts: t.partsList.size,
+        totalMeters: Math.round(t.totalMeters * 100) / 100,
+      }))
+      .filter(t => t.totalHoles > 0 || t.partsCount > 0)
+      .sort((a, b) => a.thickness - b.thickness);
+
+    const maxThicknessMeters = Math.max(...thicknessDistribution.map(t => t.totalMeters), 1);
+
+    return { paretoData, profileRanking, thicknessDistribution, maxThicknessMeters };
+  }, [parts, omitCorrederas]);
 
   const handlePrint = () => {
     window.print();
@@ -312,6 +438,28 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
                   {correderasSummary.totalCorrederasCount} u.
                 </span>
               )}
+            </span>
+          </label>
+
+          {/* Checkbox Incluir Análisis de Datos en PDF */}
+          <label className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${
+            includeAnalytics
+              ? isLight
+                ? 'bg-blue-50 border-blue-400 text-blue-900'
+                : 'bg-amber-500/15 border-amber-500/50 text-amber-200'
+              : isLight 
+              ? 'bg-slate-50 border-slate-300 hover:border-blue-400 text-slate-700' 
+              : 'bg-slate-950 border-slate-800 hover:border-amber-500/40 text-slate-200'
+          }`}>
+            <input
+              type="checkbox"
+              checked={includeAnalytics}
+              onChange={e => setIncludeAnalytics(e.target.checked)}
+              className={isLight ? 'accent-blue-600 w-4 h-4 rounded cursor-pointer' : 'accent-amber-400 w-4 h-4 rounded cursor-pointer'}
+            />
+            <span className="flex items-center gap-1.5">
+              <BarChart3 className={`w-3.5 h-3.5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+              Incluir Análisis de Datos en PDF
             </span>
           </label>
 
@@ -637,6 +785,122 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* 3. OPTIONAL PRINTABLE DATA ANALYTICS SECTION */}
+        {includeAnalytics && parts.length > 0 && (
+          <div className="mt-6 pt-5 border-t-2 border-blue-900 space-y-5 [print-color-adjust:exact]">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-black uppercase tracking-wider text-blue-950 flex items-center gap-1.5">
+                <BarChart3 className="w-4 h-4 text-blue-700" />
+                {!omitCorrederas && correderasSummary.list.length > 0 ? '3.' : '2.'} Análisis de Datos de Producción (Diámetros, Familias de Perfiles y Espesores)
+              </h4>
+              <span className="text-[10px] font-semibold text-slate-600">
+                {omitCorrederas ? 'Calculado sin correderas' : 'Incluye todas las perforaciones'}
+              </span>
+            </div>
+
+            {/* A. Diámetros Prioritarios */}
+            <div className="space-y-2 break-inside-avoid">
+              <div className="text-[11px] font-black uppercase text-slate-800 flex items-center gap-1.5">
+                <CircleDot className="w-3.5 h-3.5 text-blue-700" />
+                Diámetros de Perforación Frecuentes (Herramientas CNC)
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 print:grid-cols-4 gap-2.5">
+                {analyticsData.paretoData.map((item, idx) => (
+                  <div key={item.diameter} className="p-2.5 rounded-lg border border-slate-300 bg-slate-50 relative overflow-hidden">
+                    <div className="flex items-center justify-between text-[10px] mb-1">
+                      <span className={`font-black uppercase px-1.5 py-0.2 rounded ${
+                        idx === 0 ? 'bg-blue-700 text-white' : 'bg-slate-200 text-slate-800'
+                      }`}>
+                        #{idx + 1}
+                      </span>
+                      <span className="font-mono font-bold text-blue-800">{item.percentage}%</span>
+                    </div>
+                    <div className="text-lg font-black font-mono text-slate-950 leading-tight">
+                      Ø {item.diameter} <span className="text-[10px] font-sans font-semibold text-slate-600">mm</span>
+                    </div>
+                    <div className="text-[10px] text-slate-700 truncate mb-1.5" title={item.suggestedTool}>
+                      {item.suggestedTool}
+                    </div>
+                    <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[10px] font-mono text-slate-800">
+                      <span><strong>{item.totalHolesProduction.toLocaleString()}</strong> u.</span>
+                      <span><strong>{item.totalMeters}</strong> m</span>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-100">
+                      <div className="h-full bg-blue-700" style={{ width: `${Math.max(item.percentage, 5)}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* B. Consumo por Familia de Perfiles */}
+            <div className="space-y-2 break-inside-avoid">
+              <div className="text-[11px] font-black uppercase text-slate-800 flex items-center gap-1.5">
+                <Boxes className="w-3.5 h-3.5 text-blue-700" />
+                Consumo por Familia de Perfiles / Chapas
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 print:grid-cols-3 gap-2.5">
+                {analyticsData.profileRanking.map(group => (
+                  <div key={group.profileGroup} className="p-2.5 rounded-lg border border-slate-300 bg-slate-50">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-black font-mono text-blue-950">{group.profileGroup}</span>
+                      <span className="text-[10px] font-mono text-slate-600">{group.distinctPartsCount} marcas</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1 pt-1.5 border-t border-slate-200 text-center font-mono text-[10px]">
+                      <div className="bg-white rounded p-1 border border-slate-200">
+                        <div className="text-[9px] text-slate-600 uppercase font-sans font-bold">Piezas</div>
+                        <div className="font-black text-slate-900">{group.totalPartsQty} u.</div>
+                      </div>
+                      <div className="bg-white rounded p-1 border border-slate-200">
+                        <div className="text-[9px] text-slate-600 uppercase font-sans font-bold">Aguj.</div>
+                        <div className="font-black text-blue-800">{group.totalHoles.toLocaleString()}</div>
+                      </div>
+                      <div className="bg-white rounded p-1 border border-slate-200">
+                        <div className="text-[9px] text-slate-600 uppercase font-sans font-bold">Metros</div>
+                        <div className="font-black text-slate-900">{group.totalMeters.toFixed(1)} m</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* C. Distribución de Carga por Espesores */}
+            <div className="space-y-2 break-inside-avoid">
+              <div className="text-[11px] font-black uppercase text-slate-800 flex items-center gap-1.5">
+                <Ruler className="w-3.5 h-3.5 text-blue-700" />
+                Distribución de Carga por Espesores (mm)
+              </div>
+              <div className="space-y-2">
+                {analyticsData.thicknessDistribution.map(item => {
+                  const widthPct = Math.round((item.totalMeters / analyticsData.maxThicknessMeters) * 100);
+                  return (
+                    <div key={item.thickness} className="p-2.5 rounded-lg border border-slate-300 bg-slate-50">
+                      <div className="flex items-center justify-between gap-2 mb-1.5 text-[11px]">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded bg-blue-700 text-white font-black font-mono text-xs">
+                            {item.thickness} mm
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            {item.distinctParts} marcas · {item.partsCount} piezas
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 font-mono text-slate-900">
+                          <span>Agujeros: <strong className="text-blue-800">{item.totalHoles.toLocaleString()}</strong></span>
+                          <span>Metros: <strong>{item.totalMeters} m</strong></span>
+                        </div>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden border border-slate-300">
+                        <div className="h-full bg-blue-700 rounded-full" style={{ width: `${Math.max(widthPct, 4)}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
