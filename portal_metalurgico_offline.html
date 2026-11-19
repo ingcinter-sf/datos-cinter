@@ -12774,39 +12774,39 @@ var Navbar = ({ activeTab, setActiveTab, hasActiveObra, totalObras, totalParts, 
 					})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("nav", {
-					className: `flex items-center space-x-1.5 border-t pt-2 pb-2 overflow-x-auto ${isLight ? "border-slate-200" : "border-slate-800/80"}`,
+					className: `flex items-center space-x-2 border-t pt-2 pb-2 overflow-x-auto ${isLight ? "border-slate-200" : "border-slate-800/80"}`,
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 						onClick: () => setActiveTab("home"),
-						className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "home" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900" : "bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white"}`,
+						className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "home" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-slate-50 text-slate-700 border-slate-300/90 shadow-2xs hover:bg-blue-50/70 hover:border-blue-300 hover:text-blue-700" : "bg-slate-800/60 text-slate-200 border-slate-700/80 hover:bg-slate-800 hover:border-amber-500/40 hover:text-amber-300"}`,
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LayoutGrid, { className: "w-4 h-4" }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Inicio (Obras)" }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: `text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${activeTab === "home" ? isLight ? "bg-blue-700 text-white" : "bg-slate-950 text-amber-400" : isLight ? "bg-slate-200/80 text-slate-700" : "bg-slate-800 text-slate-300"}`,
+								className: `text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${activeTab === "home" ? isLight ? "bg-blue-700 text-white" : "bg-slate-950 text-amber-400" : isLight ? "bg-slate-200/80 text-slate-700" : "bg-slate-900 text-slate-300"}`,
 								children: totalObras
 							})
 						]
 					}), hasActiveObra && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: `h-4 w-px mx-1 shrink-0 ${isLight ? "bg-slate-300" : "bg-slate-700"}` }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: `h-4 w-px mx-0.5 shrink-0 ${isLight ? "bg-slate-300" : "bg-slate-700"}` }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							onClick: () => setActiveTab("csv"),
-							className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "csv" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900" : "bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white"}`,
+							className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "csv" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-slate-50 text-slate-700 border-slate-300/90 shadow-2xs hover:bg-blue-50/70 hover:border-blue-300 hover:text-blue-700" : "bg-slate-800/60 text-slate-200 border-slate-700/80 hover:bg-slate-800 hover:border-amber-500/40 hover:text-amber-300"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileSpreadsheet, { className: "w-4 h-4" }), "Planilla CSV / Excel"]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							onClick: () => setActiveTab("print"),
-							className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "print" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900" : "bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white"}`,
+							className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "print" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-slate-50 text-slate-700 border-slate-300/90 shadow-2xs hover:bg-blue-50/70 hover:border-blue-300 hover:text-blue-700" : "bg-slate-800/60 text-slate-200 border-slate-700/80 hover:bg-slate-800 hover:border-amber-500/40 hover:text-amber-300"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Printer, { className: "w-4 h-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
 								className: "flex items-center gap-1.5",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Resumen Perforaciones" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: `text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${activeTab === "print" ? isLight ? "bg-blue-700 text-white" : "bg-slate-950 text-amber-400" : isLight ? "bg-slate-200/80 text-slate-700" : "bg-slate-800 text-slate-300"}`,
+									className: `text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${activeTab === "print" ? isLight ? "bg-blue-700 text-white" : "bg-slate-950 text-amber-400" : isLight ? "bg-slate-200/80 text-slate-700" : "bg-slate-900 text-slate-300"}`,
 									children: projectName
 								})]
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							onClick: () => setActiveTab("analytics"),
-							className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "analytics" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900" : "bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white"}`,
+							className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "analytics" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-slate-50 text-slate-700 border-slate-300/90 shadow-2xs hover:bg-blue-50/70 hover:border-blue-300 hover:text-blue-700" : "bg-slate-800/60 text-slate-200 border-slate-700/80 hover:bg-slate-800 hover:border-amber-500/40 hover:text-amber-300"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChartColumn, { className: "w-4 h-4" }), "Análisis de Datos"]
 						})
 					] })]
@@ -49066,6 +49066,10 @@ function App() {
     margin: var(--spacing);
   }
 
+  .mx-0\.5 {
+    margin-inline: calc(var(--spacing) * .5);
+  }
+
   .mx-1 {
     margin-inline: var(--spacing);
   }
@@ -49722,6 +49726,12 @@ function App() {
     margin-inline-end: calc(calc(var(--spacing) * 1.5) * calc(1 - var(--tw-space-x-reverse)));
   }
 
+  :where(.space-x-2 > :not(:last-child)) {
+    --tw-space-x-reverse: 0;
+    margin-inline-start: calc(calc(var(--spacing) * 2) * var(--tw-space-x-reverse));
+    margin-inline-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-x-reverse)));
+  }
+
   .gap-y-1 {
     row-gap: var(--spacing);
   }
@@ -50183,6 +50193,16 @@ function App() {
     border-color: var(--color-slate-300);
   }
 
+  .border-slate-300\/90 {
+    border-color: #cad5e2e6;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .border-slate-300\/90 {
+      border-color: color-mix(in oklab, var(--color-slate-300) 90%, transparent);
+    }
+  }
+
   .border-slate-400 {
     border-color: var(--color-slate-400);
   }
@@ -50222,6 +50242,16 @@ function App() {
   @supports (color: color-mix(in lab, red, red)) {
     .border-slate-700\/60 {
       border-color: color-mix(in oklab, var(--color-slate-700) 60%, transparent);
+    }
+  }
+
+  .border-slate-700\/80 {
+    border-color: #314158cc;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .border-slate-700\/80 {
+      border-color: color-mix(in oklab, var(--color-slate-700) 80%, transparent);
     }
   }
 
@@ -50323,16 +50353,6 @@ function App() {
     }
   }
 
-  .bg-amber-500\/\[0\.04\] {
-    background-color: #f99c000a;
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .bg-amber-500\/\[0\.04\] {
-      background-color: color-mix(in oklab, var(--color-amber-500) 4%, transparent);
-    }
-  }
-
   .bg-amber-950 {
     background-color: var(--color-amber-950);
   }
@@ -50398,16 +50418,6 @@ function App() {
   @supports (color: color-mix(in lab, red, red)) {
     .bg-black\/70 {
       background-color: color-mix(in oklab, var(--color-black) 70%, transparent);
-    }
-  }
-
-  .bg-black\/75 {
-    background-color: #000000bf;
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .bg-black\/75 {
-      background-color: color-mix(in oklab, var(--color-black) 75%, transparent);
     }
   }
 
@@ -51547,16 +51557,6 @@ function App() {
     }
   }
 
-  .text-blue-800\/80 {
-    color: #193cb8cc;
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .text-blue-800\/80 {
-      color: color-mix(in oklab, var(--color-blue-800) 80%, transparent);
-    }
-  }
-
   .text-blue-900 {
     color: var(--color-blue-900);
   }
@@ -51851,13 +51851,8 @@ function App() {
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
 
-  .shadow-\[0_4px_14px_rgba\(37\,99\,235\,0\.22\)\] {
-    --tw-shadow: 0 4px 14px var(--tw-shadow-color, #2563eb38);
-    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-  }
-
-  .shadow-\[0_4px_14px_rgba\(251\,191\,36\,0\.25\)\] {
-    --tw-shadow: 0 4px 14px var(--tw-shadow-color, #fbbf2440);
+  .shadow-2xs {
+    --tw-shadow: 0 1px var(--tw-shadow-color, #0000000d);
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
 
@@ -52230,14 +52225,6 @@ function App() {
       border-color: var(--color-blue-500);
     }
 
-    .hover\:border-blue-600:hover {
-      border-color: var(--color-blue-600);
-    }
-
-    .hover\:border-orange-400:hover {
-      border-color: var(--color-orange-400);
-    }
-
     .hover\:border-purple-400:hover {
       border-color: var(--color-purple-400);
     }
@@ -52334,6 +52321,16 @@ function App() {
       }
     }
 
+    .hover\:bg-blue-50\/70:hover {
+      background-color: #eff6ffb3;
+    }
+
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-blue-50\/70:hover {
+        background-color: color-mix(in oklab, var(--color-blue-50) 70%, transparent);
+      }
+    }
+
     .hover\:bg-blue-100:hover {
       background-color: var(--color-blue-100);
     }
@@ -52358,16 +52355,6 @@ function App() {
 
     .hover\:bg-purple-500:hover {
       background-color: var(--color-purple-500);
-    }
-
-    .hover\:bg-red-500\/10:hover {
-      background-color: #fb2c361a;
-    }
-
-    @supports (color: color-mix(in lab, red, red)) {
-      .hover\:bg-red-500\/10:hover {
-        background-color: color-mix(in oklab, var(--color-red-500) 10%, transparent);
-      }
     }
 
     .hover\:bg-rose-50:hover {
@@ -52526,10 +52513,6 @@ function App() {
       color: var(--color-blue-900);
     }
 
-    .hover\:text-orange-300:hover {
-      color: var(--color-orange-300);
-    }
-
     .hover\:text-purple-200:hover {
       color: var(--color-purple-200);
     }
@@ -52668,12 +52651,6 @@ function App() {
 
     .sm\:gap-4 {
       gap: calc(var(--spacing) * 4);
-    }
-
-    :where(.sm\:space-x-2 > :not(:last-child)) {
-      --tw-space-x-reverse: 0;
-      margin-inline-start: calc(calc(var(--spacing) * 2) * var(--tw-space-x-reverse));
-      margin-inline-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-x-reverse)));
     }
 
     :where(.sm\:divide-x > :not(:last-child)) {

@@ -305,7 +305,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
 
         {/* Navigation Tabs */}
-        <nav className={`flex items-center space-x-1.5 border-t pt-2 pb-2 overflow-x-auto ${
+        <nav className={`flex items-center space-x-2 border-t pt-2 pb-2 overflow-x-auto ${
           isLight ? 'border-slate-200' : 'border-slate-800/80'
         }`}>
           <button
@@ -316,8 +316,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                   : 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
                 : isLight
-                  ? 'bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900'
-                  : 'bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white'
+                  ? 'bg-slate-50 text-slate-700 border-slate-300/90 shadow-2xs hover:bg-blue-50/70 hover:border-blue-300 hover:text-blue-700'
+                  : 'bg-slate-800/60 text-slate-200 border-slate-700/80 hover:bg-slate-800 hover:border-amber-500/40 hover:text-amber-300'
             }`}
           >
             <LayoutGrid className="w-4 h-4" />
@@ -325,7 +325,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className={`text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${
               activeTab === 'home'
                 ? isLight ? 'bg-blue-700 text-white' : 'bg-slate-950 text-amber-400'
-                : isLight ? 'bg-slate-200/80 text-slate-700' : 'bg-slate-800 text-slate-300'
+                : isLight ? 'bg-slate-200/80 text-slate-700' : 'bg-slate-900 text-slate-300'
             }`}>
               {totalObras}
             </span>
@@ -333,7 +333,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {hasActiveObra && (
             <>
-              <div className={`h-4 w-px mx-1 shrink-0 ${isLight ? 'bg-slate-300' : 'bg-slate-700'}`} />
+              <div className={`h-4 w-px mx-0.5 shrink-0 ${isLight ? 'bg-slate-300' : 'bg-slate-700'}`} />
 
               <button
                 onClick={() => setActiveTab('csv')}
@@ -343,8 +343,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                       ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                       : 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
                     : isLight
-                      ? 'bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900'
-                      : 'bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white'
+                      ? 'bg-slate-50 text-slate-700 border-slate-300/90 shadow-2xs hover:bg-blue-50/70 hover:border-blue-300 hover:text-blue-700'
+                      : 'bg-slate-800/60 text-slate-200 border-slate-700/80 hover:bg-slate-800 hover:border-amber-500/40 hover:text-amber-300'
                 }`}
               >
                 <FileSpreadsheet className="w-4 h-4" />
@@ -359,8 +359,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                       ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                       : 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
                     : isLight
-                      ? 'bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900'
-                      : 'bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white'
+                      ? 'bg-slate-50 text-slate-700 border-slate-300/90 shadow-2xs hover:bg-blue-50/70 hover:border-blue-300 hover:text-blue-700'
+                      : 'bg-slate-800/60 text-slate-200 border-slate-700/80 hover:bg-slate-800 hover:border-amber-500/40 hover:text-amber-300'
                 }`}
               >
                 <Printer className="w-4 h-4" />
@@ -369,7 +369,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className={`text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${
                     activeTab === 'print' 
                       ? isLight ? 'bg-blue-700 text-white' : 'bg-slate-950 text-amber-400'
-                      : isLight ? 'bg-slate-200/80 text-slate-700' : 'bg-slate-800 text-slate-300'
+                      : isLight ? 'bg-slate-200/80 text-slate-700' : 'bg-slate-900 text-slate-300'
                   }`}>
                     {projectName}
                   </span>
@@ -384,8 +384,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                       ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                       : 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
                     : isLight
-                      ? 'bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900'
-                      : 'bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white'
+                      ? 'bg-slate-50 text-slate-700 border-slate-300/90 shadow-2xs hover:bg-blue-50/70 hover:border-blue-300 hover:text-blue-700'
+                      : 'bg-slate-800/60 text-slate-200 border-slate-700/80 hover:bg-slate-800 hover:border-amber-500/40 hover:text-amber-300'
                 }`}
               >
                 <BarChart3 className="w-4 h-4" />
