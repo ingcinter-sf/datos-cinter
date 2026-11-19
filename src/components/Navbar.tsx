@@ -15,8 +15,8 @@ import {
 import defaultLogo from '@/public/assets/aistudio/ImagotipoV_06__1__39317061.png';
 
 interface NavbarProps {
-  activeTab: 'home' | 'csv' | 'print' | 'analytics';
-  setActiveTab: (tab: 'home' | 'csv' | 'print' | 'analytics') => void;
+  activeTab: 'home' | 'csv' | 'print' | 'analytics' | 'global-print';
+  setActiveTab: (tab: 'home' | 'csv' | 'print' | 'analytics' | 'global-print') => void;
   hasActiveObra: boolean;
   totalObras: number;
   totalParts: number;
@@ -133,9 +133,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Center: EDITABLE PROJECT TITLE (only when inside an active obra, not on Home) */}
+          {/* Center: EDITABLE PROJECT TITLE (only when inside an active obra, not on Home or Global Summary) */}
           <div className="flex-1 max-w-md mx-2 hidden md:block">
-            {hasActiveObra && activeTab !== 'home' ? (
+            {hasActiveObra && activeTab !== 'home' && activeTab !== 'global-print' ? (
               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
                 isLight 
                   ? 'bg-slate-50 border-slate-300 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100' 
@@ -190,7 +190,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Quick Stats & Controls */}
           <div className="flex items-center gap-2">
             {/* Quick Stats Pill */}
-            {hasActiveObra && activeTab !== 'home' ? (
+            {hasActiveObra && activeTab !== 'home' && activeTab !== 'global-print' ? (
               <div className={`hidden lg:flex items-center gap-3 px-3 py-1.5 rounded-lg border text-xs ${
                 isLight 
                   ? 'bg-slate-50 border-slate-200 text-slate-700' 
@@ -221,7 +221,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
 
             {/* Clear / New Sheet Button (only inside an active obra with parts) */}
-            {hasActiveObra && activeTab !== 'home' && totalParts > 0 && onClearAll && (
+            {hasActiveObra && activeTab !== 'home' && activeTab !== 'global-print' && totalParts > 0 && onClearAll && (
               confirmClear ? (
                 <div className="flex items-center gap-1">
                   <button
@@ -284,7 +284,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Mobile editable project title (only when inside an active obra) */}
-        {hasActiveObra && activeTab !== 'home' && (
+        {hasActiveObra && activeTab !== 'home' && activeTab !== 'global-print' && (
           <div className="block md:hidden pb-2">
             <div className={`flex items-center justify-between px-2.5 py-1 rounded border text-xs ${
               isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
@@ -311,7 +311,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={() => setActiveTab('home')}
             className={`flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${
-              activeTab === 'home'
+              activeTab === 'home' || activeTab === 'global-print'
                 ? isLight
                   ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                   : 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
@@ -323,7 +323,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <LayoutGrid className="w-4 h-4" />
             <span>Inicio (Obras)</span>
             <span className={`text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${
-              activeTab === 'home'
+              activeTab === 'home' || activeTab === 'global-print'
                 ? isLight ? 'bg-blue-700 text-white' : 'bg-slate-950 text-amber-400'
                 : isLight ? 'bg-slate-200/80 text-slate-700' : 'bg-slate-900 text-slate-300'
             }`}>

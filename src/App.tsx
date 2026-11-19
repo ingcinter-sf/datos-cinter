@@ -3,6 +3,7 @@ import { Navbar } from './components/Navbar';
 import { ObrasHome } from './components/ObrasHome';
 import { CsvAnalyzer } from './components/CsvAnalyzer';
 import { ResumenPerforacionesReport } from './components/ResumenPerforacionesReport';
+import { ResumenGlobalObras } from './components/ResumenGlobalObras';
 import { WorkshopAnalytics } from './components/WorkshopAnalytics';
 import { parseMetallurgyCsv, mergePartRecords } from './utils/csvParser';
 import { SAMPLE_METALLURGY_CSV, SAMPLE_METALLURGY_VMC } from './utils/sampleData';
@@ -17,7 +18,7 @@ import { readSpreadsheetFileAsText, readImageFileAsDataUrl, ScannedObraFolder } 
 import { PartRecord, DiameterSummary, ObraProject, FolderSyncResult } from './types';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'csv' | 'print' | 'analytics'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'csv' | 'print' | 'analytics' | 'global-print'>('home');
   
   // Theme state: 'light' (white background & blue accents) vs 'dark' (slate-950 & amber)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -194,6 +195,7 @@ export default function App() {
     const newObra: ObraProject = {
       id: newId,
       name,
+      status: 'en_curso',
       parts: [],
       headerMetadata: [],
       rawCsvText: '',
@@ -205,6 +207,17 @@ export default function App() {
     setRecentlyChangedMap(prev => ({ ...prev, [newId]: 'created' }));
     setActiveObraId(newId);
     setActiveTab('csv');
+  };
+
+  // Toggle status between 'en_curso' and 'terminada'
+  const handleToggleObraStatus = (obraId: string) => {
+    setObras(prev =>
+      prev.map(o =>
+        o.id === obraId
+          ? { ...o, status: o.status === 'terminada' ? 'en_curso' : 'terminada' }
+          : o
+      )
+    );
   };
 
   // Delete an obra card
@@ -291,6 +304,7 @@ export default function App() {
           ...existing,
           folderName: item.folderName,
           logoDataUrl: item.logoDataUrl !== undefined ? item.logoDataUrl : existing.logoDataUrl,
+          status: existing.status || 'en_curso',
           parts: item.parts,
           headerMetadata: item.headerMetadata,
           rawCsvText: item.rawCsvText,
@@ -308,6 +322,7 @@ export default function App() {
           name: item.folderName,
           folderName: item.folderName,
           logoDataUrl: item.logoDataUrl,
+          status: 'en_curso',
           parts: item.parts,
           headerMetadata: item.headerMetadata,
           rawCsvText: item.rawCsvText,
@@ -448,13 +463,21 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 print:p-0 print:m-0 print:max-w-none print:w-full">
-        {(activeTab === 'home' || !activeObra) && (
+        {activeTab === 'global-print' ? (
+          <ResumenGlobalObras
+            obras={obras}
+            theme={theme}
+            onBack={() => setActiveTab('home')}
+          />
+        ) : (activeTab === 'home' || !activeObra) ? (
           <ObrasHome
             obras={obras}
             activeObraId={activeObraId}
             onSelectObra={handleSelectObra}
             onCreateManualObra={handleCreateManualObra}
             onDeleteObra={handleDeleteObra}
+            onToggleObraStatus={handleToggleObraStatus}
+            onOpenGlobalSummary={() => setActiveTab('global-print')}
             onSyncFolders={handleSyncFolders}
             onLoadSampleAsObra={handleLoadSample}
             lastSyncResult={lastSyncResult}
@@ -463,7 +486,7 @@ export default function App() {
             lastFolderSyncAt={lastFolderSyncAt}
             theme={theme}
           />
-        )}
+        ) : null}
 
         {activeTab === 'csv' && activeObra && (
           <CsvAnalyzer

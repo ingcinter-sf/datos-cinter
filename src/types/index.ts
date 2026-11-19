@@ -161,6 +161,7 @@ export interface ObraProject {
   name: string;
   folderName?: string;
   logoDataUrl?: string;
+  status?: 'en_curso' | 'terminada';
   parts: PartRecord[];
   headerMetadata: string[];
   rawCsvText: string;

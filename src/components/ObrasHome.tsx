@@ -29,6 +29,8 @@ interface ObrasHomeProps {
   onSelectObra: (obraId: string, targetTab?: 'csv' | 'print' | 'analytics') => void;
   onCreateManualObra: (name: string) => void;
   onDeleteObra: (obraId: string) => void;
+  onToggleObraStatus: (obraId: string) => void;
+  onOpenGlobalSummary: () => void;
   onSyncFolders: (scannedFolders: ScannedObraFolder[]) => Promise<FolderSyncResult>;
   onLoadSampleAsObra: (type: 'vmc' | 'n29000') => void;
   lastSyncResult: FolderSyncResult | null;
@@ -44,6 +46,8 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
   onSelectObra,
   onCreateManualObra,
   onDeleteObra,
+  onToggleObraStatus,
+  onOpenGlobalSummary,
   onSyncFolders,
   onLoadSampleAsObra,
   lastSyncResult,
@@ -74,6 +78,7 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'en_curso' | 'terminada'>('all');
   const [showNewObraInput, setShowNewObraInput] = useState(false);
   const [newObraName, setNewObraName] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -133,18 +138,31 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
     setShowNewObraInput(false);
   };
 
+  const statusCounts = useMemo(() => {
+    let enCurso = 0;
+    let terminada = 0;
+    for (const o of obras) {
+      if (o.status === 'terminada') terminada += 1;
+      else enCurso += 1;
+    }
+    return { all: obras.length, enCurso, terminada };
+  }, [obras]);
+
   const filteredObras = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    const list = q
-      ? obras.filter(o =>
-          o.name.toLowerCase().includes(q) ||
-          (o.folderName && o.folderName.toLowerCase().includes(q)) ||
-          o.loadedFiles.some(f => f.toLowerCase().includes(q))
-        )
-      : obras;
+    const list = obras.filter(o => {
+      const st = o.status === 'terminada' ? 'terminada' : 'en_curso';
+      if (statusFilter !== 'all' && st !== statusFilter) return false;
+      if (!q) return true;
+      return (
+        o.name.toLowerCase().includes(q) ||
+        (o.folderName && o.folderName.toLowerCase().includes(q)) ||
+        o.loadedFiles.some(f => f.toLowerCase().includes(q))
+      );
+    });
 
     return [...list].sort((a, b) => a.name.localeCompare(b.name));
-  }, [obras, searchQuery]);
+  }, [obras, searchQuery, statusFilter]);
 
   // Global stats across all obras
   const globalStats = useMemo(() => {
@@ -318,6 +336,20 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
 
               <button
                 type="button"
+                onClick={onOpenGlobalSummary}
+                className={`px-3 py-2 rounded-xl font-bold text-xs border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                  isLight
+                    ? 'bg-emerald-50 hover:bg-emerald-100 border-emerald-300 text-emerald-800'
+                    : 'bg-emerald-950/50 hover:bg-emerald-900/70 border-emerald-700 text-emerald-300'
+                }`}
+                title="Generar resumen consolidado de perforaciones, metros, diámetro y espesor más usado entre todas las obras"
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>Resumen General</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setShowNewObraInput(prev => !prev)}
                 className={`px-3 py-2 rounded-xl font-semibold text-xs border flex items-center gap-1.5 transition-colors cursor-pointer ${
                   isLight
@@ -445,15 +477,56 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
 
       {/* Search & Filter Bar (if > 0 obras) */}
       {obras.length > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h2 className={`text-sm sm:text-base font-black uppercase tracking-wide flex items-center gap-2 ${
-            isLight ? 'text-slate-800' : 'text-slate-200'
-          }`}>
-            <FolderOpen className={`w-4 h-4 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-            <span>Obras Registradas ({filteredObras.length})</span>
-          </h2>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className={`text-sm sm:text-base font-black uppercase tracking-wide flex items-center gap-2 ${
+              isLight ? 'text-slate-800' : 'text-slate-200'
+            }`}>
+              <FolderOpen className={`w-4 h-4 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+              <span>Obras Registradas ({filteredObras.length})</span>
+            </h2>
 
-          <div className="relative w-full sm:w-72">
+            {/* Status Filter Pills */}
+            <div className={`flex items-center p-0.5 rounded-lg border text-[11px] ${
+              isLight ? 'bg-white border-slate-300' : 'bg-slate-900 border-slate-700'
+            }`}>
+              <button
+                type="button"
+                onClick={() => setStatusFilter('all')}
+                className={`px-2.5 py-1 rounded-md font-semibold cursor-pointer transition-colors ${
+                  statusFilter === 'all'
+                    ? isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950'
+                    : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                Todas ({statusCounts.all})
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter('en_curso')}
+                className={`px-2.5 py-1 rounded-md font-semibold cursor-pointer transition-colors ${
+                  statusFilter === 'en_curso'
+                    ? isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950'
+                    : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                En Curso ({statusCounts.enCurso})
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter('terminada')}
+                className={`px-2.5 py-1 rounded-md font-semibold cursor-pointer transition-colors ${
+                  statusFilter === 'terminada'
+                    ? isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950'
+                    : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                Terminadas ({statusCounts.terminada})
+              </button>
+            </div>
+          </div>
+
+          <div className="relative w-full md:w-72">
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
             <input
               type="text"
@@ -585,6 +658,41 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
                         <FolderOpen className="w-3 h-3" />
                         {obra.folderName ? `/${obra.folderName}` : 'Manual'}
                       </span>
+
+                      {/* Clickable Status Tag: EN CURSO <-> TERMINADA */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleObraStatus(obra.id);
+                        }}
+                        title={
+                          obra.status === 'terminada'
+                            ? 'Clic para cambiar a EN CURSO'
+                            : 'Clic para cambiar a TERMINADA'
+                        }
+                        className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border flex items-center gap-1 transition-colors cursor-pointer ${
+                          obra.status === 'terminada'
+                            ? isLight
+                              ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border-emerald-300'
+                              : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border-emerald-500/40'
+                            : isLight
+                            ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
+                            : 'bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border-sky-500/40'
+                        }`}
+                      >
+                        {obra.status === 'terminada' ? (
+                          <>
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>TERMINADA</span>
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="w-3 h-3" />
+                            <span>EN CURSO</span>
+                          </>
+                        )}
+                      </button>
 
                       {changeBadge === 'created' && (
                         <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-600 text-white flex items-center gap-1">
