@@ -644,21 +644,6 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
                   {/* Card Top Meta Row */}
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span
-                        className={`text-[10px] font-black uppercase px-2 py-0.5 rounded flex items-center gap-1 ${
-                          obra.sourceType === 'folder'
-                            ? isLight
-                              ? 'bg-blue-50 text-blue-800 border border-blue-200'
-                              : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                            : isLight
-                            ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                            : 'bg-slate-800 text-slate-300 border border-slate-700'
-                        }`}
-                      >
-                        <FolderOpen className="w-3 h-3" />
-                        {obra.folderName ? `/${obra.folderName}` : 'Manual'}
-                      </span>
-
                       {/* Clickable Status Tag: EN CURSO <-> TERMINADA */}
                       <button
                         type="button"
