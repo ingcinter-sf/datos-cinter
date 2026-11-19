@@ -165,7 +165,7 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
         className="hidden"
       />
 
-      {/* Top Hero & Folder Sync Dropzone */}
+      {/* Top Header & Folder Sync Dropzone (compact when obras exist, expanded when empty) */}
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -173,99 +173,143 @@ export const ObrasHome: React.FC<ObrasHomeProps> = ({
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
-        className={`rounded-2xl border-2 border-dashed p-6 transition-all ${
+        className={`rounded-2xl transition-all ${
+          obras.length === 0 ? 'border-2 border-dashed p-6' : 'border px-4 py-3.5'
+        } ${
           isDragging
             ? isLight
-              ? 'border-blue-600 bg-blue-50/90 shadow-lg scale-[1.005]'
-              : 'border-amber-400 bg-amber-500/10 shadow-lg scale-[1.005]'
+              ? 'border-2 border-dashed border-blue-600 bg-blue-50/90 shadow-lg scale-[1.005]'
+              : 'border-2 border-dashed border-amber-400 bg-amber-500/10 shadow-lg scale-[1.005]'
             : isLight
-            ? 'border-blue-200 bg-white shadow-sm'
+            ? 'border-slate-200 bg-white shadow-sm'
             : 'border-slate-800 bg-slate-900/90 shadow-md'
         }`}
       >
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span
-                className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md ${
-                  isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950'
+        {obras.length === 0 ? (
+          <>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="space-y-2 max-w-2xl">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <span
+                    className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md ${
+                      isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950'
+                    }`}
+                  >
+                    Inicio · Gestión por Carpetas
+                  </span>
+                  <h1 className={`text-xl sm:text-2xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                    Portal de Obras — Carpeta Calculadora
+                  </h1>
+                </div>
+                <p className={`text-xs sm:text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
+                  Organiza tus obras en subcarpetas dentro de <strong className="font-mono">CALCULADORA/</strong> (ej.{' '}
+                  <span className="font-mono font-semibold">MASA</span>, <span className="font-mono font-semibold">PAE</span>).
+                  Al presionar <strong>Actualizar desde Carpeta</strong> o arrastrar tu carpeta aquí,
+                  se actualizan los CSV nuevos y <strong>se crean tarjetas automáticamente para las carpetas nuevas</strong>.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  disabled={isSyncing}
+                  onClick={() => dirInputRef.current?.click()}
+                  className={`px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-60 ${
+                    isLight
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20'
+                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
+                  }`}
+                >
+                  {isSyncing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FolderSync className="w-4 h-4" />}
+                  <span>{isSyncing ? 'Leyendo carpetas...' : 'Actualizar desde Carpeta'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowNewObraInput(prev => !prev)}
+                  className={`px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    isLight
+                      ? 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-800'
+                      : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-100'
+                  }`}
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Nueva Obra Manual</span>
+                </button>
+              </div>
+            </div>
+
+            <div
+              className={`mt-4 pt-3 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs ${
+                isLight ? 'border-slate-100 text-slate-600' : 'border-slate-800 text-slate-400'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <FolderTree className={`w-4 h-4 shrink-0 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+                <span>
+                  Tip: También puedes <strong>arrastrar y soltar</strong> la carpeta <span className="font-mono font-bold">CALCULADORA</span> entera directamente sobre este recuadro.
+                </span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                isLight ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+              }`}>
+                <FolderTree className="w-4 h-4" />
+              </div>
+              <div>
+                <h1 className={`text-base sm:text-lg font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  Portal de Obras
+                </h1>
+                <div className={`text-xs flex items-center gap-2 flex-wrap ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <span>Arrastra tu carpeta <strong className="font-mono">CALCULADORA</strong> aquí o actualiza:</span>
+                  <span className="hidden sm:inline">·</span>
+                  <span className="font-mono text-[11px]">
+                    <strong>{globalStats.totalObras}</strong> obras · <strong>{globalStats.totalParts.toLocaleString()}</strong> pzas · <strong>{globalStats.totalMeters} m</strong>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                type="button"
+                disabled={isSyncing}
+                onClick={() => dirInputRef.current?.click()}
+                className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-60 ${
+                  isLight
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
                 }`}
               >
-                Inicio · Gestión por Carpetas
-              </span>
-              <h1 className={`text-xl sm:text-2xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                Portal de Obras — Carpeta Calculadora
-              </h1>
+                {isSyncing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FolderSync className="w-3.5 h-3.5" />}
+                <span>{isSyncing ? 'Leyendo carpetas...' : 'Actualizar desde Carpeta'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowNewObraInput(prev => !prev)}
+                className={`px-3 py-2 rounded-xl font-semibold text-xs border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                  isLight
+                    ? 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-800'
+                    : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-100'
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Nueva Obra Manual</span>
+              </button>
             </div>
-            <p className={`text-xs sm:text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
-              Organiza tus obras en subcarpetas dentro de <strong className="font-mono">calculadora/</strong> (ej.{' '}
-              <span className="font-mono font-semibold">MASA</span>, <span className="font-mono font-semibold">PAE</span>).
-              Al presionar <strong>Actualizar carpeta</strong> o arrastrar tu carpeta <span className="font-mono">calculadora</span> aquí,
-              se actualizan los CSV nuevos y <strong>se crean tarjetas automáticamente para las carpetas nuevas</strong>.
-            </p>
           </div>
-
-          {/* Primary Sync & Manual Actions */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              disabled={isSyncing}
-              onClick={() => dirInputRef.current?.click()}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-60 ${
-                isLight
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20'
-                  : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
-              }`}
-            >
-              {isSyncing ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : (
-                <FolderSync className="w-4 h-4" />
-              )}
-              <span>{isSyncing ? 'Leyendo carpetas...' : 'Actualizar desde Carpeta'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowNewObraInput(prev => !prev)}
-              className={`px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm border flex items-center gap-1.5 transition-colors cursor-pointer ${
-                isLight
-                  ? 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-800'
-                  : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-100'
-              }`}
-            >
-              <Plus className="w-4 h-4" />
-              <span>Nueva Obra Manual</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Drag hint strip */}
-        <div
-          className={`mt-4 pt-3 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs ${
-            isLight ? 'border-slate-100 text-slate-600' : 'border-slate-800 text-slate-400'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <FolderTree className={`w-4 h-4 shrink-0 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-            <span>
-              Tip: También puedes <strong>arrastrar y soltar</strong> la carpeta <span className="font-mono font-bold">calculadora</span> entera (o una carpeta de obra nueva) directamente sobre este recuadro.
-            </span>
-          </div>
-          <div className="flex items-center gap-3 font-mono text-[11px] shrink-0">
-            <span>Obras: <strong>{globalStats.totalObras}</strong></span>
-            <span>·</span>
-            <span>Piezas: <strong>{globalStats.totalParts.toLocaleString()}</strong></span>
-            <span>·</span>
-            <span>Metros: <strong>{globalStats.totalMeters} m</strong></span>
-          </div>
-        </div>
+        )}
 
         {/* Inline New Manual Obra Form */}
         {showNewObraInput && (
           <form
             onSubmit={handleCreateManual}
-            className={`mt-4 p-3 rounded-xl border flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${
+            className={`mt-3 p-3 rounded-xl border flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${
               isLight ? 'bg-blue-50/70 border-blue-200' : 'bg-slate-950 border-slate-800'
             }`}
           >

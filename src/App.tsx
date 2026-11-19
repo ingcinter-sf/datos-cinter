@@ -479,7 +479,7 @@ export default function App() {
             totalHolesProduction={totalHolesProduction}
             headerMetadata={headerMetadata}
             obraTitle={projectName}
-            onObraTitleChange={setProjectName}
+            obraLogoUrl={activeObra.logoDataUrl}
             theme={theme}
           />
         )}

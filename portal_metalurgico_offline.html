@@ -11672,34 +11672,6 @@ var Boxes = createLucideIcon("boxes", [
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var Building2 = createLucideIcon("building-2", [
-	["path", {
-		d: "M10 12h4",
-		key: "a56b0p"
-	}],
-	["path", {
-		d: "M10 8h4",
-		key: "1sr2af"
-	}],
-	["path", {
-		d: "M14 21v-3a2 2 0 0 0-4 0v3",
-		key: "1rgiei"
-	}],
-	["path", {
-		d: "M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2",
-		key: "secmi2"
-	}],
-	["path", {
-		d: "M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16",
-		key: "16ra0t"
-	}]
-]);
-/**
-* @license lucide-react v0.546.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
 var ChartColumn = createLucideIcon("chart-column", [
 	["path", {
 		d: "M3 3v16a2 2 0 0 0 2 2h16",
@@ -11757,6 +11729,16 @@ var ChevronLeft = createLucideIcon("chevron-left", [["path", {
 var ChevronRight = createLucideIcon("chevron-right", [["path", {
 	d: "m9 18 6-6-6-6",
 	key: "mthhwq"
+}]]);
+/**
+* @license lucide-react v0.546.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var ChevronUp = createLucideIcon("chevron-up", [["path", {
+	d: "m18 15-6-6-6 6",
+	key: "153udz"
 }]]);
 /**
 * @license lucide-react v0.546.0 - ISC
@@ -12045,6 +12027,33 @@ var Funnel = createLucideIcon("funnel", [["path", {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+var Image = createLucideIcon("image", [
+	["rect", {
+		width: "18",
+		height: "18",
+		x: "3",
+		y: "3",
+		rx: "2",
+		ry: "2",
+		key: "1m3agn"
+	}],
+	["circle", {
+		cx: "9",
+		cy: "9",
+		r: "2",
+		key: "af1f0g"
+	}],
+	["path", {
+		d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21",
+		key: "1xmnt7"
+	}]
+]);
+/**
+* @license lucide-react v0.546.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
 var Layers = createLucideIcon("layers", [
 	["path", {
 		d: "M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z",
@@ -12143,16 +12152,6 @@ var PenLine = createLucideIcon("pen-line", [["path", {
 	d: "M13 21h8",
 	key: "1jsn5i"
 }], ["path", {
-	d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
-	key: "1a8usu"
-}]]);
-/**
-* @license lucide-react v0.546.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var Pen = createLucideIcon("pen", [["path", {
 	d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
 	key: "1a8usu"
 }]]);
@@ -12635,7 +12634,7 @@ var Navbar = ({ activeTab, setActiveTab, hasActiveObra, totalObras, totalParts, 
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 							className: "flex-1 max-w-md mx-2 hidden md:block",
-							children: hasActiveObra ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							children: hasActiveObra && activeTab !== "home" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: `flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${isLight ? "bg-slate-50 border-slate-300 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100" : "bg-slate-950 border-slate-700 focus-within:border-amber-400"}`,
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 									className: `text-[10px] uppercase tracking-wider font-bold shrink-0 ${isLight ? "text-blue-700" : "text-amber-400"}`,
@@ -12668,24 +12667,18 @@ var Navbar = ({ activeTab, setActiveTab, hasActiveObra, totalObras, totalParts, 
 										children: projectName || "Sin título"
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { className: `w-3.5 h-3.5 shrink-0 ml-1 transition-opacity opacity-40 group-hover:opacity-100 ${isLight ? "text-blue-600" : "text-amber-400"}` })]
 								})]
-							}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: `text-center text-xs font-semibold ${isLight ? "text-slate-500" : "text-slate-400"}`,
-								children: ["Selecciona una tarjeta de obra o sincroniza tu carpeta ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "font-mono font-bold",
-									children: "calculadora"
-								})]
-							})
+							}) : null
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "flex items-center gap-2",
 							children: [
-								hasActiveObra ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								hasActiveObra && activeTab !== "home" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 									className: `hidden lg:flex items-center gap-3 px-3 py-1.5 rounded-lg border text-xs ${isLight ? "bg-slate-50 border-slate-200 text-slate-700" : "bg-slate-800/80 border-slate-700/60 text-slate-200"}`,
 									children: [
 										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 											className: "flex items-center gap-1.5",
 											children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "w-2 h-2 rounded-full bg-emerald-500" }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 													className: isLight ? "text-slate-500" : "text-slate-400",
 													children: "Piezas:"
@@ -12765,7 +12758,7 @@ var Navbar = ({ activeTab, setActiveTab, hasActiveObra, totalObras, totalParts, 
 						})
 					]
 				}),
-				hasActiveObra && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				hasActiveObra && activeTab !== "home" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "block md:hidden pb-2",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: `flex items-center justify-between px-2.5 py-1 rounded border text-xs ${isLight ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`,
@@ -12781,38 +12774,39 @@ var Navbar = ({ activeTab, setActiveTab, hasActiveObra, totalObras, totalParts, 
 					})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("nav", {
-					className: `flex space-x-1 sm:space-x-2 border-t pt-1 pb-2 overflow-x-auto ${isLight ? "border-slate-200" : "border-slate-800/80"}`,
+					className: `flex items-center space-x-1.5 border-t pt-2 pb-2 overflow-x-auto ${isLight ? "border-slate-200" : "border-slate-800/80"}`,
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 						onClick: () => setActiveTab("home"),
-						className: `flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === "home" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]" : "bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]" : isLight ? "bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600" : "bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400"}`,
+						className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "home" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900" : "bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white"}`,
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LayoutGrid, { className: "w-4 h-4" }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Inicio (Obras)" }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: `text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${activeTab === "home" ? isLight ? "bg-blue-800 text-blue-100" : "bg-slate-950 text-amber-400" : isLight ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-orange-500/20 text-orange-300 border border-orange-500/30"}`,
+								className: `text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${activeTab === "home" ? isLight ? "bg-blue-700 text-white" : "bg-slate-950 text-amber-400" : isLight ? "bg-slate-200/80 text-slate-700" : "bg-slate-800 text-slate-300"}`,
 								children: totalObras
 							})
 						]
 					}), hasActiveObra && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: `h-4 w-px mx-1 shrink-0 ${isLight ? "bg-slate-300" : "bg-slate-700"}` }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							onClick: () => setActiveTab("csv"),
-							className: `flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === "csv" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]" : "bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]" : isLight ? "bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600" : "bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400"}`,
+							className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "csv" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900" : "bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileSpreadsheet, { className: "w-4 h-4" }), "Planilla CSV / Excel"]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							onClick: () => setActiveTab("print"),
-							className: `flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === "print" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]" : "bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]" : isLight ? "bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600" : "bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400"}`,
+							className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "print" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900" : "bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Printer, { className: "w-4 h-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
 								className: "flex items-center gap-1.5",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "RESUMEN PERFORACIONES" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: `text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${activeTab === "print" ? isLight ? "bg-blue-800 text-blue-100" : "bg-slate-950 text-amber-400" : isLight ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-orange-500/20 text-orange-300 border border-orange-500/30"}`,
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Resumen Perforaciones" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: `text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${activeTab === "print" ? isLight ? "bg-blue-700 text-white" : "bg-slate-950 text-amber-400" : isLight ? "bg-slate-200/80 text-slate-700" : "bg-slate-800 text-slate-300"}`,
 									children: projectName
 								})]
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							onClick: () => setActiveTab("analytics"),
-							className: `flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === "analytics" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]" : "bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]" : isLight ? "bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600" : "bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400"}`,
+							className: `flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${activeTab === "analytics" ? isLight ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-amber-500 text-slate-950 border-amber-400 shadow-sm" : isLight ? "bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900" : "bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChartColumn, { className: "w-4 h-4" }), "Análisis de Datos"]
 						})
 					] })]
@@ -39299,121 +39293,155 @@ var ObrasHome = ({ obras, activeObraId, onSelectObra, onCreateManualObra, onDele
 				},
 				onDragLeave: () => setIsDragging(false),
 				onDrop: handleDrop,
-				className: `rounded-2xl border-2 border-dashed p-6 transition-all ${isDragging ? isLight ? "border-blue-600 bg-blue-50/90 shadow-lg scale-[1.005]" : "border-amber-400 bg-amber-500/10 shadow-lg scale-[1.005]" : isLight ? "border-blue-200 bg-white shadow-sm" : "border-slate-800 bg-slate-900/90 shadow-md"}`,
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "flex flex-col lg:flex-row lg:items-center justify-between gap-6",
+				className: `rounded-2xl transition-all ${obras.length === 0 ? "border-2 border-dashed p-6" : "border px-4 py-3.5"} ${isDragging ? isLight ? "border-2 border-dashed border-blue-600 bg-blue-50/90 shadow-lg scale-[1.005]" : "border-2 border-dashed border-amber-400 bg-amber-500/10 shadow-lg scale-[1.005]" : isLight ? "border-slate-200 bg-white shadow-sm" : "border-slate-800 bg-slate-900/90 shadow-md"}`,
+				children: [obras.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex flex-col lg:flex-row lg:items-center justify-between gap-6",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "space-y-2 max-w-2xl",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "space-y-2 max-w-2xl",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex items-center gap-2.5 flex-wrap",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: `text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md ${isLight ? "bg-blue-600 text-white" : "bg-amber-500 text-slate-950"}`,
-									children: "Inicio · Gestión por Carpetas"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-									className: `text-xl sm:text-2xl font-black tracking-tight ${isLight ? "text-slate-900" : "text-white"}`,
-									children: "Portal de Obras — Carpeta Calculadora"
-								})]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-								className: `text-xs sm:text-sm leading-relaxed ${isLight ? "text-slate-600" : "text-slate-300"}`,
-								children: [
-									"Organiza tus obras en subcarpetas dentro de ",
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
-										className: "font-mono",
-										children: "calculadora/"
-									}),
-									" (ej.",
-									" ",
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: "font-mono font-semibold",
-										children: "MASA"
-									}),
-									", ",
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: "font-mono font-semibold",
-										children: "PAE"
-									}),
-									"). Al presionar ",
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Actualizar carpeta" }),
-									" o arrastrar tu carpeta ",
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: "font-mono",
-										children: "calculadora"
-									}),
-									" aquí, se actualizan los CSV nuevos y ",
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "se crean tarjetas automáticamente para las carpetas nuevas" }),
-									"."
-								]
+							className: "flex items-center gap-2.5 flex-wrap",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: `text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md ${isLight ? "bg-blue-600 text-white" : "bg-amber-500 text-slate-950"}`,
+								children: "Inicio · Gestión por Carpetas"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+								className: `text-xl sm:text-2xl font-black tracking-tight ${isLight ? "text-slate-900" : "text-white"}`,
+								children: "Portal de Obras — Carpeta Calculadora"
 							})]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex flex-wrap items-center gap-2.5 shrink-0",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-								type: "button",
-								disabled: isSyncing,
-								onClick: () => dirInputRef.current?.click(),
-								className: `px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-60 ${isLight ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20" : "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20"}`,
-								children: [isSyncing ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { className: "w-4 h-4 animate-spin" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderSync, { className: "w-4 h-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: isSyncing ? "Leyendo carpetas..." : "Actualizar desde Carpeta" })]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-								type: "button",
-								onClick: () => setShowNewObraInput((prev) => !prev),
-								className: `px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm border flex items-center gap-1.5 transition-colors cursor-pointer ${isLight ? "bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-800" : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-100"}`,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "w-4 h-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Nueva Obra Manual" })]
-							})]
-						})]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: `mt-4 pt-3 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs ${isLight ? "border-slate-100 text-slate-600" : "border-slate-800 text-slate-400"}`,
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex items-center gap-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderTree, { className: `w-4 h-4 shrink-0 ${isLight ? "text-blue-600" : "text-amber-400"}` }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
-								"Tip: También puedes ",
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "arrastrar y soltar" }),
-								" la carpeta ",
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "font-mono font-bold",
-									children: "calculadora"
-								}),
-								" entera (o una carpeta de obra nueva) directamente sobre este recuadro."
-							] })]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex items-center gap-3 font-mono text-[11px] shrink-0",
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+							className: `text-xs sm:text-sm leading-relaxed ${isLight ? "text-slate-600" : "text-slate-300"}`,
 							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["Obras: ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: globalStats.totalObras })] }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "·" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["Piezas: ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: globalStats.totalParts.toLocaleString() })] }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "·" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["Metros: ", /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: [globalStats.totalMeters, " m"] })] })
+								"Organiza tus obras en subcarpetas dentro de ",
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+									className: "font-mono",
+									children: "CALCULADORA/"
+								}),
+								" (ej.",
+								" ",
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "font-mono font-semibold",
+									children: "MASA"
+								}),
+								", ",
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "font-mono font-semibold",
+									children: "PAE"
+								}),
+								"). Al presionar ",
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Actualizar desde Carpeta" }),
+								" o arrastrar tu carpeta aquí, se actualizan los CSV nuevos y ",
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "se crean tarjetas automáticamente para las carpetas nuevas" }),
+								"."
 							]
 						})]
-					}),
-					showNewObraInput && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-						onSubmit: handleCreateManual,
-						className: `mt-4 p-3 rounded-xl border flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${isLight ? "bg-blue-50/70 border-blue-200" : "bg-slate-950 border-slate-800"}`,
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
-							type: "text",
-							value: newObraName,
-							onChange: (e) => setNewObraName(e.target.value),
-							placeholder: "Nombre de la nueva obra (ej. NAVE_SUR, MASA_2)...",
-							autoFocus: true,
-							className: `flex-1 px-3 py-2 rounded-lg border text-xs sm:text-sm font-medium outline-none ${isLight ? "bg-white border-slate-300 text-slate-900 focus:border-blue-500" : "bg-slate-900 border-slate-700 text-white focus:border-amber-400"}`
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex items-center gap-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-								type: "submit",
-								className: `px-4 py-2 rounded-lg text-xs font-bold cursor-pointer ${isLight ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-amber-500 hover:bg-amber-400 text-slate-950"}`,
-								children: "Crear Tarjeta"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-								type: "button",
-								onClick: () => {
-									setShowNewObraInput(false);
-									setNewObraName("");
-								},
-								className: `px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer ${isLight ? "bg-white border border-slate-300 text-slate-700" : "bg-slate-800 text-slate-300"}`,
-								children: "Cancelar"
-							})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex flex-wrap items-center gap-2.5 shrink-0",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "button",
+							disabled: isSyncing,
+							onClick: () => dirInputRef.current?.click(),
+							className: `px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-60 ${isLight ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20" : "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20"}`,
+							children: [isSyncing ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { className: "w-4 h-4 animate-spin" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderSync, { className: "w-4 h-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: isSyncing ? "Leyendo carpetas..." : "Actualizar desde Carpeta" })]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "button",
+							onClick: () => setShowNewObraInput((prev) => !prev),
+							className: `px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm border flex items-center gap-1.5 transition-colors cursor-pointer ${isLight ? "bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-800" : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-100"}`,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "w-4 h-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Nueva Obra Manual" })]
 						})]
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: `mt-4 pt-3 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs ${isLight ? "border-slate-100 text-slate-600" : "border-slate-800 text-slate-400"}`,
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderTree, { className: `w-4 h-4 shrink-0 ${isLight ? "text-blue-600" : "text-amber-400"}` }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+							"Tip: También puedes ",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "arrastrar y soltar" }),
+							" la carpeta ",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "font-mono font-bold",
+								children: "CALCULADORA"
+							}),
+							" entera directamente sobre este recuadro."
+						] })]
 					})
-				]
+				})] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex flex-col lg:flex-row lg:items-center justify-between gap-3",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-3 flex-wrap",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: `w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isLight ? "bg-blue-50 text-blue-600 border border-blue-200" : "bg-amber-500/10 text-amber-400 border border-amber-500/30"}`,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderTree, { className: "w-4 h-4" })
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+							className: `text-base sm:text-lg font-black tracking-tight ${isLight ? "text-slate-900" : "text-white"}`,
+							children: "Portal de Obras"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: `text-xs flex items-center gap-2 flex-wrap ${isLight ? "text-slate-600" : "text-slate-400"}`,
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+									"Arrastra tu carpeta ",
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+										className: "font-mono",
+										children: "CALCULADORA"
+									}),
+									" aquí o actualiza:"
+								] }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "hidden sm:inline",
+									children: "·"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+									className: "font-mono text-[11px]",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: globalStats.totalObras }),
+										" obras · ",
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: globalStats.totalParts.toLocaleString() }),
+										" pzas · ",
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: [globalStats.totalMeters, " m"] })
+									]
+								})
+							]
+						})] })]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex flex-wrap items-center gap-2 shrink-0",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "button",
+							disabled: isSyncing,
+							onClick: () => dirInputRef.current?.click(),
+							className: `px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-60 ${isLight ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-amber-500 hover:bg-amber-400 text-slate-950"}`,
+							children: [isSyncing ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { className: "w-3.5 h-3.5 animate-spin" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderSync, { className: "w-3.5 h-3.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: isSyncing ? "Leyendo carpetas..." : "Actualizar desde Carpeta" })]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "button",
+							onClick: () => setShowNewObraInput((prev) => !prev),
+							className: `px-3 py-2 rounded-xl font-semibold text-xs border flex items-center gap-1.5 transition-colors cursor-pointer ${isLight ? "bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-800" : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-100"}`,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "w-3.5 h-3.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Nueva Obra Manual" })]
+						})]
+					})]
+				}), showNewObraInput && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+					onSubmit: handleCreateManual,
+					className: `mt-3 p-3 rounded-xl border flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${isLight ? "bg-blue-50/70 border-blue-200" : "bg-slate-950 border-slate-800"}`,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+						type: "text",
+						value: newObraName,
+						onChange: (e) => setNewObraName(e.target.value),
+						placeholder: "Nombre de la nueva obra (ej. NAVE_SUR, MASA_2)...",
+						autoFocus: true,
+						className: `flex-1 px-3 py-2 rounded-lg border text-xs sm:text-sm font-medium outline-none ${isLight ? "bg-white border-slate-300 text-slate-900 focus:border-blue-500" : "bg-slate-900 border-slate-700 text-white focus:border-amber-400"}`
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							type: "submit",
+							className: `px-4 py-2 rounded-lg text-xs font-bold cursor-pointer ${isLight ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-amber-500 hover:bg-amber-400 text-slate-950"}`,
+							children: "Crear Tarjeta"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							type: "button",
+							onClick: () => {
+								setShowNewObraInput(false);
+								setNewObraName("");
+							},
+							className: `px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer ${isLight ? "bg-white border border-slate-300 text-slate-700" : "bg-slate-800 text-slate-300"}`,
+							children: "Cancelar"
+						})]
+					})]
+				})]
 			}),
 			syncError && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: `p-4 rounded-xl border flex items-center justify-between gap-3 text-xs sm:text-sm ${isLight ? "bg-rose-50 border-rose-200 text-rose-800" : "bg-rose-950/50 border-rose-800 text-rose-200"}`,
@@ -44999,11 +45027,20 @@ var MultiSelectFilter = ({ label, options, selected, onChange, isLight, searchab
 var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHolesProduction, onFileLoaded, onMultipleFilesLoaded, onClearAll, onLoadSample, rawCsvText = "", loadedFiles = [], theme = "light" }) => {
 	const isLight = theme === "light";
 	const [isDragging, setIsDragging] = (0, import_react.useState)(false);
+	const [showUploadPanel, setShowUploadPanel] = (0, import_react.useState)(parts.length === 0);
+	const [uploadError, setUploadError] = (0, import_react.useState)(null);
 	const [showPasteModal, setShowPasteModal] = (0, import_react.useState)(false);
 	const [pasteContent, setPasteContent] = (0, import_react.useState)("");
 	const [pasteMode, setPasteMode] = (0, import_react.useState)("replace");
 	const [showGerdauModal, setShowGerdauModal] = (0, import_react.useState)(false);
 	const [lastParseResult, setLastParseResult] = (0, import_react.useState)(null);
+	const [addingHolePartId, setAddingHolePartId] = (0, import_react.useState)(null);
+	const [newHoleDiameter, setNewHoleDiameter] = (0, import_react.useState)("17.5");
+	const [confirmDeletePartId, setConfirmDeletePartId] = (0, import_react.useState)(null);
+	const [confirmClearTable, setConfirmClearTable] = (0, import_react.useState)(false);
+	(0, import_react.useEffect)(() => {
+		if (parts.length === 0) setShowUploadPanel(true);
+	}, [parts.length]);
 	const [omitNoHoles, setOmitNoHoles] = (0, import_react.useState)(false);
 	const [omitCorrederas, setOmitCorrederas] = (0, import_react.useState)(false);
 	const [searchTerm, setSearchTerm] = (0, import_react.useState)("");
@@ -45110,6 +45147,7 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 		}
 	};
 	const handleFilesUpload = async (files) => {
+		setUploadError(null);
 		try {
 			const filesArray = Array.from(files);
 			if (filesArray.length === 0) return;
@@ -45132,9 +45170,10 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 				setParts(currentCombinedParts);
 			}
 			resetAllFilters();
+			setShowUploadPanel(false);
 		} catch (err) {
 			console.error("Error procesando archivos:", err);
-			alert("Hubo un error al procesar uno de los archivos. Asegúrate de que sean formatos compatibles (CSV, TXT, Excel).");
+			setUploadError("Hubo un error al procesar uno de los archivos. Asegúrate de que sean formatos compatibles (CSV, TXT, Excel).");
 		}
 	};
 	const onDrop = (e) => {
@@ -45144,6 +45183,7 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 	};
 	const handleProcessPastedText = () => {
 		if (!pasteContent.trim()) return;
+		setUploadError(null);
 		const parsed = parseMetallurgyCsv(pasteContent);
 		setLastParseResult(parsed);
 		setColMapping(parsed.detectedColumns);
@@ -45152,6 +45192,7 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 		else setParts(parsed.parts);
 		resetAllFilters();
 		setShowPasteModal(false);
+		setShowUploadPanel(false);
 	};
 	const handleSort = (field) => {
 		if (sortField === field) setSortDirection((prev) => prev === "asc" ? "desc" : "asc");
@@ -45210,10 +45251,8 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 			return p;
 		}));
 	};
-	const handleAddHoleToPart = (partId) => {
-		const diamStr = prompt("Ingrese el nuevo diámetro en mm (ej: 14, 17.5, 21):", "17.5");
-		if (!diamStr) return;
-		const diam = parseFloat(diamStr.replace(",", "."));
+	const handleConfirmAddHoleToPart = (partId) => {
+		const diam = parseFloat(newHoleDiameter.replace(",", "."));
 		if (isNaN(diam) || diam <= 0) return;
 		setParts((prev) => prev.map((p) => {
 			if (p.partId === partId) {
@@ -45252,6 +45291,8 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 			}
 			return p;
 		}));
+		setAddingHolePartId(null);
+		setNewHoleDiameter("17.5");
 	};
 	const handleDeleteHole = (partId, holeId) => {
 		setParts((prev) => prev.map((p) => {
@@ -45269,7 +45310,8 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 		}));
 	};
 	const handleDeletePart = (partId) => {
-		if (confirm(`¿Eliminar la pieza ${partId} de la planilla?`)) setParts((prev) => prev.filter((p) => p.partId !== partId));
+		setParts((prev) => prev.filter((p) => p.partId !== partId));
+		setConfirmDeletePartId(null);
 	};
 	const handleUpdatePartThickness = (partId, newThickness) => {
 		if (isNaN(newThickness) || newThickness <= 0) return;
@@ -45549,7 +45591,7 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 	};
 	const handleExportCsv = () => {
 		if (sortedParts.length === 0) {
-			alert("No hay piezas en la planilla para exportar.");
+			setUploadError("No hay piezas visibles en la planilla para exportar.");
 			return;
 		}
 		const csvContent = exportPartsToReimportableCsv(sortedParts, "PLANILLA_PERFORACIONES");
@@ -45571,9 +45613,65 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 	lastParseResult?.sampleRows?.[0];
 	const countNoHoles = parts.filter((p) => p.holes.length === 0).length;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "space-y-6",
+		className: "space-y-5",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			uploadError && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: `p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs sm:text-sm ${isLight ? "bg-rose-50 border-rose-200 text-rose-800" : "bg-rose-950/50 border-rose-800 text-rose-200"}`,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex items-center gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "w-4 h-4 shrink-0" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: uploadError })]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					onClick: () => setUploadError(null),
+					className: "p-1 rounded hover:bg-black/10 cursor-pointer",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { className: "w-4 h-4" })
+				})]
+			}),
+			parts.length > 0 && !showUploadPanel ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: `border rounded-xl px-4 py-2.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs transition-colors ${isLight ? "bg-white border-slate-200 text-slate-800" : "bg-slate-900 border-slate-800 text-slate-100"}`,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex items-center gap-2 flex-wrap",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: `font-bold flex items-center gap-1.5 ${isLight ? "text-slate-700" : "text-slate-300"}`,
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileSpreadsheet, { className: `w-4 h-4 ${isLight ? "text-blue-600" : "text-amber-400"}` }),
+								"Archivos (",
+								loadedFiles.length,
+								"):"
+							]
+						}),
+						loadedFiles.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "text-slate-500 italic",
+							children: "Carga manual / planilla editada"
+						}) : loadedFiles.slice(0, 4).map((fn, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: `px-2 py-0.5 rounded font-mono text-[11px] border truncate max-w-[180px] ${isLight ? "bg-blue-50 text-blue-800 border-blue-200" : "bg-slate-800 text-slate-300 border-slate-700"}`,
+							title: fn,
+							children: fn
+						}, idx)),
+						loadedFiles.length > 4 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: `px-2 py-0.5 rounded font-mono text-[11px] ${isLight ? "bg-slate-100 text-slate-700" : "bg-slate-800 text-slate-300"}`,
+							children: [
+								"+",
+								loadedFiles.length - 4,
+								" más"
+							]
+						})
+					]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex items-center gap-2 shrink-0",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						type: "button",
+						onClick: () => setShowPasteModal(true),
+						className: `px-2.5 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1.5 border cursor-pointer transition-colors ${isLight ? "bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-700" : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200"}`,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClipboardCopy, { className: `w-3.5 h-3.5 ${isLight ? "text-blue-600" : "text-amber-400"}` }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Pegar Excel" })]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						type: "button",
+						onClick: () => setShowUploadPanel(true),
+						className: `px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-colors ${isLight ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-amber-500 hover:bg-amber-400 text-slate-950"}`,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { className: "w-3.5 h-3.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Sumar / Reemplazar CSV" })]
+					})]
+				})]
+			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: `border rounded-xl p-5 shadow-sm space-y-4 transition-colors ${isLight ? "bg-white border-slate-200 text-slate-800" : "bg-slate-900 border-slate-800 text-slate-100"}`,
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: `flex flex-wrap items-center justify-between gap-3 pb-3 border-b text-xs ${isLight ? "border-slate-200" : "border-slate-800"}`,
@@ -45597,14 +45695,16 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 							})]
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "flex items-center gap-1.5 flex-wrap",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: isLight ? "text-slate-500" : "text-slate-500",
-							children: "Archivos en lote:"
-						}), loadedFiles.map((fn, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "flex items-center gap-2 flex-wrap",
+						children: [loadedFiles.map((fn, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
 							className: `px-2 py-0.5 rounded font-mono text-[11px] border flex items-center gap-1 ${isLight ? "bg-blue-50 text-blue-800 border-blue-200" : "bg-slate-800 text-slate-300 border-slate-700"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileSpreadsheet, { className: `w-3 h-3 ${isLight ? "text-blue-600" : "text-amber-400"}` }), fn]
-						}, idx))]
+						}, idx)), parts.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "button",
+							onClick: () => setShowUploadPanel(false),
+							className: `px-2.5 py-1 rounded-lg border text-xs font-semibold flex items-center gap-1 cursor-pointer ${isLight ? "bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700" : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300"}`,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronUp, { className: "w-3.5 h-3.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Ocultar panel" })]
+						})]
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4",
@@ -45880,14 +45980,28 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 						})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "flex flex-wrap items-center gap-2",
 							children: [
-								parts.length > 0 && onClearAll && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-									onClick: () => {
-										if (confirm("¿Vaciar toda la planilla para cargar un archivo nuevo desde cero?")) onClearAll();
-									},
+								parts.length > 0 && onClearAll && (confirmClearTable ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "flex items-center gap-1",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+										type: "button",
+										onClick: () => {
+											onClearAll();
+											setConfirmClearTable(false);
+										},
+										className: "text-xs font-bold px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white cursor-pointer",
+										children: "Confirmar vaciar"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+										type: "button",
+										onClick: () => setConfirmClearTable(false),
+										className: `text-xs font-semibold px-2 py-1.5 rounded-lg border cursor-pointer ${isLight ? "bg-slate-100 border-slate-300 text-slate-700" : "bg-slate-800 border-slate-700 text-slate-300"}`,
+										children: "No"
+									})]
+								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+									onClick: () => setConfirmClearTable(true),
 									className: `text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors flex items-center gap-1 cursor-pointer ${isLight ? "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200" : "bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border-rose-900"}`,
 									title: "Vaciar la planilla actual",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "w-3.5 h-3.5" }), "Vaciar"]
-								}),
+								})),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 									onClick: handleCopyTable,
 									className: `text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors flex items-center gap-1 cursor-pointer ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`,
@@ -46169,14 +46283,90 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 																children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "w-3 h-3" })
 															})
 														})]
-													}, hole.id)), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-														onClick: () => handleAddHoleToPart(part.partId),
-														className: "text-[10px] text-amber-400 hover:text-amber-300 font-sans font-medium flex items-center gap-1 cursor-pointer pt-0.5",
+													}, hole.id)), addingHolePartId === part.partId ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+														className: `mt-1 flex items-center gap-1.5 p-1.5 rounded-lg border ${isLight ? "bg-blue-50/70 border-blue-200" : "bg-slate-950 border-slate-700"}`,
+														children: [
+															/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+																className: `text-[10px] font-sans font-bold ${isLight ? "text-blue-900" : "text-amber-300"}`,
+																children: "Ø"
+															}),
+															/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+																type: "text",
+																value: newHoleDiameter,
+																onChange: (e) => setNewHoleDiameter(e.target.value),
+																onKeyDown: (e) => {
+																	if (e.key === "Enter") handleConfirmAddHoleToPart(part.partId);
+																	if (e.key === "Escape") setAddingHolePartId(null);
+																},
+																placeholder: "17.5",
+																autoFocus: true,
+																className: `w-16 px-1.5 py-0.5 rounded border text-xs font-mono font-bold outline-none ${isLight ? "bg-white border-slate-300 text-slate-900" : "bg-slate-900 border-slate-700 text-white"}`
+															}),
+															/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+																className: "text-[10px] text-slate-500 font-sans",
+																children: "mm"
+															}),
+															/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+																type: "button",
+																onClick: () => handleConfirmAddHoleToPart(part.partId),
+																className: `px-2 py-0.5 rounded text-[10px] font-sans font-bold cursor-pointer ${isLight ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-amber-500 text-slate-950 hover:bg-amber-400"}`,
+																children: "Agregar"
+															}),
+															/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+																type: "button",
+																onClick: () => setAddingHolePartId(null),
+																className: `px-1.5 py-0.5 rounded text-[10px] font-sans cursor-pointer ${isLight ? "text-slate-600 hover:bg-slate-200" : "text-slate-400 hover:bg-slate-800"}`,
+																children: "Cancelar"
+															})
+														]
+													}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+														onClick: () => {
+															setAddingHolePartId(part.partId);
+															setNewHoleDiameter("17.5");
+														},
+														className: `text-[10px] font-sans font-semibold flex items-center gap-1 cursor-pointer pt-0.5 ${isLight ? "text-blue-700 hover:text-blue-900" : "text-amber-400 hover:text-amber-300"}`,
 														children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "w-3 h-3" }), " Agregar otro diámetro"]
 													})]
-												}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-													className: "text-slate-500 italic text-[11px]",
-													children: "Sin perforaciones especificadas"
+												}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+													className: "flex items-center justify-between gap-2",
+													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+														className: "text-slate-500 italic text-[11px]",
+														children: "Sin perforaciones especificadas"
+													}), addingHolePartId === part.partId ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+														className: `flex items-center gap-1 p-1 rounded border ${isLight ? "bg-blue-50 border-blue-200" : "bg-slate-950 border-slate-700"}`,
+														children: [
+															/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+																type: "text",
+																value: newHoleDiameter,
+																onChange: (e) => setNewHoleDiameter(e.target.value),
+																onKeyDown: (e) => {
+																	if (e.key === "Enter") handleConfirmAddHoleToPart(part.partId);
+																	if (e.key === "Escape") setAddingHolePartId(null);
+																},
+																autoFocus: true,
+																className: `w-14 px-1 py-0.5 rounded border text-xs font-mono font-bold outline-none ${isLight ? "bg-white border-slate-300 text-slate-900" : "bg-slate-900 border-slate-700 text-white"}`
+															}),
+															/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+																type: "button",
+																onClick: () => handleConfirmAddHoleToPart(part.partId),
+																className: `px-1.5 py-0.5 rounded text-[10px] font-sans font-bold cursor-pointer ${isLight ? "bg-blue-600 text-white" : "bg-amber-500 text-slate-950"}`,
+																children: "OK"
+															}),
+															/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+																type: "button",
+																onClick: () => setAddingHolePartId(null),
+																className: "text-[10px] px-1 text-slate-500 cursor-pointer",
+																children: "✕"
+															})
+														]
+													}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+														onClick: () => {
+															setAddingHolePartId(part.partId);
+															setNewHoleDiameter("17.5");
+														},
+														className: `text-[10px] font-sans font-semibold flex items-center gap-1 cursor-pointer ${isLight ? "text-blue-700 hover:text-blue-900" : "text-amber-400 hover:text-amber-300"}`,
+														children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "w-3 h-3" }), " Agregar"]
+													})]
 												})
 											}),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
@@ -46289,9 +46479,22 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 											}),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
 												className: "py-3.5 px-3 text-center align-top",
-												children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-													onClick: () => handleDeletePart(part.partId),
-													className: "p-1 rounded text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer",
+												children: confirmDeletePartId === part.partId ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+													className: "flex flex-col items-center gap-1 font-sans",
+													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+														type: "button",
+														onClick: () => handleDeletePart(part.partId),
+														className: "px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold cursor-pointer",
+														children: "Borrar"
+													}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+														type: "button",
+														onClick: () => setConfirmDeletePartId(null),
+														className: `px-2 py-0.5 rounded text-[10px] font-semibold cursor-pointer ${isLight ? "bg-slate-200 text-slate-700" : "bg-slate-800 text-slate-300"}`,
+														children: "No"
+													})]
+												}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+													onClick: () => setConfirmDeletePartId(part.partId),
+													className: `p-1 rounded transition-colors cursor-pointer ${isLight ? "text-slate-400 hover:text-rose-600 hover:bg-rose-50" : "text-slate-500 hover:text-rose-400 hover:bg-rose-500/10"}`,
 													title: "Eliminar pieza",
 													children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "w-4 h-4" })
 												})
@@ -46397,7 +46600,7 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 						})
 					}),
 					totalPages > 1 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-400",
+						className: `flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs ${isLight ? "text-slate-600" : "text-slate-400"}`,
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "flex items-center gap-2",
 							children: [
@@ -46408,7 +46611,7 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 										setPageSize(parseInt(e.target.value, 10));
 										setCurrentPage(1);
 									},
-									className: "bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200",
+									className: `border rounded px-2 py-1 ${isLight ? "bg-white border-slate-300 text-slate-800" : "bg-slate-950 border-slate-800 text-slate-200"}`,
 									children: [
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
 											value: 25,
@@ -46448,11 +46651,11 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 									onClick: () => setCurrentPage((p) => Math.max(1, p - 1)),
 									disabled: currentPage === 1,
-									className: "p-1.5 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-200 cursor-pointer",
+									className: `p-1.5 rounded border disabled:opacity-30 cursor-pointer ${isLight ? "bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700" : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200"}`,
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronLeft, { className: "w-4 h-4" })
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: "px-3 py-1 bg-slate-950 border border-slate-800 rounded font-mono font-bold text-amber-400",
+									className: `px-3 py-1 border rounded font-mono font-bold ${isLight ? "bg-slate-50 border-slate-300 text-blue-700" : "bg-slate-950 border-slate-800 text-amber-400"}`,
 									children: [
 										currentPage,
 										" / ",
@@ -46462,7 +46665,7 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 									onClick: () => setCurrentPage((p) => Math.min(totalPages, p + 1)),
 									disabled: currentPage === totalPages,
-									className: "p-1.5 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-200 cursor-pointer",
+									className: `p-1.5 rounded border disabled:opacity-30 cursor-pointer ${isLight ? "bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700" : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200"}`,
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { className: "w-4 h-4" })
 								})
 							]
@@ -46471,18 +46674,18 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 				]
 			}),
 			showPasteModal && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4",
+				className: "fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4",
+					className: `border rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 ${isLight ? "bg-white border-slate-200 text-slate-900" : "bg-slate-900 border-slate-800 text-white"}`,
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex items-center justify-between pb-2 border-b border-slate-800",
+							className: `flex items-center justify-between pb-2 border-b ${isLight ? "border-slate-200" : "border-slate-800"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h3", {
-								className: "text-base font-bold text-white flex items-center gap-2",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClipboardCopy, { className: "w-5 h-5 text-amber-400" }), "Pegar Datos Directamente desde Excel o Archivo de Texto"]
+								className: "text-base font-bold flex items-center gap-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClipboardCopy, { className: `w-5 h-5 ${isLight ? "text-blue-600" : "text-amber-400"}` }), "Pegar Datos Directamente desde Excel o Archivo de Texto"]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 								onClick: () => setShowPasteModal(false),
-								className: "text-slate-400 hover:text-white text-sm font-bold p-1 cursor-pointer",
+								className: `text-sm font-bold p-1 cursor-pointer ${isLight ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-white"}`,
 								children: "✕"
 							})]
 						}),
@@ -46490,27 +46693,27 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 							className: "flex items-center gap-4 text-xs",
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "text-slate-400 font-semibold",
+									className: `font-semibold ${isLight ? "text-slate-600" : "text-slate-400"}`,
 									children: "Acción al procesar:"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
-									className: "flex items-center gap-1.5 text-slate-200 cursor-pointer",
+									className: "flex items-center gap-1.5 cursor-pointer",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 										type: "radio",
 										name: "pasteMode",
 										checked: pasteMode === "append",
 										onChange: () => setPasteMode("append"),
-										className: "accent-amber-400"
+										className: isLight ? "accent-blue-600" : "accent-amber-400"
 									}), "Sumar a las piezas existentes (+ Unificar)"]
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
-									className: "flex items-center gap-1.5 text-slate-200 cursor-pointer",
+									className: "flex items-center gap-1.5 cursor-pointer",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 										type: "radio",
 										name: "pasteMode",
 										checked: pasteMode === "replace",
 										onChange: () => setPasteMode("replace"),
-										className: "accent-amber-400"
+										className: isLight ? "accent-blue-600" : "accent-amber-400"
 									}), "Reemplazar todo"]
 								})
 							]
@@ -46520,24 +46723,24 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 							value: pasteContent,
 							onChange: (e) => setPasteContent(e.target.value),
 							placeholder: `Parte ,Perfil ,Cant. Partes,Diametro ,Agujeros por partes\nA80000 ,PL7.9*64 ,82 , ,\n , , , 17.5 , 2\nA80001 ,LP70*60*3.2 ,1 , ,\n , , , 14.0 , 4`,
-							className: "w-full p-3 bg-slate-950 border border-slate-700 rounded-xl font-mono text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-400"
+							className: `w-full p-3 border rounded-xl font-mono text-xs focus:outline-none ${isLight ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500" : "bg-slate-950 border-slate-700 text-slate-200 placeholder-slate-600 focus:border-amber-400"}`
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "flex items-center justify-between pt-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "text-[11px] text-slate-500",
+								className: `text-[11px] ${isLight ? "text-slate-500" : "text-slate-500"}`,
 								children: "Detecta tabulaciones, comas o puntos y comas automáticamente."
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "flex gap-2",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 									type: "button",
 									onClick: () => setShowPasteModal(false),
-									className: "px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer",
+									className: `px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-700" : "bg-slate-800 hover:bg-slate-700 text-slate-300"}`,
 									children: "Cancelar"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 									type: "button",
 									onClick: handleProcessPastedText,
-									className: "px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5",
+									className: `px-4 py-2 rounded-lg text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5 ${isLight ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-amber-500 hover:bg-amber-400 text-slate-950"}`,
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleCheck, { className: "w-4 h-4" }), "Procesar y Unificar"]
 								})]
 							})]
@@ -46555,11 +46758,10 @@ var CsvAnalyzer = ({ parts, setParts, diameterSummary, totalPartsCount, totalHol
 };
 //#endregion
 //#region src/components/ResumenPerforacionesReport.tsx
-var ResumenPerforacionesReport = ({ parts, totalPartsCount, obraTitle = "VMC", theme = "light", onObraTitleChange }) => {
+var ResumenPerforacionesReport = ({ parts, totalPartsCount, obraTitle = "VMC", obraLogoUrl, theme = "light" }) => {
 	const [omitCorrederas, setOmitCorrederas] = (0, import_react.useState)(false);
 	const [includeAnalytics, setIncludeAnalytics] = (0, import_react.useState)(false);
-	const [isEditingTitle, setIsEditingTitle] = (0, import_react.useState)(false);
-	const [tempTitle, setTempTitle] = (0, import_react.useState)(obraTitle);
+	const [showObraLogo, setShowObraLogo] = (0, import_react.useState)(true);
 	const logoSrc = typeof window !== "undefined" ? localStorage.getItem("cinter_custom_logo") || "data:image/png;base64,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AAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoAQAAAEAHghoAAAAAdCCoARSqjTgKYOx8nwMADJCgBlCq1gdtGLsUzqcBAMDgCGoA5ZoGMGq1CTUAgEES1AAK1ZpQg9FL3+ezAABgcAQ1gEJV4YM2jNlsvsrf48I5AMAACWoA5ZqmD9w+bMNI1aI5AMBgCWoABbtVxycBjFJb+f4GABgqQQ2gYG0bxwGMTp4+rdq4GwAADJKgBlCy9IHbsk8Yn3QBJqYBAAyYoAZQtqNb9S3LwmB85gEAwGAJagCFa5rrBwGMxp356kF6mgYAAIMlqAEUroo4Th/ATwIYC9NpAAADJ6gBDMN8Nl9NAxi0FMdPw3QaAMDgCWoAw3BURXzugAIYrvT9OwvTaQAAoyCoAQxECmqz9PhSVIPhyROm6aLr8wAAYBQENYAByVEtvXFfWP4Jw5En09L37ZdhqScAwGgIagDDkydd/njn31enwhqULe+ZliN4iGkAAKPyTgAwTHXM0wf1+3dOV+d1G8/+czE5D2Dv8rLsuq7vR9Pk03mnAQDA6AhqAMM2jTYeNBEP7sxXV1XEsq1imX7/Kqr6Kn2g/1PsSxW/DoYgH3hhX75+HLVt5IMHpul7LwAAGC9BDWA8jtqI4xTYjte/avf8gb4NBsK/KgAA6MYeagAAAADQgaAGAMDotU18HQAAPRHUAAAYu6vlYnIVAAA9EdQAABi1NtaHtQAA9EZQAwBg7IqYTpvNV9MAAEZBUAMAYNSqOs4DAKBHghoAAKNmyScA0DdBDQCAUWub+CYK8E7ENNiFywCALRPUAAAYs3zC52UAAPRIUAMAYLRKWu6Z/ixHAQCMgqAGAMBoVVU5BxK0cS2o7UBryScAOyCoAQAwWm1BQS2qW78OAGAUBDUAAEarbeLrKIcJtd24CgDYMkENAIBRyvunLReTYuJK65TPnagqQQ2A7RPUAAAYpSoKWu4Z6wtvE2q7cRkAsGWCGgAAo9TUZQW1tjWhBgBjIagBADBOTbyIskyDrasqE2oAbJ+gBgDA6LQR5yXtnzabr2bBTlw7lACAHRDUAAAYnaqO51GQd+yftjOVoAbADghqAACMTlPYcs+mjt8Gu3HrvcsAgC0T1AAAGJU24nK5mCyjJA4k2Jn227/8KQBgywQ1AABGpYqyTvfM0p/JHmq7cVXS3nkAjJegBgDAqLR1nEVh2lZQ24U8nRgAsAOCGgAAo5GDysV8UtT+abP5Kh9I4FCC3TCdBsBOCGoAAIxGics937Hcc2eqyoQaALshqAEAMBpNxCIK01TxUbArlwEAOyCoAQAwCm3E+XIxuYzCVBHHwU6keFnW6a4AjJagBgDAKJR4GEHmQILdqeyhBsCOCGoAAAze+nTHJr6IwszmqxzTHEiwI20TXwcA7ICgBgDA4FU3yz2Lm06qHUiwS1clvgYAGCdBDQCAwSvxMII1BxLsTOtAAgB2SFADAGDozko8jGCtdSDBDl0GAOyIoAYAwKA1EZ9FgTb7p02Dnaic8AnADglqAAAMVnuzd1qRIcX+abvVCGoA7JCgBgDAcNVxGoWqqrgf7E4T3wQA7IigBgDAILURzy/mkxdRqNb+aTtV6qQiAOMkqAEAMEgpqD2KQn0wX90Ndia9FsQ0AHZKUAMAYIjKPdkzaav4JNilywCAHRLUAAAYnCZiESWz3HOnnPAJwK4JagAADErTxmnJ02kfzlfH6Wka7ExbxXkAwA4JagAADEYbcbn8dFL0dFrjdM+da5v4OgBghwQ1AACGo44HUbDZfHWUqp8DCXbrarmYXAUA7NA7AQAAA9BEPFnOJy+iYOludY5pR8HOtGG5JwC7Z0INAIDitTenOJZ9EEGsN8e33HPHHEgAwD4IagAAFC8FtXulL+ubzVfT1umeO+dAAgD2QVADAKBom1M9i59CqquYBzvnQAIA9kFQAwCgWHl/rNJP9fyO6bSdS6+PpQMJANgHQQ0AgCLlfdPS42EMwJ356kF6mgY7VYX90wDYD0ENAIDipJB2lR4fLxeTyxgGyz33oKntnwbAfghqAAAUp63jZCgx7YP56m6YTtuPJl4EAOyBoAYAQFHWhxDMJ89iKKr4XbBzeUnwgCYYARgZQQ0AgGKsY9pQDiFIPpyvjluHEexFFZZ7ArA/ghoAAEUYWkzL2sreafti/zQA9klQAwBg75qIJ0OLaabT9sz+aQDskaAGAMBerSfTFpNHMTCm0/anjVjaPw2AfRLUAADYmyEu88zuzFcPTKftT5WCWgDAHglqAADsxVBj2obptD1q6ngeALBH7wQAAOxQG3HV1nGynE+exQDl6bT0NA32x/5pAOyZoAYAwM6kmHaZHvdSTBvkkr3ZfDUN02l7lV4/58vF5CoAYI8s+QQAYCdyCEmP2ymGDHb/q/rmIIJpsDdtHWcBAHtmQg0AgK1r2jhZfjr5LAZsPZ3WxoNgvyz3BKAAghoAAFuTl3hGHQ+W88ngI0gd8WWwV+n1tFwuJpcBAHtmyScAAFvRRDzJSzwvRhDT7sxXp2Gp595VEecBAAUwoQYAQK/GNJWWOYigHG0dzwMACiCoAQDQixTSrto2niw/nSxiRCz1LEMOtWOYdgRgHAQ1AAD6cJaCx6MU065iRCz1LIflngCURFADAOCNtTly1HE6xsmh2Xw1C0s9i9HWcRYAUAhBDQCAzsYc0rK8b1od8XlQBMs9ASiNoAYAQBdneVJo7HGjquJxqjjToAiWewJQGkENAICf9PKwgVQ1PlsuxrVH2qus901r425QjCbiswCAgghqAAC80tiXdb7KB/PV3da+aUXJyz1TyF0GABREUAMA4Ds5orVtCmkHMo32fXnftPTP/zQoSlXHkwCAwghqAAAHbh3R6nhe3YrnF7+ffBMHaHMIwZfpy6OgKE0TXwQAFEZQAwA4MHlPtKqK500V55FixaFNor3K5kTPaVCUHHvT6/MyAKAwghoAwMjlPahSQDtPAW15yFNo/8zt/1idpadZUJx8omwAQIEENQCAEcnxLHI4a+OyqdcTaC9MoP1z6xM9I+4HJbpazifPAgAKJKgBAAxMXrIZ+fH3cLaM5tuvI969FM9e3yamOdGzXM8DAAolqAEAFGA9WZZVcVm9/LpdR7Orplr/+ipFs29Es36IaeVrIj4LACiUoAZQsK8WkyoA6JWYVr4UmJcpHC8DAApVBwAAHAgxbRjaOp4EABRMUAMA4CCIacOQlz87jACA0lnyCQDA6KWYlieefhcUr4o4DwAonKAGAMBozearo6qKp9HG3WAQmohFAEDhBDUAAEYpxbRpHfF5immzYCjOlovJZQBA4eyhBgDA6KSYNksXul/mL4PBaOs4CwAYAEENAIBRuTNfPdjEtGkwGPkwgov55EUAwABY8gkAwGg4fGC42jpOAwAGQlADAGDw8n5pt6p42rZxHAxOnk5bzifPAgAGQlADAGDQPpiv7qYgk2PaUTBIptMAGBpBDQCAQZrNV0d1xGlrieegmU4DYIgENQAABufD+eq4iXgaDh4YvLaOJwEAAyOoAQAwGC+n0hpTaaOQp9OiiS8CAAZGUAMAYBBMpY1P28bZ8tPJZQDAwAhqAAAULZ/gWVXxuGnjbjAa6+m0KuydBsAgCWoAABRps7zzJPLyTid4jo7pNACGTFADAKA4H8xXd9uIx2F55yiZTgNg6AQ1AACKkfdJa6uYt20cB6PV1nG6nJtOA2C4BDUAAPbuZUhrckhrgxHL02kppplOA2DQBDUAAPZGSDs8eTotAGDgBDUAAHZOSDtMptMAGAtBDQCAnfjeqZ33m3zYgJB2cEynATAWghoAAFuVp9GaKj5JAe1B+uVRcJBSP31uOg2AsRDUAADo3Xoara7vV21z17JOsvQSeBQAMBKCGgAAvcgRLV1czvLeaG0bs2iaIx2NjbPlYnIZADASghoAAG/sexHtfopod5u8pFNF43vyQQTpsQgAGBFBDQCATjaHC9ytqvgkRbRjEY2fkg8iWM5NpwEwLoIaAAA/a32wQMRximgf5YiWf68V0fgZeTrNQQQAjJGgBgDAP3i5jLOp69/mQwXyfmjN5nROEY0u0svl4wCAERLUAAAO3L/NV9O/RhxHFb+Nm+mzHNAimsZKTt6GgwgAGC1BDQDgQORw9reI6WbybLY+iTP9+q+b6TP1jL44iACAsRPUAABGIi/VfC/FsXU0S4+o4tdVev5RODN5xpY5iACAsRPUAAqWp0kCOHg5kOXnZvOcQ1n6n0fVzema0/bm93MsO/rr9/8PW0Nn7MWZgwgAGDtBDaBg6YPxHwPgh9p/eIJipNfklaWeABwCQQ0AAOhF28bp8lNLPQEYvzoAAADeUhtxnmLaZwEAB0BQAwAA3spmqefDAIADYcknAADwViz1BODQmFADAADexpmlngAcGhNqAADAG2kjLp3qCcAhMqEGAAC8kbaO0+XCUk8ADo+gBgAAdNbkfdPmk2cBAAdIUAMAADrJSz2Xn04s9QTgYAlqAADAa0sx7So9Pg4AOGCCGgAA8NraOk7smwbAoRPUAACA19JEPLFvGgAIagAAwGtY75u2mDwKAEBQAwAAflqOafZNA4C/E9QAAICfVscD+6YBwN+9EwAAAP9E08bpcj55EQDAd0yoAQAAr7Q+hODTySIAgH8gqAEAAD/SRiwdQgAAryaoAQAA/2BzCMG9AABeSVADAAC+k0LaVT7R0yEEAPDPCWoAAMDf1XFXTAOAn+aUTwAAYK1p48SJngDw80yoAQAAOaadLj+dfBYAwM8S1AAA4MBtYtoiAIDXIqgBAMABayLOxDQA6EZQAwCAA9VGPF8uJg8DAOhEUAMAgAOUYtoyPcQ0AHgDghoAAByYTUz7eLmYXAUA0JmgBgAABySFtMv0uCemAcCbE9QAAOBAbGJanky7DADgjQlqAABwAMQ0AOiPoAYAACMnpgFAvwQ1AAAYsc0BBLfFNADoj6AGAAAj5TRPANgOQQ0AAEYohbRzMQ0AtuOdAAAARqWJOEsh7WEAAFthQg0AAEYkxbQnYhoAbJegBgAAI9G0cZpi2qMAALbKkk8AABiBFNNOlp9OPgsAYOsENQAAGLA24irquLucT14EALATghoAAAxUimmX65M855PLAAB2xh5qAAAwQCmkLdcxbSGmAcCumVADAICB2Zzk6fABANgTQQ0AAAbE4QMAsH+CGgAADIDDBwCgHPZQAwCAwm32S7t9IaYBQBEENQAAKFjeL83hAwBQFks+AQCgQHmJZ1vHyXI+eRYAQFEENQAAKMxmiee9FNMuAwAojiWfAABQEEs8AaB8JtQAAKAATvEEgOEwoQYAAHuWYtp5evzGKZ4AMAwm1AAAYE/WBw+0cbr8dPJZAACDIagBAMAebKbSHqaYdhkAwKAIagAAsEOm0gBg+AQ1AADYEVNpADAOghoAAGzZeiotrh8uF796HgDA4DnlEwAAtqiJeJJP8BTTAGA8TKgBAMAW5OWd6fb16XI+eREAwKgIagAA0COHDgDA+AlqAADQk7y8Mz0tUky7CgBgtAQ1AAB4S9+d3rlweicAHAJBDQAA3tDLfdIu7JMGAAdFUAMAgI5SSLts4/qRkzsB4DAJagAA8JrWBw7UcbKcT54FAHCwBDUAAPgZm5M7n0QVn6WY5sABADhwghoAAPwT/xDSnNwJAGwIagAA8APrPdLqFNKaeCakAQA/JKgBAMBGPrUzh7TlfPJFAAD8E4IaAAAHL4e0qOP0Yj55EQAAP0NQAwDgIOX90aqIs/ZWnF38x+TrAAB4TYIaAAAHZb0/Whtn+aCBi4X90QCA7gQ1AAAOgmWdAEBfBDUAAEbr+9NoS9NoAEBPBDUAAEblu73R6nhuGg0A2AZBDQCAUchLOlNEO4smvrA3GgCwTYIaAACDtYloz1NEe2ZJJwCwK4IaAACDIqIBAPsmqAEAULS8J1p6WopoAEApBDUAAIrz/YMF2ia+FtEAgJIIagAA7N33p9CqW/H84veTbwIAoFCCGgAAe7HeC62N8xTQzk2hAQBDIqgBALB1302gCWgAwAgIagAA9C4FtMuqivOmimU0375YLv5lGQAAIyGoAQDwVr4fz6o8hWb6DAAYOUENAIDX8nLZZo5mTb2ePPs64t1L8QwAODSCGgAA39lEszxxtky/uBLOAAB+TFADADggeXlm5GhWpWjWxmUKZje/Fs0AAF6boAYAMFCbabKbAFbdhLFqM2HWVN/9ZzmWfVO9++7q4veTbwIAgLcmqAEUrKnjQQCH7GUgi7i1DmZrwhgAwH4JagAFW84nzwIAAICi1AEAAAAAvDZBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAAoANBDQAAAAA6ENQAAAAKVUVMA4DiCGoAAACFats4CgCKI6gBAAAUaDZf5Zg2CwCKI6gBFOz2H/7n1wEAHKR3xDSAYglqAP24ii2orv9yNwCAg9RUcT8AKJKgBtCD5WKylaDWNiGoAcABms1X02jjQfTvMgB4a4IaQH8uo2dVxPGd+eokAICDkWNa+qD2ZWxBVQlqAH0Q1AB60laxjO14fOffV6cBAIxaPoQg3Ug7TR/SLtIvp7EFjQk1gF68EwD0It3xPY92S0s065inC+z7UddP6qb5+m8Ry20tMwUAduPf5qvpdcTRdV1/VLXNrL25jjiKLWqb+DoAeGtVANCLdFf5eFvLM/6Jq9jSYQgAwNZNY8faiPOLxeTjAOCtmVAD6MlyMTm/M1/lwLXVO8vfcxS7++8CAAauiq1tTwFwcOyhBtCnKp4HAECBmohnAUAvBDWAHjWtC1UAoDxtxOVyMTGhBtATQQ2gR3nZZ9jXDAAoTFvHaQDQG0ENoG9VPAkAgELk6bRo4kUA0BtBDaBnTRufhSk1AKAQbRtny8XkMgDojaAG0LN0wXrVRLMIAIA9W0+nVfZ4BehbFQBsxe3T1ZdVG8cBALAnTR0PlvOJoAbQMxNqAFvStvEwLP0EAPakjTgX0wC2Q1AD2JK8V4mlnwDAPuSlnunxMADYCkENYIuWi/fziZ9O/QQAdisv9XQQAcDWCGoAW/bVYvKoreI8AAB2oGnj9GI+eREAbI2gBrADbRv32ohlAABsUY5py08ntpwA2DJBDWAHlovJVQpqH7dVPA8AgC0Q0wB2pwoAdmp2uprX6YI3AAB6kG7aXbV1nDjRE2B3BDWAPZjN/9+DKm7N05vwNAAA3tDmNM+PHUAAsFuWfALswXLxq7N88Zu+PAsAgDfQRDxJ1xO3xTSA3TOhBrBntxerj9IV8ZlpNQDgdaSIdp4ej1JIc+ARwJ4IagCFWIe1Nk6qNu4GAMAP5JAWdZxezCcvAoC9EtQACjObr6YR18dVdet+imvHAQAcrPU0WptCWhWf5VPDA4AiCGoAhcuTa+lielY3MW2rmK1/s7U8lLJZwgzQXT5gID1dpvfQZVPHMpr4QkQDKJOgBgAA/FO3/7D6dbBV7bfxJ+EMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACgAFUAvZjNV0fvRRzlr/8WMc3PzeZ5ra5/GW1zFNtW1VfRNH9afxlxlR8vv76VHv97MbkMAAAA4I0JavAa/m2+mn6bmlmbg1kVv65uQtlR2948x/fD2XBcpn+Oy/VXVVy2+es2vqnT8zvpIbwBAADAqwlqsJEnzN5NYew6fZm+M36bo1kKZrMYZizry7K6iW3Lqo2vc2z7P4vJMviR9PqZpr+f4yhIk/69LXf47+uD+epuu5nSHKP093m+FJrfWn6vTd8rd6MgXy0mZ/GWSnwPYFzSe9Bleg86j7c09vdq+pNec8/Ta+4qtii9dx7Xh32tPSjfX/3y8td5Bcxf0mPbrxUo0TsBBypPnf01f/hJ8Sza9Yeg2fXL/7Bd/z/yVN5NVMwX35H/fu7MV/kH6bKt1pHtxfVNZDj4H6DpzXSaLjyfRkHqKk7T086CWnqNPI4RXxTnoJwu/G97vb+1/EG+qO+V5CzeUh3XxxG3SvvnYkTSe/pZejqPt1XF7zbXPfCTqnff+zK+F0+2Ib2u76fX44NgENr48Wek/PkgXSPlzwj5l/n1crmOblVcrVfAVPVl1TTf5N/7283NXtdRjIagxsFYT0XU9f2qbXIkuvvXl3dnlbOujtocItPFeHo+2fwAXaYfmud1G1/8Zw93z6FQ0+omBN0LAAB+KH++mq0/Xr38jNU234W4zeeG727O59hWN83XPj8wVIIao/bhfHXcpPhTVfFRm+/GNo1+th2z9Bc7S3/XJ/nuVPr7fh7VrefXzfULS+QYk3QBeDe9xk++WkyeBAAAXX13cz7HtvT5YT3dlq6xznNkc4OeIRHUGJ3N/jwn6cv7L0/ZbFW0ncoTgNFe3813oT44Xa3j2n/N/9ezgHGYp/eZ52IxAEA/XkY2N+gZEkGN0cjTaOmuxry1L0hRXsa19IPxNC8LbdpY+KHIwB2lu6ifp+fbAQBA7350g76NZ/+1mDwPKEgdMGB5Gi2HmvRYpbsZX4ppRZvmTWfTm84f75yunuYAGjBQKajN0uv4cQAAsFU5rrXpZmb6zPfHDxZ/vh9QCEGNQXoZ0nKcSb+ch+PfhyWFtRxAP5ivvhTWGKw2TmZevwAAuzJtm+szYY1SCGoMjpA2HnmvhBzW8sRaChPTgIFJ70X5tet9CABgd4Q1iiCoMRh5kim/aYaQNj4vl4L+++pUnGBgppv91AAA2K2bsObmPHsiqFG8HFhun64+z5NMsTm1k5GqY57elC4so2NIUlDLsf8kAADYvZub81+KauyaoEbR8lRanlyq8ikvHIpp/oGYp9UChmPuIg4AYG+mmxvzPjeyM4IaxbozXz3ZTKVZAniI6pjnJb4iBQNxlJd+WrIMALA3R3W+HrOvGjsiqFGcHFA+OF3lkPa74NBNN+PbxwGFS0FtVlfrPR4BANiTurk+E9XYBUGNouSYlgNK28ZxwA1LQBmONk4EYACA/UpR7Um6JpsFbJGgRjHyG15e9x4OHuBV8hJQUY0BqG+Wfk4DAIB9Oaptx8GWCWoUYRPT7JfGTxPVGIa8n9rTAABgn6auydgmQY29E9PoRFRjANLF2/Gd+eokAADYm3RNdtd2HGyLoMZebfZM+zzENLq4OQFUrKB0j+3dAQCwX+nz5lNLP9kGQY29eXkAQdgzjTeTY8XdgILZuwMAYO+mdRu/C+iZoMbebCbTpgFvaHO3aRpQrmldxTwAANifKqxuoXeCGntxZ77eA8tSKN5WPr3nSxNAFK2NE9OUAAB7dfTh4s+fBPRIUGPnPrj5YGlig76YAKJ4pikBAPbrurk2pUavBDV2Kn+gbCMeB/TpZgLoOKBcR45tBwDYn3wKu5Ut9ElQY6c2k0TTgJ45vYfS5Ys4p9MCAOxPXcf9gJ4IauzMv85Xs2jjQcB2WPrJEOTTae0fCQCwB20TxwE9EdTYmeubUz1heyz9ZADyCcemKQEAdi+vGAjoiaDGTtyZrx6EpZ7sQOXAC8pnmhIAYD+OrBagL4Iau+LD4yu0EVfpcfkWj6vgH2w2Gz0OKFmeplz82R4eAAA7dquO3wb04J2ALTu06bRN5Lqsqljm56aKy/z7KfRcxq2bry9+P/kmepaXkFXvxi/bb7+dVPW7v0x/jrykbFq3cZS+zndhjtIfblbd/P6obabUzgMKVjfXT9L37YvlYnIZAAcs3yQMKMShvB6rA1491Dbrz0bPAt6SoMYujHY6rb0JZ+cpmi3TD6VlenP+On043svU2Oa/Nz9+Mtatw1u6K5MjW51+mOTn6ia4jcbLKbX0d3IeUK6j9Fp9mp4/DoADdrGY/CagFO++d3zx+1/0fvO7dLf/sPr1+ovrm9DW3tyYn0a+OV9FPlzuaCyfGVpbEdETQY2tGtt02nr6LAW09EPlvLoVz7cxabZtm/D2YvNYW2+QXsdHKbDdTf+Mx2O4Y2VKjSHI8ffO6erxV6eTR8GgNfWtVdUcxFTDUWmTzpvJ8NFvgVC1tnkAtud7n2tePr/44f/O92/Mp/eku+lxHAM0tmEC9kdQY6uqKu63bQxem8NMHafrCbTTyeguaDeR7YvNI24vVh+lD4YP0pcPYqBMqTEYN6fTfuG1OmzL+eS799AxSwF4nl6zp1GQdK3xJEXpRQCwVT+4Mf9Zun6ZRlynm/G35gO7Ie+0dXrhUAK2Jr/BtgO9a5HlO95N+tDQREwuFpOPL+aTF/tazrlr+Z/1q8XkYfpn/01TpZA40L0k0hvcJwEDkF6rT9eTogAAA5H3gV0ufnWWl203cf1wQJ8Zjlx30QdBja2pq+HunZZDWvqB8Jvlp5PFoUS0V1n/kEx3/dPfxcc5rMXwPPDDkoGYph/IjwMAYIByWMufGdoqnscAVO++98uAtySosT0DnE7LSzsbIe1HXoa1/HczsGm1o7qO+wHD8ODOfHUSAAADlD8zXJxO7rVt4wRNDoKgxlZ8OF8dx8A2tm/aOMlLO/MPguCV1j8k80j3gKbV2ibuBgepzSfvVoM7mGJ+sx8JAMAwXXz6/oPir8Gu/zINeEuCGluRgstgpoLyXmltHcfLTyefBa/lZlqtGcSphJvDCSz7PER1iuSnk4/TV09iOPIJip8HAMCAtW08jAM4gZnDJqixHQNZ7pmXL6bH7bwJf9DJcvH+kyb93cUAflBa9nnY0ut0MaSlyvko9zunK/upAQCDtV71Uw3qpiZ0JqjRu9l8NYsBLPfcxDRLPN9C+rtbplhR/KSaZZ+HLe+HmL7X78WQtHEyu1k6DwAwSE0bVgAxaoIavavr+CgGIH/AFtPeXvo7PCt9TzXLPrmJv8NYpvxS+gH91OsWABiq9U3N4e1nC69NUKN3VVv+NFC6W3KaP2AHvch7qpX+w/JWHZ8EBy0vUx7YRd00xeCnAQAwUFUVzwNGSlCjd23h+6e1Ec+Xn04WQa9K33i0bWIWHLyhbZCbgtrdO/PVSQAADFDTxNcBIyWo0asPB7DnTzuAPb+GKC+fbaIpOVTaR43N63Qd1YZkPpuvpgEAMDxWBTFaghq9aur4bRRss9TzMtiK9ZK6ck9TnN7+w//8Ojh46T0gLz0Y0qlTR1XE5/ZTAwCGJu+jFgNaHQBdCGr0quTlnuvQU8WzYKvauC52Sq2+/stxQNJELAqOvz+SgtqsrmIeAADDI6gxSoIavaramEah0gfSc9Np27dc/OosCv2haR81XlqfOhVxL4Z0gdfGyWwAy+oBAH5AUGOUBDX6VmywyBMpwW5UZS6nSwHlOGAjn/Rb+L5/P5J+aD+1nxoAMCRVJagxToIavSn5QILWdNpONW18FgWqotwJSvZjve9fFecxHNP0On4aAAC8sbaJPwW8JUGN3qRoVeyG2W0dZ8HOrJfTlRkpjmbzlWWf/IO2jYcD20/t+M58dRIAALyR6t33VgFv6Z2AnqSA8ttc1YrUxItgp1KkuBfvxi+jNN+6G8U/ytOrKbQ+TKHqyxiOefoz58lbR9EDAHR08ftffBPwlgQ1epNa2qyK8ljuuR+OyGZI0uv1/M58lff+G8rk11Ed8XmKarc332sAALwe1070wpJPelMXuuQzRT4THMDPygeXtMN6v5jWVcwDAKBgbVvWPsZD2uqDsglq9Ka0N8qX2jqeB8DPWO/9F3EvhnTXso2T2Xx1NwAAylXa4IUJNXohqNGnaRSobeLrAHgNeXl4E80iBiT9IH+aoto0AAAKk65RckwrKqhZwURfBDV6UeqHuTzOa38hoIvl4v0nbTWoydajdGH4NAAACvNO+qgYpakt+aQfghq9eKfQ6bSwPh54A20bD4e0v0YKasd35quhHKgAAByIpo7fRmEGtmcuBRPUGDXjvMCb2Oyn9jCG5fFsvirvLjAAcLCqNorb6/ViPnkR0ANBjV40cT2NEhnnBd5Qimrn6elJDEj6of75Zq8SAIC9ytsCtW0cR0HSDdPzgJ4IavSjvvXLKJBxXuBtfLWYPGqrQV14Tesq5gEAsGclXpNUw7quo3DvBPShLe4o5LW2iT8FwFvI+6lVERdR3pHvr9bGyWzx5+Vy/r+eBcAAfDBffRkUp3n3vQcXv//FNwFvYH1oXRsPojBNG18E9ERQY9Sqd99bBcBbWC4ml7P5fy/qqB/HQNTN9ZN0Ifsi/9kDoHBtlLUkDHh7eRuKKEw+cCpdG1nBRG8s+aQv0yiQu2pAH5aL9/NeakPaT+2oingaAAA7dvs/VmfpqbiDkto6TgN6JKgxZlcB0JMmYpHvbMZApKB2fGe+OgkAgB3IByPdPl19XlVxP0rUhNM96ZWgxpgJakBvlovJVQpqD2NYHqeL2+MAANiiD9P1RooLF1Ubd6NMZ7bCoG+CGr2oCl3yCdCndCF23kTzKAYk/aB/mu8YBwBAj/L1xZ3Fn373wenqyyYiHy4yjULllQYBPXMoAaM1pKVZwHDk/dRun64+SXdgj2MYpimq5QMVhjZdBwAUJAe0FBBmTV3/tmqbu20bs2iaozbK1rRxuvzUdBr9E9QAoKN0AfmwirhIXw5l8uvBnfnq668WkyEdrAAAO3fr+tvZh/PVb+IApTCW49jNtU0Vv46bQ46O0n8wbW+mz6ZN/s+aJkqPaC+tT/b8dGI6ja0Q1ACgo7wHR7pL+7DEI+F/wjz9mZ/bPwQA/rmmuX4exMtiNpRw9irpz573v/04YEvsoQYAbyCFqXzBPaSJr3yXeUgBEADgjbVx/dCNRLZJUAOAN5Q3uB3Sfo0pqM3unK4eBwDAiK33TVv8yrQhWyWoAcAbSnc981KCezEkbZzM5qvjAAAYoaaOB/ZNYxcENQB4CymqLZtoHsWApB/+T/NJXQEAMBJ51UATcXs5nzwL2AFBDQDe0nLx/pO2ivMYjmmVoloAAIxAimnP2xzT0o3OgB0R1ACgB20bD9PTVQxECmp378xXJwEAMFApop23dRxfLCb38lYcATskqAFAD/IpUs3Q9lOLmM/mq2kAAAzI90LaxxfzyYuAPRDUAKAnKaqdp6cnMRxHVcTnAQBQuBTRrvLpnUIapXgnAIDeNBGLFKmO02MWA5D/nHdOV4+/Op0M6mAFAGDc2putNJYpoD1P1ytLAY3SCGoA0KO8f8dsvrqXLvwu0i+HcZJmGyfpz/zFZsIOAGCn8gmd1c0BT5dNlb6+FecXv598E1AwQQ0Aepb3U5vN/3tRR/04BqKOeJqi2m0b+gIAu1bXcfpf88mzgAER1ABgC5aL95/cPl19VLVxN4ZhutlP7eMAANihtoknH8xXD6KKq7aqz+um+fpv6XLKjT5KJqgBwJa0bTxMT7MUqqYxAHnvtzvz1clXi8mQDlYAAIbvqE3XIXntZ6prd5u4OUExXZcsqyouo7r1/Lq5fpFXAQQUwimfALAl+a5qui58GMMyn81XgzhQAQAYvVm6QXm3ba7PUrz4Ywpsf8yHKf2raxUKIKgBwBZtNvof0sTXUbo4+DxFtWEcqAAAHJJpPkzpOuIix7UPFn++H7Anghq9aG6ONC7KUJZYAeP31WLyqE1tLYZjWlcxDwCAck3z5Jqwxr4IavSiKjCoAZQkBbV7MaT3ynT3dzZfHQcAQNm+C2vp2mUasCOCGmNmuRJQjLyJbhPNIgZks/RzGgAA5Ztu9lk7CdgBQY0xE9SAoiwX7z9p2+ZZDMdRFfE0AACG4/Gdf1+dBmyZoEZfLqNAt//wP78OgIK0VX3SFvqe+SopqB270wsADEodc1GNbXsnYMTab/8ySU/fBEAhlovJ1Wy+ephC1ZcxHI/Tn/k8/dmHdLACMBBNHQ+C8nz7lz8FDFmOavPV1VeLyZBOW2dABDX6UcVV3nG7OHXkCTUfAIGipDB1Ppv/96M66scxEJv91G7nIBgAPVrOJ0NaCg8MyzxdvzzPe9kG9MyST/rRXBd5Byu9wKcBUKD1fmpVnMdwTOsq5gEAMBz2g2VrBDV6UcWtMicWGkENKFfbxsP0NJyJrzZO0l3euwEAMBB5P1jXL2yDoEYvrgvdYLs1oQYULC8/aGId1QYjXTg8TRel0wAAGIgU1X4X0DNBjb4UOWGR3jhnAVCwFNWep6chbZZr6QQAMCibKbXjgB4JavSi4E0ep+mN8ygACtZELNpCJ31fJV+U3pmvTgIAYCDS9Yu9YOmVUz7p02WUuMSyjo/S//wiAAqVT85M8f9eutC7iOF4nP7My3xiaQDASAzpBldfqgPZJievXsrDFk4spy+CGn0q8o2pbuI4BDWgcOnibjmb//ejOurHMRCb/dRuuzAFYDTefe/44ve/+CYOUI5N1bvxy7i+CWx5P+q6jWl7s43OUfqNWZWfh+voVh2fpOdnAT0Q1OhPFcv8JhuFae2jBgzEcvH+k9unq0+qdn0jYAimdbVePvEoAIBB29wgy4+XQfHFD/93ZvP/mz5b1bOquvVJ+qB1PLTA1t5cYwlq9EJQo0+XUaDNBpRGe3csnwL4ToHj439L1wpeC5QsXeg93Cz9HMYFahsnd+arb75aTIZ0sAIA8AaWi39Z5qf0OMufsdq4vlvFrflglo0O56YlAyCo0Z/2Ot3JuBUlquu4n54+C3amjvi8KXM68HbcXARAkfIhL3k/tfQ99GUMxzz9mZ8XfEANANCzzU3qs1jHtf/3YCBhbWrYgr445ZPeNHGr2EjRNnE32Jk8nRZlxrSrvE9VQOE2G/0PaeLrKF1APw0A4CAtF786ayM+bqt4HqW7ObQO3pqgRp8uo1Avl30GO7HZU6k4rck0BqSJWAzpNZvfZ++crgZzoAIA0K88qX5xOrnXtk3Re5TVB3KqKdsnqNGbzdjsZRSqbuN3wW4UujdBJagxIPk9NQW1e1HoCcqv1MZJunlxHADAwWqr+qTom4IFHqTHMAlq9KuK8yhVtf6gZ0pty+7MVw+i0Ls+TV3w6xNeId/pbaJZxICkC4un3msB4HBtbgo+jEK17bBOJqVcghr9qoqeADoypbYTRS73XGvi64CBWS7efzKI/Uj+bmo/NQA4bJt9i8+iQFWZez0zQIIavWqaeBElu5lSmwZbcWe+Oo1Cp9Py2LkTCBmqdCf1YVvwkvofSheqd9P7wUkAAAeriSh1LzUTavRCUKNXmzsRJe/34yS6LdmEymKn0+yfxpCVvnTin5i7gQEAh2tzavlllEdQoxeCGr1ry172eXMSncmJ3qU3k8+jYE09qCVz8CObi9InMRz5BkbR7wsAwJYVum3F7T/8z68D3pKgRu+qYez189hJdP3ZLPUsey+C0pcjw2v4ajF5VPSpWT+Q9yi5c7p6HADAYWqv7WHMaAlq9K74fdQ28kRVimo2pHxLm2m/cg8iiPX+aed5yVzACKTX870oe2n9P2rXe1ceBwBwcJq4VeSNwPbbv0wC3pKgRu82+6hdRvmO0jfAl6Lam0sx7UF6Kn76pK3LPGEI3kQ+XKOJZhEDkt5rn6b3WvuVAMDhuYwCVXX8MuAtCWpsxzCWfWbrqPbB4s/3g042k2nDOODBck9GZrl4/0nbNqWenPUqUwfCAMDh2awSsVKEURLU2IqmjS9iOI7a5vrszr+v9wHjZ+QpkxTT8sbog9gXabPc8zJgZNqqPmmHMQ28loLa3Q9OV5/fqobx3gEA9EZQY5QENbZicxrdsN4465inUPTHFIymwSt9OF8dpzeNi/Tl72IgLPdkrPId3xTUHsaAtG3czY8AAA6JoMYoCWpsTxVPYnim6Zvij3dOV0+Ftb9bT6Wlv5Mm4sv0y2kMRJ7eWc4nQ1oWB53kmxdNNI8CAKBQVSWoMU6CGlvTtPFZDFUbD4S1iH+dr2bp7+Bx/rvIfycxMFXEecDIrfdTq7zWAQBgl94J2JK8HOn26eq8auM4huomrD24M18tq/rWk+vm+sXY9+PK02jpn/luupN0/zr/u2tjsJqIQZ2ECG+qbeNhdbMc20maAACwA4IaW5U+5C3Sh7zjGL5ZPrggj3R+MF+dt3X9vG6ar//zZq+4wfu3+Wr617r+pGqbvL/RLPJBDQMOaRtnDiPgUOTXeorhD9N71OcBAABsnaDGVuX9fW7n6a5YR5pRaHMgbJrjJn19Z766Sv9sy7aKZdXGi/Rh9vL/LCbLKFiOZ9/mQFjFR+nPPk3h7PiveaqlaYY8jPYjDiPg0KT32+ebE3hPAgAA2CpBja1r4/qzKm49jXE6Wge2FKXS88l1rCNb/v0cEa+iisu8MX5U9VXVNN/k38uPW5uTbv53DxNUeYnme5tlXtc3f56jJh8cUNe/jLY5qm4OETjaTJ5N//ry/7CNUQW070v/XOcX88mLgAOTlzlXecn2gA4PAUjXTmO9JBm09t33phe//8U3AcArCWps3XLxq7Pb89X8wD7gzdZXhi8vD9ub6a+Xv7zePG/i21v766t+s2lu/qvjANVxGnCA8t6VKbLf2+ynBgAAbIlTPtmJFHUeBezGmek0DlmKassmGu+5AACwRYIaO5H39mmrOA/YMid7Qn7Pff+J91wAANgeQY2dySd+BmxR08apkz3hRnrPfRib/RoBAIB+CWrsTD7xMz09CdiCfPjD8tOJaAsbOS43EfcCAADonaDGTuXleOtTL6FvdTwI4B+4kQEAANshqLFT+QS6FNQeBvQoL/V0EAG82uZGxjIAAIDeCGrsXJ6YcAIdfbHUE37a5kZGXvppPzUAAOiJoMZebE6gex7wFnJMS4+PA/hJN/upNcIzAAD0RFBjb/IJdPZT423kqRunesLrcSMDAAD6I6ixN5tlSB+LaryJpo4H6TVkXyjowI0MAADoh6DGXuXpIlGNrvIhBMv55FkAnTgYBgAA+iGosXeiGl2sY5pDCOCN5YNh0tOTAAAA3pigRhFENV5HimknYhq8va8Wk0fp/daSaQAAeEOCGsUQ1fhn0mviar1n2qeTzwLoRT7UIz1dBQAA0JmgRlE2Ue22k+h4KQfWHFrtmQb9yu+3TTQmPgEA4A0IahQnb5p9cTq511RxGhy0FNLO1zHNaZ6wFcvF+0/athGrAQCgI0GNYi1PJ4sm4jeWgB6mvF/axWKSY9plAFvTVvWJ91kAAOhGUKNoL5eAhhPpDkbeKD2F1Nv2S4PdyFPB6fvuYQAAAK9NUKN4+cNePpHOtNq4rQ8euJlKu22JJ+xW+p47t8weAABen6DGYORptRRbftPE9UNhbVxSLH2S/p3+xlQa7E9eZt9WcR4AAMDPEtQYnOXiV2fC2mic5cnDFEsf5UnEAPaqbddLP30vAgDAzxDUGCxhbZjamw/rT3JI+2oxeejQAShH/n5M35uPAgAA+EmCGoP3Mqy1dRynX54FRcrRs2njtL0JaY+ENChT+t48CwfBAADAT3onYCQu5pMX6enFbL5aRFwfV9Wt+1W7jmzsSZ5Gq1LkTLHz+ebfDzAATcQife/eTY9pAAAAPyKoMTqbyaez/EhxbSqu7db3I1rbxNcX9kaDwcl7Gqb3z3vpe/kiAACAHxHUGLUfxLWjqOOjuonjFH2O0wfFWfDWNnuiLXNAS3+nS5NoMA7p/XM5m//3ozrqxwEAAPwDQY2DsTlF8ovNI3Jgq+r4bZ5cy4EtlaFZCkJHwU/Ke6FVVZw3VSwFNBi35eL9J7dPV5+Y8P3/7d3NTcMwGAbgL0E9cEKdgI4AG8EI3HtBYgE2gE1ggsIGZYLScyDGTtMDUqUeKFGqPo8UyfItsWNFr38CAAC/CdQ4WX3A9tpf96VuG7Ll0OiqzgFbKucHnWjQ1v05tYRmKZZtnUO0sgqtjfc3Wzh3+srPp6rHFTrk9vqIAaU6bmJESn8N/iyluI06LgOyNsVzHuteYkSGHuuO3XeKu9yGFwF7LObn//5u5THlMffHpxiRIe771Ixx3PGdyCFUAezVbReNZlbVk4s+bCsB2yxtD+xOMTuWw7v7LZqbq+qCslJetrlc6qqzHJw1sRacAQAAwG4CNTiw64dVt5IjNc20BHBdebPCbchVbp99UJZnX5p1NZmsSnkxn5pxAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgOD/rws31UU0n8wAAAABJRU5ErkJggg==" : ImagotipoV_06__1__39317061_default;
 	const isLight = theme === "light";
 	const matrixData = (0, import_react.useMemo)(() => {
@@ -46701,10 +46903,6 @@ var ResumenPerforacionesReport = ({ parts, totalPartsCount, obraTitle = "VMC", t
 	const handlePrint = () => {
 		window.print();
 	};
-	const handleSaveTitle = () => {
-		if (tempTitle.trim() && onObraTitleChange) onObraTitleChange(tempTitle.trim());
-		setIsEditingTitle(false);
-	};
 	const handleExportExcel = () => {
 		const wb = utils.book_new();
 		const matrixRowsExport = [];
@@ -46751,10 +46949,7 @@ var ResumenPerforacionesReport = ({ parts, totalPartsCount, obraTitle = "VMC", t
 		writeFileSync(wb, `Resumen_Perforaciones_${obraTitle}_${Date.now()}.xlsx`);
 	};
 	const handleExportReimportableCsv = () => {
-		if (parts.length === 0) {
-			alert("No hay piezas cargadas para exportar.");
-			return;
-		}
+		if (parts.length === 0) return;
 		const csvContent = exportPartsToReimportableCsv(parts, obraTitle);
 		const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 		const link = document.createElement("a");
@@ -46778,231 +46973,117 @@ var ResumenPerforacionesReport = ({ parts, totalPartsCount, obraTitle = "VMC", t
 		year: "numeric"
 	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "space-y-6",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: `print:hidden rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border transition-colors ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-slate-900 border-slate-800 shadow-sm"}`,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "space-y-1",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "flex items-center gap-2 flex-wrap",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h3", {
-							className: `text-base font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-slate-100"}`,
+		className: "space-y-4",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: `print:hidden rounded-xl px-4 py-3 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 border transition-colors ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-slate-900 border-slate-800 shadow-sm"}`,
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-wrap items-center gap-2",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: `flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${omitCorrederas ? isLight ? "bg-purple-50 border-purple-300 text-purple-900" : "bg-purple-500/15 border-purple-500/40 text-purple-200" : isLight ? "bg-slate-50 border-slate-300 hover:border-blue-400 text-slate-700" : "bg-slate-950 border-slate-800 hover:border-amber-500/40 text-slate-200"}`,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							type: "checkbox",
+							checked: omitCorrederas,
+							onChange: (e) => setOmitCorrederas(e.target.checked),
+							className: isLight ? "accent-purple-600 w-3.5 h-3.5 rounded cursor-pointer" : "accent-purple-400 w-3.5 h-3.5 rounded cursor-pointer"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "flex items-center gap-1.5",
 							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building2, { className: `w-5 h-5 ${isLight ? "text-blue-600" : "text-amber-400"}` }),
-								"RESUMEN DE PERFORACIONES - OBRA:",
-								isEditingTitle ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "inline-flex items-center gap-1",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
-										type: "text",
-										value: tempTitle,
-										onChange: (e) => setTempTitle(e.target.value),
-										onKeyDown: (e) => e.key === "Enter" && handleSaveTitle(),
-										autoFocus: true,
-										className: `font-mono font-bold text-sm px-2 py-0.5 rounded border outline-none ${isLight ? "bg-blue-50 border-blue-400 text-blue-900" : "bg-slate-950 border-amber-400 text-amber-300"}`
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-										onClick: handleSaveTitle,
-										className: `p-1 rounded ${isLight ? "bg-blue-600 text-white" : "bg-amber-500 text-slate-950"}`,
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { className: "w-3.5 h-3.5" })
-									})]
-								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									onClick: () => {
-										setTempTitle(obraTitle);
-										setIsEditingTitle(true);
-									},
-									className: `font-mono font-extrabold cursor-pointer group flex items-center gap-1 underline decoration-dotted decoration-blue-400 ${isLight ? "text-blue-700 hover:text-blue-900" : "text-amber-400 hover:text-amber-300"}`,
-									title: "Clic para editar el nombre de la obra",
-									children: [obraTitle, /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pen, { className: "w-3.5 h-3.5 opacity-50 group-hover:opacity-100" })]
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(EyeOff, { className: "w-3.5 h-3.5 text-purple-600 dark:text-purple-400" }),
+								"Omitir correderas",
+								correderasSummary.totalCorrederasCount > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+									className: `px-1.5 py-0.2 rounded text-[10px] font-mono ${isLight ? "bg-purple-100 text-purple-800" : "bg-slate-800 text-purple-300"}`,
+									children: [correderasSummary.totalCorrederasCount, " u."]
 								})
 							]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: `text-[10px] font-bold px-2 py-0.5 rounded border ${isLight ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-amber-500/20 text-amber-300 border border-amber-500/30"}`,
-							children: "CINTER · ANÁLISIS DE PERFORACIONES POR ESPESOR & METROS"
 						})]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						className: `text-xs ${isLight ? "text-slate-500" : "text-slate-400"}`,
-						children: "Matriz de perforaciones clasificada por espesor de chapa/perfil y cálculo de metros lineales a mecanizar de cada diámetro."
-					})]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "flex flex-wrap items-center gap-3",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
-							className: `flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${isLight ? "bg-slate-50 border-slate-300 hover:border-blue-400 text-slate-700" : "bg-slate-950 border-slate-800 hover:border-amber-500/40 text-slate-200"}`,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
-								type: "checkbox",
-								checked: omitCorrederas,
-								onChange: (e) => setOmitCorrederas(e.target.checked),
-								className: isLight ? "accent-blue-600 w-4 h-4 rounded cursor-pointer" : "accent-amber-400 w-4 h-4 rounded cursor-pointer"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-								className: "flex items-center gap-1.5",
-								children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(EyeOff, { className: "w-3.5 h-3.5 text-purple-600" }),
-									"Omitir correderas",
-									correderasSummary.totalCorrederasCount > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-										className: `px-1.5 py-0.2 rounded text-[10px] font-mono ${isLight ? "bg-purple-100 text-purple-800" : "bg-slate-800 text-purple-300"}`,
-										children: [correderasSummary.totalCorrederasCount, " u."]
-									})
-								]
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
-							className: `flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${includeAnalytics ? isLight ? "bg-blue-50 border-blue-400 text-blue-900" : "bg-amber-500/15 border-amber-500/50 text-amber-200" : isLight ? "bg-slate-50 border-slate-300 hover:border-blue-400 text-slate-700" : "bg-slate-950 border-slate-800 hover:border-amber-500/40 text-slate-200"}`,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
-								type: "checkbox",
-								checked: includeAnalytics,
-								onChange: (e) => setIncludeAnalytics(e.target.checked),
-								className: isLight ? "accent-blue-600 w-4 h-4 rounded cursor-pointer" : "accent-amber-400 w-4 h-4 rounded cursor-pointer"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-								className: "flex items-center gap-1.5",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChartColumn, { className: `w-3.5 h-3.5 ${isLight ? "text-blue-600" : "text-amber-400"}` }), "Incluir Análisis de Datos en PDF"]
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-							onClick: handleExportReimportableCsv,
-							className: `px-3.5 py-1.5 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer border ${isLight ? "bg-blue-50 hover:bg-blue-100 text-blue-900 border-blue-300" : "bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700"}`,
-							title: "Descarga la planilla en formato CSV compatible para poder abrirlo o seguir agregándole datos y archivos después",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { className: "w-4 h-4" }), "Guardar en CSV"]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-							onClick: handleExportMatrixCsv,
-							className: `px-3 py-1.5 font-semibold text-xs rounded-lg transition-colors flex items-center gap-1 border cursor-pointer ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700"}`,
-							title: "Descargar la matriz de espesores y diámetros como CSV",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { className: "w-3.5 h-3.5" }), "CSV Matriz"]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-							onClick: handleExportExcel,
-							className: "px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileSpreadsheet, { className: "w-4 h-4" }), "Descargar Excel"]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-							onClick: handlePrint,
-							className: `px-3.5 py-1.5 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer ${isLight ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-amber-500 hover:bg-amber-400 text-slate-950"}`,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Printer, { className: "w-4 h-4" }), "Imprimir / Guardar PDF"]
-						})
-					]
-				})]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "grid grid-cols-2 sm:grid-cols-4 gap-4 print:hidden",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: `p-4 rounded-xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-slate-900 border-slate-800"}`,
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: `text-xs font-semibold mb-1 flex items-center gap-1 ${isLight ? "text-slate-500" : "text-slate-400"}`,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building2, { className: `w-3.5 h-3.5 ${isLight ? "text-blue-600" : "text-amber-400"}` }), "Obra / Proyecto"]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: `text-2xl font-black font-mono truncate ${isLight ? "text-blue-700" : "text-amber-400"}`,
-								children: obraTitle
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: `text-[11px] mt-1 ${isLight ? "text-slate-500" : "text-slate-500"}`,
-								children: [totalPartsCount.toLocaleString(), " piezas totales"]
-							})
-						]
 					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: `p-4 rounded-xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-slate-900 border-slate-800"}`,
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: `text-xs font-semibold mb-1 flex items-center gap-1 ${isLight ? "text-slate-500" : "text-slate-400"}`,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Wrench, { className: `w-3.5 h-3.5 ${isLight ? "text-blue-600" : "text-amber-400"}` }), "Total Perforaciones"]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: `text-2xl font-black font-mono ${isLight ? "text-slate-900" : "text-white"}`,
-								children: matrixData.grandTotalHoles.toLocaleString()
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: `text-[11px] mt-1 ${isLight ? "text-slate-500" : "text-slate-400"}`,
-								children: omitCorrederas ? "Sin contar correderas" : "Incluye todas las perforaciones"
-							})
-						]
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: `flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${includeAnalytics ? isLight ? "bg-blue-50 border-blue-400 text-blue-900" : "bg-amber-500/15 border-amber-500/50 text-amber-200" : isLight ? "bg-slate-50 border-slate-300 hover:border-blue-400 text-slate-700" : "bg-slate-950 border-slate-800 hover:border-amber-500/40 text-slate-200"}`,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							type: "checkbox",
+							checked: includeAnalytics,
+							onChange: (e) => setIncludeAnalytics(e.target.checked),
+							className: isLight ? "accent-blue-600 w-3.5 h-3.5 rounded cursor-pointer" : "accent-amber-400 w-3.5 h-3.5 rounded cursor-pointer"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "flex items-center gap-1.5",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChartColumn, { className: `w-3.5 h-3.5 ${isLight ? "text-blue-600" : "text-amber-400"}` }), "Incluir Análisis de Datos en PDF"]
+						})]
 					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: `p-4 rounded-xl border ${isLight ? "bg-blue-50/70 border-blue-200 shadow-sm" : "bg-slate-900 border-amber-500/30 bg-amber-500/[0.04]"}`,
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: `text-xs font-bold mb-1 flex items-center gap-1 ${isLight ? "text-blue-800" : "text-amber-400"}`,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Ruler, { className: "w-3.5 h-3.5" }), "METROS A MECANIZAR"]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: `text-2xl sm:text-3xl font-black font-mono ${isLight ? "text-blue-900" : "text-amber-300"}`,
-								children: [
-									matrixData.grandTotalMeters.toFixed(2),
-									" ",
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: `text-sm font-sans font-semibold ${isLight ? "text-blue-700" : "text-amber-400"}`,
-										children: "m"
-									})
-								]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: `text-[11px] mt-1 ${isLight ? "text-blue-800/80" : "text-slate-400"}`,
-								children: "Longitud lineal acumulada"
-							})
-						]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: `p-4 rounded-xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-slate-900 border-slate-800"}`,
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: `text-xs font-semibold mb-1 flex items-center gap-1 ${isLight ? "text-slate-500" : "text-slate-400"}`,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layers, { className: "w-3.5 h-3.5 text-blue-600" }), "Variedad de Espesores"]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: `text-2xl font-black font-mono ${isLight ? "text-slate-900" : "text-white"}`,
-								children: [
-									matrixData.matrixRows.length,
-									" ",
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: `text-xs font-sans ${isLight ? "text-slate-500" : "text-slate-400"}`,
-										children: "espesores"
-									})
-								]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: `text-[11px] mt-1 font-mono ${isLight ? "text-slate-500" : "text-slate-400"}`,
-								children: [
-									matrixData.matrixRows[0]?.thickness || 0,
-									" mm a ",
-									matrixData.matrixRows[matrixData.matrixRows.length - 1]?.thickness || 0,
-									" mm"
-								]
-							})
-						]
+					obraLogoUrl && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: `flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${showObraLogo ? isLight ? "bg-blue-50 border-blue-400 text-blue-900" : "bg-amber-500/15 border-amber-500/50 text-amber-200" : isLight ? "bg-slate-50 border-slate-300 hover:border-blue-400 text-slate-700" : "bg-slate-950 border-slate-800 hover:border-amber-500/40 text-slate-200"}`,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							type: "checkbox",
+							checked: showObraLogo,
+							onChange: (e) => setShowObraLogo(e.target.checked),
+							className: isLight ? "accent-blue-600 w-3.5 h-3.5 rounded cursor-pointer" : "accent-amber-400 w-3.5 h-3.5 rounded cursor-pointer"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "flex items-center gap-1.5",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Image, { className: `w-3.5 h-3.5 ${isLight ? "text-blue-600" : "text-amber-400"}` }), "Logo de obra en PDF"]
+						})]
 					})
 				]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "bg-white text-slate-900 p-6 sm:p-8 rounded-xl shadow-lg max-w-6xl mx-auto border border-slate-200 print:border-none print:shadow-none print:p-0 print:m-0 print:max-w-full font-sans",
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-wrap items-center gap-2",
 				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "border-b-2 border-blue-900 pb-4 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4",
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						onClick: handleExportReimportableCsv,
+						disabled: parts.length === 0,
+						className: `px-3 py-1.5 font-semibold text-xs rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border ${isLight ? "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`,
+						title: "Descarga la planilla en formato CSV compatible para poder abrirlo o seguir agregándole datos después",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { className: "w-3.5 h-3.5" }), "Planilla CSV"]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						onClick: handleExportMatrixCsv,
+						disabled: parts.length === 0,
+						className: `px-3 py-1.5 font-semibold text-xs rounded-lg transition-colors flex items-center gap-1 border cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${isLight ? "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`,
+						title: "Descargar la matriz de espesores y diámetros como CSV",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { className: "w-3.5 h-3.5" }), "CSV Matriz"]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						onClick: handleExportExcel,
+						disabled: parts.length === 0,
+						className: "px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileSpreadsheet, { className: "w-3.5 h-3.5" }), "Excel"]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						onClick: handlePrint,
+						className: `px-3.5 py-1.5 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer ${isLight ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-amber-500 hover:bg-amber-400 text-slate-950"}`,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Printer, { className: "w-3.5 h-3.5" }), "Imprimir / Guardar PDF"]
+					})
+				]
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "bg-white text-slate-900 p-6 sm:p-8 rounded-xl shadow-lg max-w-6xl mx-auto border border-slate-200 print:border-none print:shadow-none print:p-0 print:m-0 print:max-w-full font-sans",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "border-b-2 border-blue-900 pb-4 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "h-14 w-auto flex items-center justify-center bg-white shrink-0",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+								src: logoSrc,
+								alt: "CINTER Logo",
+								className: "h-12 w-auto object-contain"
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "text-xl sm:text-2xl font-black uppercase tracking-tight text-blue-950 flex items-center gap-2",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "RESUMEN DE PERFORACIONES" })
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "text-sm font-black text-blue-700 tracking-wide font-mono",
+								children: ["OBRA / PROYECTO: ", obraTitle]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "text-[11px] font-medium text-slate-600 uppercase tracking-wider",
+								children: "Análisis de Perforaciones de Taladrado y Punzonado CNC por Espesor y Diámetro"
+							})
+						] })]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-3 self-end sm:self-center",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex items-center gap-4",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: "h-14 w-auto flex items-center justify-center bg-white",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-									src: logoSrc,
-									alt: "CINTER Logo",
-									className: "h-12 w-auto object-contain"
-								})
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "text-xl sm:text-2xl font-black uppercase tracking-tight text-blue-950 flex items-center gap-2",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "RESUMEN DE PERFORACIONES" })
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "text-sm font-black text-blue-700 tracking-wide font-mono",
-									children: ["OBRA / PROYECTO: ", obraTitle]
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "text-[11px] font-medium text-slate-600 uppercase tracking-wider",
-									children: "Análisis de Perforaciones de Taladrado y Punzonado CNC por Espesor y Diámetro"
-								})
-							] })]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "text-right text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 space-y-0.5 print:bg-transparent print:border-none print:p-0",
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
@@ -47011,10 +47092,15 @@ var ResumenPerforacionesReport = ({ parts, totalPartsCount, obraTitle = "VMC", t
 									currentDate
 								] }),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Total Piezas:" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Piezas:" }),
 									" ",
 									totalPartsCount.toLocaleString(),
-									" u."
+									" u. · ",
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Total:" }),
+									" ",
+									matrixData.grandTotalHoles.toLocaleString(),
+									" ag. · ",
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: [matrixData.grandTotalMeters.toFixed(2), " m"] })
 								] }),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Condición:" }),
@@ -47022,410 +47108,417 @@ var ResumenPerforacionesReport = ({ parts, totalPartsCount, obraTitle = "VMC", t
 									omitCorrederas ? "Correderas Omitidas" : "Pasantes + Correderas"
 								] })
 							]
-						})]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "mb-6 space-y-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex items-center justify-between",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h4", {
-								className: "text-xs font-black uppercase tracking-wider text-blue-950 flex items-center gap-1.5",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Ruler, { className: "w-4 h-4 text-blue-700" }), "1. Matriz de Perforaciones: Espesores de Acero vs Diámetros de Herramienta"]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-								className: "text-[11px] text-slate-500 font-medium",
-								children: ["Valores en celdas: ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Cantidad de agujeros" })]
-							})]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "overflow-x-auto border border-slate-300 rounded-md",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("table", {
-								className: "w-full text-left text-xs border-collapse",
-								children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
-										className: "bg-blue-900 text-white font-bold uppercase text-[10px]",
-										children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-												className: "p-2 border-r border-blue-800 w-32",
-												children: "Espesor (mm)"
-											}),
-											matrixData.uniqueDiameters.map((d) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("th", {
-												className: "p-2 text-center border-r border-blue-800",
-												children: ["Ø ", d.toFixed(1)]
-											}, d)),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-												className: "p-2 text-right border-r border-blue-800 bg-blue-950/80 w-28",
-												children: "Total Agujeros"
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-												className: "p-2 text-right bg-blue-800 text-white font-black w-32",
-												children: "Metros (m)"
-											})
-										]
-									}) }),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", {
-										className: "divide-y divide-slate-200 font-mono text-xs",
-										children: matrixData.matrixRows.map((row, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
-											className: idx % 2 === 0 ? "bg-white" : "bg-slate-50/80",
-											children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
-													className: "p-2 font-bold text-slate-900 border-r border-slate-300 bg-slate-100/70 font-sans",
-													children: [
-														/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-															className: "font-mono text-xs font-black text-blue-900",
-															children: row.thickness.toFixed(1)
-														}),
-														" mm",
-														/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-															className: "text-[10px] text-slate-500 block font-normal font-sans",
-															children: [
-																"(",
-																row.participatingParts.length,
-																" marcas)"
-															]
-														})
-													]
-												}),
-												matrixData.uniqueDiameters.map((d) => {
-													const count = row.holesByDiameter[d] || 0;
-													return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-														className: `p-2 text-center border-r border-slate-200 ${count > 0 ? "font-bold text-slate-950" : "text-slate-300"}`,
-														children: count > 0 ? count.toLocaleString() : "-"
-													}, d);
-												}),
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-													className: "p-2 text-right font-bold text-slate-900 border-r border-slate-300 bg-slate-100/60",
-													children: row.totalHolesInThickness.toLocaleString()
-												}),
-												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
-													className: "p-2 text-right font-black text-blue-800 bg-blue-50/60",
-													children: [row.totalMetersInThickness.toFixed(2), " m"]
-												})
-											]
-										}, row.thickness))
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tfoot", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
-										className: "bg-slate-200 font-mono font-bold text-slate-950 border-t-2 border-slate-400",
-										children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-												className: "p-2 uppercase font-sans text-[10px] font-black border-r border-slate-300",
-												children: "Total Agujeros:"
-											}),
-											matrixData.uniqueDiameters.map((d) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-												className: "p-2 text-center border-r border-slate-300 text-slate-950 font-black",
-												children: (diameterTotals[d]?.holes || 0).toLocaleString()
-											}, d)),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-												className: "p-2 text-right font-black border-r border-slate-300 bg-slate-300",
-												children: matrixData.grandTotalHoles.toLocaleString()
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
-												className: "p-2 text-right font-black text-blue-900 bg-blue-100",
-												children: [matrixData.grandTotalMeters.toFixed(2), " m"]
-											})
-										]
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
-										className: "bg-blue-100/90 font-mono font-black text-blue-950 border-t border-blue-200 text-xs",
-										children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-												className: "p-2 uppercase font-sans text-[10px] font-black border-r border-blue-200 text-blue-900",
-												children: "Metros a Mecanizar (m):"
-											}),
-											matrixData.uniqueDiameters.map((d) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
-												className: "p-2 text-center border-r border-blue-200 text-blue-900 font-bold",
-												children: [(diameterTotals[d]?.meters || 0).toFixed(2), " m"]
-											}, d)),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-												className: "p-2 text-right border-r border-blue-200 font-sans text-[10px] text-blue-800",
-												children: "GRAN TOTAL:"
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
-												className: "p-2 text-right font-black text-blue-950 text-xs bg-blue-200",
-												children: [matrixData.grandTotalMeters.toFixed(2), " m"]
-											})
-										]
-									})] })
-								]
+						}), obraLogoUrl && showObraLogo && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "h-14 w-14 rounded-lg border border-slate-200 bg-white p-1 flex items-center justify-center shrink-0",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+								src: obraLogoUrl,
+								alt: `Logo ${obraTitle}`,
+								className: "max-h-full max-w-full object-contain"
 							})
 						})]
-					}),
-					!omitCorrederas && correderasSummary.list.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "mb-4 space-y-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex items-center justify-between border-b border-slate-300 pb-1",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h4", {
-								className: "text-xs font-black uppercase tracking-wider text-blue-950 flex items-center gap-1.5",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlidersHorizontal, { className: "w-4 h-4 text-purple-700" }), "2. Detalle de Correderas (Agujeros Ranurados)"]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-								className: "text-[11px] font-bold text-purple-800",
-								children: [
-									"Total: ",
-									correderasSummary.totalCorrederasCount.toLocaleString(),
-									" correderas | ",
-									correderasSummary.totalCorrederasMeters.toFixed(2),
-									" metros a mecanizar"
-								]
-							})]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "overflow-x-auto border border-slate-300 rounded-md",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("table", {
-								className: "w-full text-left text-xs border-collapse",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
-									className: "bg-purple-900 text-white font-bold uppercase text-[10px]",
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mb-6 space-y-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center justify-between",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h4", {
+							className: "text-xs font-black uppercase tracking-wider text-blue-950 flex items-center gap-1.5",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Ruler, { className: "w-4 h-4 text-blue-700" }), "1. Matriz de Perforaciones: Espesores de Acero vs Diámetros de Herramienta"]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "text-[11px] text-slate-500 font-medium",
+							children: ["Valores en celdas: ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Cantidad de agujeros" })]
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "overflow-x-auto border border-slate-300 rounded-md",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("table", {
+							className: "w-full text-left text-xs border-collapse",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
+									className: "bg-blue-900 text-white font-bold uppercase text-[10px]",
 									children: [
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-											className: "p-2 border-r border-purple-800",
-											children: "Marca / Pieza"
+											className: "p-2 border-r border-blue-800 w-32",
+											children: "Espesor (mm)"
+										}),
+										matrixData.uniqueDiameters.map((d) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("th", {
+											className: "p-2 text-center border-r border-blue-800",
+											children: ["Ø ", d.toFixed(1)]
+										}, d)),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
+											className: "p-2 text-right border-r border-blue-800 bg-blue-950/80 w-28",
+											children: "Total Agujeros"
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-											className: "p-2 border-r border-purple-800",
-											children: "Perfil"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-											className: "p-2 text-center border-r border-purple-800",
-											children: "Espesor"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-											className: "p-2 text-center border-r border-purple-800",
-											children: "Diámetro Base"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-											className: "p-2 text-center border-r border-purple-800",
-											children: "Dimensiones Corredera"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-											className: "p-2 text-center border-r border-purple-800",
-											children: "Cant. x Pza"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-											className: "p-2 text-right border-r border-purple-800",
-											children: "Total Correderas Lote"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-											className: "p-2 text-right",
-											children: "Metros Lineales (m)"
+											className: "p-2 text-right bg-blue-800 text-white font-black w-32",
+											children: "Metros (m)"
 										})
 									]
-								}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", {
+								}) }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", {
 									className: "divide-y divide-slate-200 font-mono text-xs",
-									children: correderasSummary.list.map((c, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
-										className: idx % 2 === 0 ? "bg-white" : "bg-purple-50/40",
+									children: matrixData.matrixRows.map((row, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
+										className: idx % 2 === 0 ? "bg-white" : "bg-slate-50/80",
 										children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-												className: "p-2 font-bold text-slate-900 border-r border-slate-200",
-												children: c.partId
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-												className: "p-2 text-slate-800 border-r border-slate-200 font-sans",
-												children: c.profile
-											}),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
-												className: "p-2 text-center border-r border-slate-200",
-												children: [c.thickness.toFixed(1), " mm"]
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
-												className: "p-2 text-center border-r border-slate-200 font-bold text-slate-900",
-												children: ["Ø ", c.diameter.toFixed(1)]
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-												className: "p-2 text-center border-r border-slate-200 font-bold text-purple-900 font-mono",
-												children: c.slot
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-												className: "p-2 text-center border-r border-slate-200",
-												children: c.countPerPiece
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-												className: "p-2 text-right font-black text-slate-900 border-r border-slate-200",
-												children: c.totalCount.toLocaleString()
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
-												className: "p-2 text-right font-bold text-purple-900",
-												children: [c.meters.toFixed(2), " m"]
-											})
-										]
-									}, idx))
-								})]
-							})
-						})]
-					}),
-					includeAnalytics && parts.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "mt-6 pt-5 border-t-2 border-blue-900 space-y-5 [print-color-adjust:exact]",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex items-center justify-between",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h4", {
-									className: "text-xs font-black uppercase tracking-wider text-blue-950 flex items-center gap-1.5",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChartColumn, { className: "w-4 h-4 text-blue-700" }),
-										!omitCorrederas && correderasSummary.list.length > 0 ? "3." : "2.",
-										" Análisis de Datos de Producción (Diámetros, Familias de Perfiles y Espesores)"
-									]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "text-[10px] font-semibold text-slate-600",
-									children: omitCorrederas ? "Calculado sin correderas" : "Incluye todas las perforaciones"
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "space-y-2 break-inside-avoid",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "text-[11px] font-black uppercase text-slate-800 flex items-center gap-1.5",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleDot, { className: "w-3.5 h-3.5 text-blue-700" }), "Diámetros de Perforación Frecuentes (Herramientas CNC)"]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "grid grid-cols-2 sm:grid-cols-4 print:grid-cols-4 gap-2.5",
-									children: analyticsData.paretoData.map((item, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "p-2.5 rounded-lg border border-slate-300 bg-slate-50 relative overflow-hidden",
-										children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-												className: "flex items-center justify-between text-[10px] mb-1",
-												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-													className: `font-black uppercase px-1.5 py-0.2 rounded ${idx === 0 ? "bg-blue-700 text-white" : "bg-slate-200 text-slate-800"}`,
-													children: ["#", idx + 1]
-												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-													className: "font-mono font-bold text-blue-800",
-													children: [item.percentage, "%"]
-												})]
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-												className: "text-lg font-black font-mono text-slate-950 leading-tight",
+												className: "p-2 font-bold text-slate-900 border-r border-slate-300 bg-slate-100/70 font-sans",
 												children: [
-													"Ø ",
-													item.diameter,
-													" ",
 													/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-														className: "text-[10px] font-sans font-semibold text-slate-600",
-														children: "mm"
+														className: "font-mono text-xs font-black text-blue-900",
+														children: row.thickness.toFixed(1)
+													}),
+													" mm",
+													/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+														className: "text-[10px] text-slate-500 block font-normal font-sans",
+														children: [
+															"(",
+															row.participatingParts.length,
+															" marcas)"
+														]
 													})
 												]
 											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-												className: "text-[10px] text-slate-700 truncate mb-1.5",
-												title: item.suggestedTool,
-												children: item.suggestedTool
+											matrixData.uniqueDiameters.map((d) => {
+												const count = row.holesByDiameter[d] || 0;
+												return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+													className: `p-2 text-center border-r border-slate-200 ${count > 0 ? "font-bold text-slate-950" : "text-slate-300"}`,
+													children: count > 0 ? count.toLocaleString() : "-"
+												}, d);
 											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-												className: "pt-1.5 border-t border-slate-200 flex items-center justify-between text-[10px] font-mono text-slate-800",
-												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: item.totalHolesProduction.toLocaleString() }), " u."] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: item.totalMeters }), " m"] })]
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+												className: "p-2 text-right font-bold text-slate-900 border-r border-slate-300 bg-slate-100/60",
+												children: row.totalHolesInThickness.toLocaleString()
 											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-												className: "absolute bottom-0 left-0 right-0 h-1 bg-blue-100",
-												children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-													className: "h-full bg-blue-700",
-													style: { width: `${Math.max(item.percentage, 5)}%` }
-												})
+											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
+												className: "p-2 text-right font-black text-blue-800 bg-blue-50/60",
+												children: [row.totalMetersInThickness.toFixed(2), " m"]
 											})
 										]
-									}, item.diameter))
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "space-y-2 break-inside-avoid",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "text-[11px] font-black uppercase text-slate-800 flex items-center gap-1.5",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Boxes, { className: "w-3.5 h-3.5 text-blue-700" }), "Consumo por Familia de Perfiles / Chapas"]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "grid grid-cols-2 sm:grid-cols-3 print:grid-cols-3 gap-2.5",
-									children: analyticsData.profileRanking.map((group) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "p-2.5 rounded-lg border border-slate-300 bg-slate-50",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-											className: "flex items-center justify-between mb-1",
-											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-												className: "text-xs font-black font-mono text-blue-950",
-												children: group.profileGroup
+									}, row.thickness))
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tfoot", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
+									className: "bg-slate-200 font-mono font-bold text-slate-950 border-t-2 border-slate-400",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+											className: "p-2 uppercase font-sans text-[10px] font-black border-r border-slate-300",
+											children: "Total Agujeros:"
+										}),
+										matrixData.uniqueDiameters.map((d) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+											className: "p-2 text-center border-r border-slate-300 text-slate-950 font-black",
+											children: (diameterTotals[d]?.holes || 0).toLocaleString()
+										}, d)),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+											className: "p-2 text-right font-black border-r border-slate-300 bg-slate-300",
+											children: matrixData.grandTotalHoles.toLocaleString()
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
+											className: "p-2 text-right font-black text-blue-900 bg-blue-100",
+											children: [matrixData.grandTotalMeters.toFixed(2), " m"]
+										})
+									]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
+									className: "bg-blue-100/90 font-mono font-black text-blue-950 border-t border-blue-200 text-xs",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+											className: "p-2 uppercase font-sans text-[10px] font-black border-r border-blue-200 text-blue-900",
+											children: "Metros a Mecanizar (m):"
+										}),
+										matrixData.uniqueDiameters.map((d) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
+											className: "p-2 text-center border-r border-blue-200 text-blue-900 font-bold",
+											children: [(diameterTotals[d]?.meters || 0).toFixed(2), " m"]
+										}, d)),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+											className: "p-2 text-right border-r border-blue-200 font-sans text-[10px] text-blue-800",
+											children: "GRAN TOTAL:"
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
+											className: "p-2 text-right font-black text-blue-950 text-xs bg-blue-200",
+											children: [matrixData.grandTotalMeters.toFixed(2), " m"]
+										})
+									]
+								})] })
+							]
+						})
+					})]
+				}),
+				!omitCorrederas && correderasSummary.list.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mb-4 space-y-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center justify-between border-b border-slate-300 pb-1",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h4", {
+							className: "text-xs font-black uppercase tracking-wider text-blue-950 flex items-center gap-1.5",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlidersHorizontal, { className: "w-4 h-4 text-purple-700" }), "2. Detalle de Correderas (Agujeros Ranurados)"]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "text-[11px] font-bold text-purple-800",
+							children: [
+								"Total: ",
+								correderasSummary.totalCorrederasCount.toLocaleString(),
+								" correderas | ",
+								correderasSummary.totalCorrederasMeters.toFixed(2),
+								" metros a mecanizar"
+							]
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "overflow-x-auto border border-slate-300 rounded-md",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("table", {
+							className: "w-full text-left text-xs border-collapse",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
+								className: "bg-purple-900 text-white font-bold uppercase text-[10px]",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
+										className: "p-2 border-r border-purple-800",
+										children: "Marca / Pieza"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
+										className: "p-2 border-r border-purple-800",
+										children: "Perfil"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
+										className: "p-2 text-center border-r border-purple-800",
+										children: "Espesor"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
+										className: "p-2 text-center border-r border-purple-800",
+										children: "Diámetro Base"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
+										className: "p-2 text-center border-r border-purple-800",
+										children: "Dimensiones Corredera"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
+										className: "p-2 text-center border-r border-purple-800",
+										children: "Cant. x Pza"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
+										className: "p-2 text-right border-r border-purple-800",
+										children: "Total Correderas Lote"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
+										className: "p-2 text-right",
+										children: "Metros Lineales (m)"
+									})
+								]
+							}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", {
+								className: "divide-y divide-slate-200 font-mono text-xs",
+								children: correderasSummary.list.map((c, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", {
+									className: idx % 2 === 0 ? "bg-white" : "bg-purple-50/40",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+											className: "p-2 font-bold text-slate-900 border-r border-slate-200",
+											children: c.partId
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+											className: "p-2 text-slate-800 border-r border-slate-200 font-sans",
+											children: c.profile
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
+											className: "p-2 text-center border-r border-slate-200",
+											children: [c.thickness.toFixed(1), " mm"]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
+											className: "p-2 text-center border-r border-slate-200 font-bold text-slate-900",
+											children: ["Ø ", c.diameter.toFixed(1)]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+											className: "p-2 text-center border-r border-slate-200 font-bold text-purple-900 font-mono",
+											children: c.slot
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+											className: "p-2 text-center border-r border-slate-200",
+											children: c.countPerPiece
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+											className: "p-2 text-right font-black text-slate-900 border-r border-slate-200",
+											children: c.totalCount.toLocaleString()
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
+											className: "p-2 text-right font-bold text-purple-900",
+											children: [c.meters.toFixed(2), " m"]
+										})
+									]
+								}, idx))
+							})]
+						})
+					})]
+				}),
+				includeAnalytics && parts.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mt-6 pt-5 border-t-2 border-blue-900 space-y-5 [print-color-adjust:exact]",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center justify-between",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h4", {
+								className: "text-xs font-black uppercase tracking-wider text-blue-950 flex items-center gap-1.5",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChartColumn, { className: "w-4 h-4 text-blue-700" }),
+									!omitCorrederas && correderasSummary.list.length > 0 ? "3." : "2.",
+									" Análisis de Datos de Producción (Diámetros, Familias de Perfiles y Espesores)"
+								]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "text-[10px] font-semibold text-slate-600",
+								children: omitCorrederas ? "Calculado sin correderas" : "Incluye todas las perforaciones"
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-2 break-inside-avoid",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "text-[11px] font-black uppercase text-slate-800 flex items-center gap-1.5",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleDot, { className: "w-3.5 h-3.5 text-blue-700" }), "Diámetros de Perforación Frecuentes (Herramientas CNC)"]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "grid grid-cols-2 sm:grid-cols-4 print:grid-cols-4 gap-2.5",
+								children: analyticsData.paretoData.map((item, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "p-2.5 rounded-lg border border-slate-300 bg-slate-50 relative overflow-hidden",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "flex items-center justify-between text-[10px] mb-1",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+												className: `font-black uppercase px-1.5 py-0.2 rounded ${idx === 0 ? "bg-blue-700 text-white" : "bg-slate-200 text-slate-800"}`,
+												children: ["#", idx + 1]
 											}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-												className: "text-[10px] font-mono text-slate-600",
-												children: [group.distinctPartsCount, " marcas"]
+												className: "font-mono font-bold text-blue-800",
+												children: [item.percentage, "%"]
 											})]
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-											className: "grid grid-cols-3 gap-1 pt-1.5 border-t border-slate-200 text-center font-mono text-[10px]",
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "text-lg font-black font-mono text-slate-950 leading-tight",
 											children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-													className: "bg-white rounded p-1 border border-slate-200",
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-														className: "text-[9px] text-slate-600 uppercase font-sans font-bold",
-														children: "Piezas"
-													}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-														className: "font-black text-slate-900",
-														children: [group.totalPartsQty, " u."]
-													})]
-												}),
-												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-													className: "bg-white rounded p-1 border border-slate-200",
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-														className: "text-[9px] text-slate-600 uppercase font-sans font-bold",
-														children: "Aguj."
-													}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-														className: "font-black text-blue-800",
-														children: group.totalHoles.toLocaleString()
-													})]
-												}),
-												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-													className: "bg-white rounded p-1 border border-slate-200",
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-														className: "text-[9px] text-slate-600 uppercase font-sans font-bold",
-														children: "Metros"
-													}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-														className: "font-black text-slate-900",
-														children: [group.totalMeters.toFixed(1), " m"]
-													})]
+												"Ø ",
+												item.diameter,
+												" ",
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+													className: "text-[10px] font-sans font-semibold text-slate-600",
+													children: "mm"
 												})
 											]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: "text-[10px] text-slate-700 truncate mb-1.5",
+											title: item.suggestedTool,
+											children: item.suggestedTool
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "pt-1.5 border-t border-slate-200 flex items-center justify-between text-[10px] font-mono text-slate-800",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: item.totalHolesProduction.toLocaleString() }), " u."] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: item.totalMeters }), " m"] })]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: "absolute bottom-0 left-0 right-0 h-1 bg-blue-100",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+												className: "h-full bg-blue-700",
+												style: { width: `${Math.max(item.percentage, 5)}%` }
+											})
+										})
+									]
+								}, item.diameter))
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-2 break-inside-avoid",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "text-[11px] font-black uppercase text-slate-800 flex items-center gap-1.5",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Boxes, { className: "w-3.5 h-3.5 text-blue-700" }), "Consumo por Familia de Perfiles / Chapas"]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "grid grid-cols-2 sm:grid-cols-3 print:grid-cols-3 gap-2.5",
+								children: analyticsData.profileRanking.map((group) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "p-2.5 rounded-lg border border-slate-300 bg-slate-50",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "flex items-center justify-between mb-1",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "text-xs font-black font-mono text-blue-950",
+											children: group.profileGroup
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+											className: "text-[10px] font-mono text-slate-600",
+											children: [group.distinctPartsCount, " marcas"]
 										})]
-									}, group.profileGroup))
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "space-y-2 break-inside-avoid",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "text-[11px] font-black uppercase text-slate-800 flex items-center gap-1.5",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Ruler, { className: "w-3.5 h-3.5 text-blue-700" }), "Distribución de Carga por Espesores (mm)"]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "space-y-2",
-									children: analyticsData.thicknessDistribution.map((item) => {
-										const widthPct = Math.round(item.totalMeters / analyticsData.maxThicknessMeters * 100);
-										return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-											className: "p-2.5 rounded-lg border border-slate-300 bg-slate-50",
-											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-												className: "flex items-center justify-between gap-2 mb-1.5 text-[11px]",
-												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-													className: "flex items-center gap-2",
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-														className: "px-2 py-0.5 rounded bg-blue-700 text-white font-black font-mono text-xs",
-														children: [item.thickness, " mm"]
-													}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-														className: "font-semibold text-slate-800",
-														children: [
-															item.distinctParts,
-															" marcas · ",
-															item.partsCount,
-															" piezas"
-														]
-													})]
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "grid grid-cols-3 gap-1 pt-1.5 border-t border-slate-200 text-center font-mono text-[10px]",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												className: "bg-white rounded p-1 border border-slate-200",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+													className: "text-[9px] text-slate-600 uppercase font-sans font-bold",
+													children: "Piezas"
 												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-													className: "flex items-center gap-3 font-mono text-slate-900",
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["Agujeros: ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
-														className: "text-blue-800",
-														children: item.totalHoles.toLocaleString()
-													})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["Metros: ", /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: [item.totalMeters, " m"] })] })]
+													className: "font-black text-slate-900",
+													children: [group.totalPartsQty, " u."]
 												})]
-											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-												className: "w-full h-2 rounded-full bg-slate-200 overflow-hidden border border-slate-300",
-												children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-													className: "h-full bg-blue-700 rounded-full",
-													style: { width: `${Math.max(widthPct, 4)}%` }
-												})
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												className: "bg-white rounded p-1 border border-slate-200",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+													className: "text-[9px] text-slate-600 uppercase font-sans font-bold",
+													children: "Aguj."
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+													className: "font-black text-blue-800",
+													children: group.totalHoles.toLocaleString()
+												})]
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												className: "bg-white rounded p-1 border border-slate-200",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+													className: "text-[9px] text-slate-600 uppercase font-sans font-bold",
+													children: "Metros"
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+													className: "font-black text-slate-900",
+													children: [group.totalMeters.toFixed(1), " m"]
+												})]
+											})
+										]
+									})]
+								}, group.profileGroup))
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-2 break-inside-avoid",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "text-[11px] font-black uppercase text-slate-800 flex items-center gap-1.5",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Ruler, { className: "w-3.5 h-3.5 text-blue-700" }), "Distribución de Carga por Espesores (mm)"]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "space-y-2",
+								children: analyticsData.thicknessDistribution.map((item) => {
+									const widthPct = Math.round(item.totalMeters / analyticsData.maxThicknessMeters * 100);
+									return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "p-2.5 rounded-lg border border-slate-300 bg-slate-50",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "flex items-center justify-between gap-2 mb-1.5 text-[11px]",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												className: "flex items-center gap-2",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+													className: "px-2 py-0.5 rounded bg-blue-700 text-white font-black font-mono text-xs",
+													children: [item.thickness, " mm"]
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+													className: "font-semibold text-slate-800",
+													children: [
+														item.distinctParts,
+														" marcas · ",
+														item.partsCount,
+														" piezas"
+													]
+												})]
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												className: "flex items-center gap-3 font-mono text-slate-900",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["Agujeros: ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+													className: "text-blue-800",
+													children: item.totalHoles.toLocaleString()
+												})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["Metros: ", /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: [item.totalMeters, " m"] })] })]
 											})]
-										}, item.thickness);
-									})
-								})]
-							})
-						]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "mt-4 pt-3 border-t border-slate-200 text-[10px] text-slate-500 text-center flex flex-col sm:flex-row justify-between items-center gap-1",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["CINTER S.A. · Documento de Análisis de Perforaciones emitido automáticamente · Obra: ", obraTitle] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["Fecha de emisión: ", currentDate] })]
-					})
-				]
-			})
-		]
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: "w-full h-2 rounded-full bg-slate-200 overflow-hidden border border-slate-300",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+												className: "h-full bg-blue-700 rounded-full",
+												style: { width: `${Math.max(widthPct, 4)}%` }
+											})
+										})]
+									}, item.thickness);
+								})
+							})]
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mt-4 pt-3 border-t border-slate-200 text-[10px] text-slate-500 text-center flex flex-col sm:flex-row justify-between items-center gap-1",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["CINTER S.A. · Documento de Análisis de Perforaciones emitido automáticamente · Obra: ", obraTitle] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["Fecha de emisión: ", currentDate] })]
+				})
+			]
+		})]
 	});
 };
 //#endregion
@@ -48317,7 +48410,7 @@ function App() {
 						totalHolesProduction,
 						headerMetadata,
 						obraTitle: projectName,
-						onObraTitleChange: setProjectName,
+						obraLogoUrl: activeObra.logoDataUrl,
 						theme
 					}),
 					activeTab === "analytics" && activeObra && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WorkshopAnalytics, {
@@ -48506,6 +48599,7 @@ function App() {
     --color-rose-200: oklch(89.2% .058 10.001);
     --color-rose-300: oklch(81% .117 11.638);
     --color-rose-400: oklch(71.2% .194 13.428);
+    --color-rose-500: oklch(64.5% .246 16.439);
     --color-rose-600: oklch(58.6% .253 17.585);
     --color-rose-700: oklch(51.4% .222 16.935);
     --color-rose-800: oklch(45.5% .188 13.697);
@@ -48972,6 +49066,10 @@ function App() {
     margin: var(--spacing);
   }
 
+  .mx-1 {
+    margin-inline: var(--spacing);
+  }
+
   .mx-2 {
     margin-inline: calc(var(--spacing) * 2);
   }
@@ -49219,6 +49317,10 @@ function App() {
     max-height: 500px;
   }
 
+  .max-h-full {
+    max-height: 100%;
+  }
+
   .min-h-\[380px\] {
     min-height: 380px;
   }
@@ -49265,6 +49367,10 @@ function App() {
 
   .w-8 {
     width: calc(var(--spacing) * 8);
+  }
+
+  .w-9 {
+    width: calc(var(--spacing) * 9);
   }
 
   .w-10 {
@@ -49347,8 +49453,16 @@ function App() {
     max-width: 160px;
   }
 
+  .max-w-\[180px\] {
+    max-width: 180px;
+  }
+
   .max-w-\[210px\] {
     max-width: 210px;
+  }
+
+  .max-w-full {
+    max-width: 100%;
   }
 
   .max-w-lg {
@@ -49602,6 +49716,12 @@ function App() {
     margin-inline-end: calc(var(--spacing) * calc(1 - var(--tw-space-x-reverse)));
   }
 
+  :where(.space-x-1\.5 > :not(:last-child)) {
+    --tw-space-x-reverse: 0;
+    margin-inline-start: calc(calc(var(--spacing) * 1.5) * var(--tw-space-x-reverse));
+    margin-inline-end: calc(calc(var(--spacing) * 1.5) * calc(1 - var(--tw-space-x-reverse)));
+  }
+
   .gap-y-1 {
     row-gap: var(--spacing);
   }
@@ -49644,6 +49764,10 @@ function App() {
     :where(.divide-slate-800\/80 > :not(:last-child)) {
       border-color: color-mix(in oklab, var(--color-slate-800) 80%, transparent);
     }
+  }
+
+  .self-end {
+    align-self: flex-end;
   }
 
   .truncate {
@@ -49977,6 +50101,10 @@ function App() {
     border-color: var(--color-purple-200);
   }
 
+  .border-purple-300 {
+    border-color: var(--color-purple-300);
+  }
+
   .border-purple-500 {
     border-color: var(--color-purple-500);
   }
@@ -49988,6 +50116,16 @@ function App() {
   @supports (color: color-mix(in lab, red, red)) {
     .border-purple-500\/30 {
       border-color: color-mix(in oklab, var(--color-purple-500) 30%, transparent);
+    }
+  }
+
+  .border-purple-500\/40 {
+    border-color: #ac4bff66;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .border-purple-500\/40 {
+      border-color: color-mix(in oklab, var(--color-purple-500) 40%, transparent);
     }
   }
 
@@ -50509,6 +50647,16 @@ function App() {
     }
   }
 
+  .bg-purple-500\/15 {
+    background-color: #ac4bff26;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-purple-500\/15 {
+      background-color: color-mix(in oklab, var(--color-purple-500) 15%, transparent);
+    }
+  }
+
   .bg-purple-500\/20 {
     background-color: #ac4bff33;
   }
@@ -50673,6 +50821,16 @@ function App() {
 
   .bg-slate-200 {
     background-color: var(--color-slate-200);
+  }
+
+  .bg-slate-200\/80 {
+    background-color: #e2e8f0cc;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-slate-200\/80 {
+      background-color: color-mix(in oklab, var(--color-slate-200) 80%, transparent);
+    }
   }
 
   .bg-slate-300 {
@@ -51651,6 +51809,10 @@ function App() {
     accent-color: var(--color-blue-600);
   }
 
+  .accent-purple-400 {
+    accent-color: var(--color-purple-400);
+  }
+
   .accent-purple-600 {
     accent-color: var(--color-purple-600);
   }
@@ -51927,6 +52089,11 @@ function App() {
   .duration-100 {
     --tw-duration: .1s;
     transition-duration: .1s;
+  }
+
+  .duration-150 {
+    --tw-duration: .15s;
+    transition-duration: .15s;
   }
 
   .duration-200 {
@@ -52211,6 +52378,16 @@ function App() {
       background-color: var(--color-rose-100);
     }
 
+    .hover\:bg-rose-500\/10:hover {
+      background-color: #ff23571a;
+    }
+
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-rose-500\/10:hover {
+        background-color: color-mix(in oklab, var(--color-rose-500) 10%, transparent);
+      }
+    }
+
     .hover\:bg-rose-700:hover {
       background-color: var(--color-rose-700);
     }
@@ -52292,6 +52469,16 @@ function App() {
     @supports (color: color-mix(in lab, red, red)) {
       .hover\:bg-slate-800\/60:hover {
         background-color: color-mix(in oklab, var(--color-slate-800) 60%, transparent);
+      }
+    }
+
+    .hover\:bg-slate-800\/80:hover {
+      background-color: #1d293dcc;
+    }
+
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-slate-800\/80:hover {
+        background-color: color-mix(in oklab, var(--color-slate-800) 80%, transparent);
       }
     }
 
@@ -52414,8 +52601,16 @@ function App() {
     cursor: grabbing;
   }
 
+  .disabled\:cursor-not-allowed:disabled {
+    cursor: not-allowed;
+  }
+
   .disabled\:opacity-30:disabled {
     opacity: .3;
+  }
+
+  .disabled\:opacity-40:disabled {
+    opacity: .4;
   }
 
   .disabled\:opacity-50:disabled {
@@ -52494,6 +52689,10 @@ function App() {
       border-top-style: var(--tw-border-style);
       border-top-width: calc(0px * var(--tw-divide-y-reverse));
       border-bottom-width: calc(0px * calc(1 - var(--tw-divide-y-reverse)));
+    }
+
+    .sm\:self-center {
+      align-self: center;
     }
 
     .sm\:p-5 {
@@ -52649,6 +52848,10 @@ function App() {
 
     .dark\:text-indigo-300 {
       color: var(--color-indigo-300);
+    }
+
+    .dark\:text-purple-400 {
+      color: var(--color-purple-400);
     }
 
     .dark\:text-sky-300 {

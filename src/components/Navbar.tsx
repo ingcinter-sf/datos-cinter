@@ -133,9 +133,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Center: EDITABLE PROJECT TITLE (only when an obra is active) */}
+          {/* Center: EDITABLE PROJECT TITLE (only when inside an active obra, not on Home) */}
           <div className="flex-1 max-w-md mx-2 hidden md:block">
-            {hasActiveObra ? (
+            {hasActiveObra && activeTab !== 'home' ? (
               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
                 isLight 
                   ? 'bg-slate-50 border-slate-300 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100' 
@@ -184,24 +184,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 )}
               </div>
-            ) : (
-              <div className={`text-center text-xs font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                Selecciona una tarjeta de obra o sincroniza tu carpeta <span className="font-mono font-bold">calculadora</span>
-              </div>
-            )}
+            ) : null}
           </div>
 
           {/* Quick Stats & Controls */}
           <div className="flex items-center gap-2">
             {/* Quick Stats Pill */}
-            {hasActiveObra ? (
+            {hasActiveObra && activeTab !== 'home' ? (
               <div className={`hidden lg:flex items-center gap-3 px-3 py-1.5 rounded-lg border text-xs ${
                 isLight 
                   ? 'bg-slate-50 border-slate-200 text-slate-700' 
                   : 'bg-slate-800/80 border-slate-700/60 text-slate-200'
               }`}>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                   <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Piezas:</span>
                   <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{totalParts}</span>
                 </div>
@@ -287,8 +283,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Mobile editable project title */}
-        {hasActiveObra && (
+        {/* Mobile editable project title (only when inside an active obra) */}
+        {hasActiveObra && activeTab !== 'home' && (
           <div className="block md:hidden pb-2">
             <div className={`flex items-center justify-between px-2.5 py-1 rounded border text-xs ${
               isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
@@ -309,27 +305,27 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
 
         {/* Navigation Tabs */}
-        <nav className={`flex space-x-1 sm:space-x-2 border-t pt-1 pb-2 overflow-x-auto ${
+        <nav className={`flex items-center space-x-1.5 border-t pt-2 pb-2 overflow-x-auto ${
           isLight ? 'border-slate-200' : 'border-slate-800/80'
         }`}>
           <button
             onClick={() => setActiveTab('home')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${
               activeTab === 'home'
                 ? isLight
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]'
-                  : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]'
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                  : 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
                 : isLight
-                  ? 'bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600'
-                  : 'bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400'
+                  ? 'bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900'
+                  : 'bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white'
             }`}
           >
             <LayoutGrid className="w-4 h-4" />
             <span>Inicio (Obras)</span>
             <span className={`text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${
               activeTab === 'home'
-                ? isLight ? 'bg-blue-800 text-blue-100' : 'bg-slate-950 text-amber-400'
-                : isLight ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+                ? isLight ? 'bg-blue-700 text-white' : 'bg-slate-950 text-amber-400'
+                : isLight ? 'bg-slate-200/80 text-slate-700' : 'bg-slate-800 text-slate-300'
             }`}>
               {totalObras}
             </span>
@@ -337,16 +333,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {hasActiveObra && (
             <>
+              <div className={`h-4 w-px mx-1 shrink-0 ${isLight ? 'bg-slate-300' : 'bg-slate-700'}`} />
+
               <button
                 onClick={() => setActiveTab('csv')}
-                className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${
                   activeTab === 'csv'
                     ? isLight
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]'
-                      : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      : 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
                     : isLight
-                      ? 'bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600'
-                      : 'bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400'
+                      ? 'bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900'
+                      : 'bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
                 <FileSpreadsheet className="w-4 h-4" />
@@ -355,23 +353,23 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               <button
                 onClick={() => setActiveTab('print')}
-                className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${
                   activeTab === 'print'
                     ? isLight
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]'
-                      : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      : 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
                     : isLight
-                      ? 'bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600'
-                      : 'bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400'
+                      ? 'bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900'
+                      : 'bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
                 <Printer className="w-4 h-4" />
                 <span className="flex items-center gap-1.5">
-                  <span>RESUMEN PERFORACIONES</span>
+                  <span>Resumen Perforaciones</span>
                   <span className={`text-[10px] font-black px-1.5 py-0.2 rounded font-mono ${
                     activeTab === 'print' 
-                      ? isLight ? 'bg-blue-800 text-blue-100' : 'bg-slate-950 text-amber-400'
-                      : isLight ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+                      ? isLight ? 'bg-blue-700 text-white' : 'bg-slate-950 text-amber-400'
+                      : isLight ? 'bg-slate-200/80 text-slate-700' : 'bg-slate-800 text-slate-300'
                   }`}>
                     {projectName}
                   </span>
@@ -380,14 +378,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               <button
                 onClick={() => setActiveTab('analytics')}
-                className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap cursor-pointer ${
                   activeTab === 'analytics'
                     ? isLight
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.22)]'
-                      : 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_14px_rgba(251,191,36,0.25)]'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      : 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
                     : isLight
-                      ? 'bg-white text-slate-700 border-blue-500 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-600'
-                      : 'bg-slate-900 text-slate-200 border-orange-500 shadow-xs hover:bg-slate-800 hover:text-orange-300 hover:border-orange-400'
+                      ? 'bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-900'
+                      : 'bg-transparent text-slate-300 border-transparent hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
                 <BarChart3 className="w-4 h-4" />

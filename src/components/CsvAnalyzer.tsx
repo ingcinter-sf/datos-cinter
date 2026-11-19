@@ -23,7 +23,9 @@ import {
   Layers,
   EyeOff,
   FolderPlus,
-  BookOpen
+  BookOpen,
+  X,
+  ChevronUp
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { GerdauCatalogModal } from './GerdauCatalogModal';
@@ -306,11 +308,26 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 }) => {
   const isLight = theme === 'light';
   const [isDragging, setIsDragging] = useState(false);
+  const [showUploadPanel, setShowUploadPanel] = useState(parts.length === 0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
   const [pasteMode, setPasteMode] = useState<'replace' | 'append'>('replace');
   const [showGerdauModal, setShowGerdauModal] = useState(false);
   const [lastParseResult, setLastParseResult] = useState<ParseResult | null>(null);
+
+  // Inline UI states replacing native prompt / confirm dialogs
+  const [addingHolePartId, setAddingHolePartId] = useState<string | null>(null);
+  const [newHoleDiameter, setNewHoleDiameter] = useState('17.5');
+  const [confirmDeletePartId, setConfirmDeletePartId] = useState<string | null>(null);
+  const [confirmClearTable, setConfirmClearTable] = useState(false);
+
+  // Keep upload panel open automatically when obra has no parts
+  useEffect(() => {
+    if (parts.length === 0) {
+      setShowUploadPanel(true);
+    }
+  }, [parts.length]);
 
   // New features requested by user:
   const [omitNoHoles, setOmitNoHoles] = useState(false); // "omitir piezas sin perforacion"
@@ -459,6 +476,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
   // Multiple files upload handler
   const handleFilesUpload = async (files: FileList | File[]) => {
+    setUploadError(null);
     try {
       const filesArray = Array.from(files);
       if (filesArray.length === 0) return;
@@ -484,9 +502,10 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
       }
 
       resetAllFilters();
+      setShowUploadPanel(false);
     } catch (err) {
       console.error('Error procesando archivos:', err);
-      alert('Hubo un error al procesar uno de los archivos. Asegúrate de que sean formatos compatibles (CSV, TXT, Excel).');
+      setUploadError('Hubo un error al procesar uno de los archivos. Asegúrate de que sean formatos compatibles (CSV, TXT, Excel).');
     }
   };
 
@@ -501,6 +520,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   // Process pasted text from Excel or CSV
   const handleProcessPastedText = () => {
     if (!pasteContent.trim()) return;
+    setUploadError(null);
     const parsed = parseMetallurgyCsv(pasteContent);
     setLastParseResult(parsed);
     setColMapping(parsed.detectedColumns);
@@ -515,6 +535,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
     resetAllFilters();
     setShowPasteModal(false);
+    setShowUploadPanel(false);
   };
 
   // Re-run parser with custom column mapping
@@ -597,11 +618,9 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     );
   };
 
-  // Add new hole to part
-  const handleAddHoleToPart = (partId: string) => {
-    const diamStr = prompt('Ingrese el nuevo diámetro en mm (ej: 14, 17.5, 21):', '17.5');
-    if (!diamStr) return;
-    const diam = parseFloat(diamStr.replace(',', '.'));
+  // Add new hole to part using inline diameter input
+  const handleConfirmAddHoleToPart = (partId: string) => {
+    const diam = parseFloat(newHoleDiameter.replace(',', '.'));
     if (isNaN(diam) || diam <= 0) return;
 
     setParts(prev =>
@@ -643,6 +662,8 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
         return p;
       })
     );
+    setAddingHolePartId(null);
+    setNewHoleDiameter('17.5');
   };
 
   // Delete hole
@@ -664,11 +685,10 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
     );
   };
 
-  // Delete piece
+  // Delete piece (inline confirmed)
   const handleDeletePart = (partId: string) => {
-    if (confirm(`¿Eliminar la pieza ${partId} de la planilla?`)) {
-      setParts(prev => prev.filter(p => p.partId !== partId));
-    }
+    setParts(prev => prev.filter(p => p.partId !== partId));
+    setConfirmDeletePartId(null);
   };
 
   // Update single thickness
@@ -992,7 +1012,7 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   // Export to CSV (Re-importable standard format so user can re-import and continue adding data later)
   const handleExportCsv = () => {
     if (sortedParts.length === 0) {
-      alert('No hay piezas en la planilla para exportar.');
+      setUploadError('No hay piezas visibles en la planilla para exportar.');
       return;
     }
     const csvContent = exportPartsToReimportableCsv(sortedParts, 'PLANILLA_PERFORACIONES');
@@ -1017,132 +1037,211 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
   const countNoHoles = parts.filter(p => p.holes.length === 0).length;
 
   return (
-    <div className="space-y-6">
-      {/* Upload Zone & Action Buttons */}
-      <div className={`border rounded-xl p-5 shadow-sm space-y-4 transition-colors ${
-        isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-100'
-      }`}>
-        {/* Upload Mode Selector & File List */}
-        <div className={`flex flex-wrap items-center justify-between gap-3 pb-3 border-b text-xs ${
-          isLight ? 'border-slate-200' : 'border-slate-800'
+    <div className="space-y-5">
+      {/* Inline Upload / Export Error Banner */}
+      {uploadError && (
+        <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs sm:text-sm ${
+          isLight ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-rose-950/50 border-rose-800 text-rose-200'
         }`}>
           <div className="flex items-center gap-2">
-            <span className={`font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Modo de Carga:</span>
-            <div className={`flex items-center p-1 rounded-lg border ${
-              isLight ? 'bg-slate-100 border-slate-300' : 'bg-slate-950 border-slate-800'
-            }`}>
-              <button
-                onClick={() => setUploadMode('append')}
-                className={`px-3 py-1 rounded-md transition-all font-semibold cursor-pointer ${
-                  uploadMode === 'append'
-                    ? isLight ? 'bg-blue-600 text-white shadow-xs' : 'bg-amber-500 text-slate-950 shadow-sm'
-                    : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
-                }`}
-                title="Añadir más archivos y sumar cantidades a la lista actual"
-              >
-                + Añadir a lo existente (Unificar)
-              </button>
-              <button
-                onClick={() => setUploadMode('replace')}
-                className={`px-3 py-1 rounded-md transition-all font-semibold cursor-pointer ${
-                  uploadMode === 'replace'
-                    ? isLight ? 'bg-blue-600 text-white shadow-xs' : 'bg-amber-500 text-slate-950 shadow-sm'
-                    : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
-                }`}
-                title="Reemplazar todo con los nuevos archivos"
-              >
-                Reemplazar todo
-              </button>
-            </div>
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{uploadError}</span>
           </div>
-
-          {/* Loaded Files Badges */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className={isLight ? 'text-slate-500' : 'text-slate-500'}>Archivos en lote:</span>
-            {loadedFiles.map((fn, idx) => (
-              <span
-                key={idx}
-                className={`px-2 py-0.5 rounded font-mono text-[11px] border flex items-center gap-1 ${
-                  isLight ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-slate-800 text-slate-300 border-slate-700'
-                }`}
-              >
-                <FileSpreadsheet className={`w-3 h-3 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-                {fn}
-              </span>
-            ))}
-          </div>
+          <button onClick={() => setUploadError(null)} className="p-1 rounded hover:bg-black/10 cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
         </div>
+      )}
 
-        {/* Dropzone & Buttons */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-          {/* Dropzone Area with MULTIPLE file support */}
-          <div
-            onDragOver={e => {
-              e.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={onDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`flex-1 border-2 border-dashed rounded-xl p-4 transition-all cursor-pointer flex items-center justify-center gap-4 ${
-              isDragging
-                ? isLight ? 'border-blue-500 bg-blue-50/70' : 'border-amber-400 bg-amber-500/10'
-                : isLight ? 'border-slate-300 hover:border-blue-500 bg-slate-50/80 hover:bg-blue-50/20' : 'border-slate-700 hover:border-amber-500/60 bg-slate-950/40 hover:bg-slate-950/80'
-            }`}
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              multiple
-              onChange={e => {
-                if (e.target.files && e.target.files.length > 0) {
-                  handleFilesUpload(e.target.files);
-                }
-              }}
-              accept=".csv,.txt,.xlsx,.xls,.tsv"
-              className="hidden"
-            />
-
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${
-              isLight ? 'bg-blue-100 border-blue-200 text-blue-600' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-            }`}>
-              <FolderPlus className="w-5 h-5" />
-            </div>
-
-            <div>
-              <div className={`text-sm font-bold flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                <span>Subir 1 o varios archivos CSV / Excel juntos</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded font-semibold border ${
-                  isLight ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                }`}>
-                  Selección múltiple admitida
+      {/* Upload Zone: Collapsible compact bar when parts already exist */}
+      {parts.length > 0 && !showUploadPanel ? (
+        <div className={`border rounded-xl px-4 py-2.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs transition-colors ${
+          isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-100'
+        }`}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              <FileSpreadsheet className={`w-4 h-4 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+              Archivos ({loadedFiles.length}):
+            </span>
+            {loadedFiles.length === 0 ? (
+              <span className="text-slate-500 italic">Carga manual / planilla editada</span>
+            ) : (
+              loadedFiles.slice(0, 4).map((fn, idx) => (
+                <span
+                  key={idx}
+                  className={`px-2 py-0.5 rounded font-mono text-[11px] border truncate max-w-[180px] ${
+                    isLight ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-slate-800 text-slate-300 border-slate-700'
+                  }`}
+                  title={fn}
+                >
+                  {fn}
                 </span>
-              </div>
-              <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                {uploadMode === 'append'
-                  ? 'Los archivos nuevos se sumarán a la planilla actual (unifica marcas repetidas sumando cantidades).'
-                  : 'Los archivos nuevos reemplazarán la planilla actual.'}
-              </p>
-            </div>
+              ))
+            )}
+            {loadedFiles.length > 4 && (
+              <span className={`px-2 py-0.5 rounded font-mono text-[11px] ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-800 text-slate-300'}`}>
+                +{loadedFiles.length - 4} más
+              </span>
+            )}
           </div>
 
-          {/* Quick Paste & Manual Adjust Buttons */}
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <button
+              type="button"
               onClick={() => setShowPasteModal(true)}
-              className={`px-3.5 py-2.5 rounded-lg font-medium text-xs flex items-center gap-2 transition-colors cursor-pointer border ${
-                isLight 
-                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300' 
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+              className={`px-2.5 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1.5 border cursor-pointer transition-colors ${
+                isLight ? 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
               }`}
             >
-              <ClipboardCopy className={`w-4 h-4 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-              <span>Pegar desde Excel (Ctrl+V)</span>
+              <ClipboardCopy className={`w-3.5 h-3.5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+              <span>Pegar Excel</span>
             </button>
-
+            <button
+              type="button"
+              onClick={() => setShowUploadPanel(true)}
+              className={`px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-colors ${
+                isLight ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+              }`}
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Sumar / Reemplazar CSV</span>
+            </button>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className={`border rounded-xl p-5 shadow-sm space-y-4 transition-colors ${
+          isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-100'
+        }`}>
+          {/* Upload Mode Selector & File List */}
+          <div className={`flex flex-wrap items-center justify-between gap-3 pb-3 border-b text-xs ${
+            isLight ? 'border-slate-200' : 'border-slate-800'
+          }`}>
+            <div className="flex items-center gap-2">
+              <span className={`font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Modo de Carga:</span>
+              <div className={`flex items-center p-1 rounded-lg border ${
+                isLight ? 'bg-slate-100 border-slate-300' : 'bg-slate-950 border-slate-800'
+              }`}>
+                <button
+                  onClick={() => setUploadMode('append')}
+                  className={`px-3 py-1 rounded-md transition-all font-semibold cursor-pointer ${
+                    uploadMode === 'append'
+                      ? isLight ? 'bg-blue-600 text-white shadow-xs' : 'bg-amber-500 text-slate-950 shadow-sm'
+                      : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Añadir más archivos y sumar cantidades a la lista actual"
+                >
+                  + Añadir a lo existente (Unificar)
+                </button>
+                <button
+                  onClick={() => setUploadMode('replace')}
+                  className={`px-3 py-1 rounded-md transition-all font-semibold cursor-pointer ${
+                    uploadMode === 'replace'
+                      ? isLight ? 'bg-blue-600 text-white shadow-xs' : 'bg-amber-500 text-slate-950 shadow-sm'
+                      : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Reemplazar todo con los nuevos archivos"
+                >
+                  Reemplazar todo
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              {loadedFiles.map((fn, idx) => (
+                <span
+                  key={idx}
+                  className={`px-2 py-0.5 rounded font-mono text-[11px] border flex items-center gap-1 ${
+                    isLight ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-slate-800 text-slate-300 border-slate-700'
+                  }`}
+                >
+                  <FileSpreadsheet className={`w-3 h-3 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+                  {fn}
+                </span>
+              ))}
+
+              {parts.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowUploadPanel(false)}
+                  className={`px-2.5 py-1 rounded-lg border text-xs font-semibold flex items-center gap-1 cursor-pointer ${
+                    isLight ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+                  }`}
+                >
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  <span>Ocultar panel</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Dropzone & Buttons */}
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+            <div
+              onDragOver={e => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={onDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`flex-1 border-2 border-dashed rounded-xl p-4 transition-all cursor-pointer flex items-center justify-center gap-4 ${
+                isDragging
+                  ? isLight ? 'border-blue-500 bg-blue-50/70' : 'border-amber-400 bg-amber-500/10'
+                  : isLight ? 'border-slate-300 hover:border-blue-500 bg-slate-50/80 hover:bg-blue-50/20' : 'border-slate-700 hover:border-amber-500/60 bg-slate-950/40 hover:bg-slate-950/80'
+              }`}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                multiple
+                onChange={e => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    handleFilesUpload(e.target.files);
+                  }
+                }}
+                accept=".csv,.txt,.xlsx,.xls,.tsv"
+                className="hidden"
+              />
+
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${
+                isLight ? 'bg-blue-100 border-blue-200 text-blue-600' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+              }`}>
+                <FolderPlus className="w-5 h-5" />
+              </div>
+
+              <div>
+                <div className={`text-sm font-bold flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <span>Subir 1 o varios archivos CSV / Excel juntos</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-semibold border ${
+                    isLight ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                  }`}>
+                    Selección múltiple admitida
+                  </span>
+                </div>
+                <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  {uploadMode === 'append'
+                    ? 'Los archivos nuevos se sumarán a la planilla actual (unifica marcas repetidas sumando cantidades).'
+                    : 'Los archivos nuevos reemplazarán la planilla actual.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                onClick={() => setShowPasteModal(true)}
+                className={`px-3.5 py-2.5 rounded-lg font-medium text-xs flex items-center gap-2 transition-colors cursor-pointer border ${
+                  isLight 
+                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300' 
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                }`}
+              >
+                <ClipboardCopy className={`w-4 h-4 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+                <span>Pegar desde Excel (Ctrl+V)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* KPI Production Summary Cards (Dynamically reflects filters and omit toggle) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -1380,22 +1479,42 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
           {/* Export & Manage Actions */}
           <div className="flex flex-wrap items-center gap-2">
             {parts.length > 0 && onClearAll && (
-              <button
-                onClick={() => {
-                  if (confirm('¿Vaciar toda la planilla para cargar un archivo nuevo desde cero?')) {
-                    onClearAll();
-                  }
-                }}
-                className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors flex items-center gap-1 cursor-pointer ${
-                  isLight 
-                    ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200' 
-                    : 'bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border-rose-900'
-                }`}
-                title="Vaciar la planilla actual"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                Vaciar
-              </button>
+              confirmClearTable ? (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClearAll();
+                      setConfirmClearTable(false);
+                    }}
+                    className="text-xs font-bold px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white cursor-pointer"
+                  >
+                    Confirmar vaciar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmClearTable(false)}
+                    className={`text-xs font-semibold px-2 py-1.5 rounded-lg border cursor-pointer ${
+                      isLight ? 'bg-slate-100 border-slate-300 text-slate-700' : 'bg-slate-800 border-slate-700 text-slate-300'
+                    }`}
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmClearTable(true)}
+                  className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors flex items-center gap-1 cursor-pointer ${
+                    isLight 
+                      ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200' 
+                      : 'bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border-rose-900'
+                  }`}
+                  title="Vaciar la planilla actual"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Vaciar
+                </button>
+              )
             )}
 
             <button
@@ -1746,17 +1865,112 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                           </div>
                         ))}
 
-                        <button
-                          onClick={() => handleAddHoleToPart(part.partId)}
-                          className="text-[10px] text-amber-400 hover:text-amber-300 font-sans font-medium flex items-center gap-1 cursor-pointer pt-0.5"
-                        >
-                          <Plus className="w-3 h-3" /> Agregar otro diámetro
-                        </button>
+                        {addingHolePartId === part.partId ? (
+                          <div className={`mt-1 flex items-center gap-1.5 p-1.5 rounded-lg border ${
+                            isLight ? 'bg-blue-50/70 border-blue-200' : 'bg-slate-950 border-slate-700'
+                          }`}>
+                            <span className={`text-[10px] font-sans font-bold ${isLight ? 'text-blue-900' : 'text-amber-300'}`}>Ø</span>
+                            <input
+                              type="text"
+                              value={newHoleDiameter}
+                              onChange={e => setNewHoleDiameter(e.target.value)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') handleConfirmAddHoleToPart(part.partId);
+                                if (e.key === 'Escape') setAddingHolePartId(null);
+                              }}
+                              placeholder="17.5"
+                              autoFocus
+                              className={`w-16 px-1.5 py-0.5 rounded border text-xs font-mono font-bold outline-none ${
+                                isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-700 text-white'
+                              }`}
+                            />
+                            <span className="text-[10px] text-slate-500 font-sans">mm</span>
+                            <button
+                              type="button"
+                              onClick={() => handleConfirmAddHoleToPart(part.partId)}
+                              className={`px-2 py-0.5 rounded text-[10px] font-sans font-bold cursor-pointer ${
+                                isLight ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-amber-500 text-slate-950 hover:bg-amber-400'
+                              }`}
+                            >
+                              Agregar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setAddingHolePartId(null)}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-sans cursor-pointer ${
+                                isLight ? 'text-slate-600 hover:bg-slate-200' : 'text-slate-400 hover:bg-slate-800'
+                              }`}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setAddingHolePartId(part.partId);
+                              setNewHoleDiameter('17.5');
+                            }}
+                            className={`text-[10px] font-sans font-semibold flex items-center gap-1 cursor-pointer pt-0.5 ${
+                              isLight ? 'text-blue-700 hover:text-blue-900' : 'text-amber-400 hover:text-amber-300'
+                            }`}
+                          >
+                            <Plus className="w-3 h-3" /> Agregar otro diámetro
+                          </button>
+                        )}
                       </div>
                     ) : (
-                      <span className="text-slate-500 italic text-[11px]">
-                        Sin perforaciones especificadas
-                      </span>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-slate-500 italic text-[11px]">
+                          Sin perforaciones especificadas
+                        </span>
+                        {addingHolePartId === part.partId ? (
+                          <div className={`flex items-center gap-1 p-1 rounded border ${
+                            isLight ? 'bg-blue-50 border-blue-200' : 'bg-slate-950 border-slate-700'
+                          }`}>
+                            <input
+                              type="text"
+                              value={newHoleDiameter}
+                              onChange={e => setNewHoleDiameter(e.target.value)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') handleConfirmAddHoleToPart(part.partId);
+                                if (e.key === 'Escape') setAddingHolePartId(null);
+                              }}
+                              autoFocus
+                              className={`w-14 px-1 py-0.5 rounded border text-xs font-mono font-bold outline-none ${
+                                isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-700 text-white'
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleConfirmAddHoleToPart(part.partId)}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-sans font-bold cursor-pointer ${
+                                isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950'
+                              }`}
+                            >
+                              OK
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setAddingHolePartId(null)}
+                              className="text-[10px] px-1 text-slate-500 cursor-pointer"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setAddingHolePartId(part.partId);
+                              setNewHoleDiameter('17.5');
+                            }}
+                            className={`text-[10px] font-sans font-semibold flex items-center gap-1 cursor-pointer ${
+                              isLight ? 'text-blue-700 hover:text-blue-900' : 'text-amber-400 hover:text-amber-300'
+                            }`}
+                          >
+                            <Plus className="w-3 h-3" /> Agregar
+                          </button>
+                        )}
+                      </div>
                     )}
                   </td>
 
@@ -1840,13 +2054,36 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
                   {/* Action */}
                   <td className="py-3.5 px-3 text-center align-top">
-                    <button
-                      onClick={() => handleDeletePart(part.partId)}
-                      className="p-1 rounded text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
-                      title="Eliminar pieza"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {confirmDeletePartId === part.partId ? (
+                      <div className="flex flex-col items-center gap-1 font-sans">
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePart(part.partId)}
+                          className="px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold cursor-pointer"
+                        >
+                          Borrar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeletePartId(null)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-semibold cursor-pointer ${
+                            isLight ? 'bg-slate-200 text-slate-700' : 'bg-slate-800 text-slate-300'
+                          }`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeletePartId(part.partId)}
+                        className={`p-1 rounded transition-colors cursor-pointer ${
+                          isLight ? 'text-slate-400 hover:text-rose-600 hover:bg-rose-50' : 'text-slate-500 hover:text-rose-400 hover:bg-rose-500/10'
+                        }`}
+                        title="Eliminar pieza"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -1931,7 +2168,9 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
         {/* Pagination Bar */}
         {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-400">
+          <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs ${
+            isLight ? 'text-slate-600' : 'text-slate-400'
+          }`}>
             <div className="flex items-center gap-2">
               <span>Filas por página:</span>
               <select
@@ -1940,7 +2179,9 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
                   setPageSize(parseInt(e.target.value, 10));
                   setCurrentPage(1);
                 }}
-                className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
+                className={`border rounded px-2 py-1 ${
+                  isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
+                }`}
               >
                 <option value={25}>25</option>
                 <option value={50}>50</option>
@@ -1956,19 +2197,25 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-200 cursor-pointer"
+                className={`p-1.5 rounded border disabled:opacity-30 cursor-pointer ${
+                  isLight ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
+                }`}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
 
-              <span className="px-3 py-1 bg-slate-950 border border-slate-800 rounded font-mono font-bold text-amber-400">
+              <span className={`px-3 py-1 border rounded font-mono font-bold ${
+                isLight ? 'bg-slate-50 border-slate-300 text-blue-700' : 'bg-slate-950 border-slate-800 text-amber-400'
+              }`}>
                 {currentPage} / {totalPages}
               </span>
 
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-200 cursor-pointer"
+                className={`p-1.5 rounded border disabled:opacity-30 cursor-pointer ${
+                  isLight ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
+                }`}
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -1979,40 +2226,46 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
 
       {/* MODAL: PASTE FROM EXCEL OR TEXT */}
       {showPasteModal && (
-        <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <ClipboardCopy className="w-5 h-5 text-amber-400" />
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+          <div className={`border rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 ${
+            isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-white'
+          }`}>
+            <div className={`flex items-center justify-between pb-2 border-b ${
+              isLight ? 'border-slate-200' : 'border-slate-800'
+            }`}>
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <ClipboardCopy className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
                 Pegar Datos Directamente desde Excel o Archivo de Texto
               </h3>
               <button
                 onClick={() => setShowPasteModal(false)}
-                className="text-slate-400 hover:text-white text-sm font-bold p-1 cursor-pointer"
+                className={`text-sm font-bold p-1 cursor-pointer ${
+                  isLight ? 'text-slate-500 hover:text-slate-900' : 'text-slate-400 hover:text-white'
+                }`}
               >
                 ✕
               </button>
             </div>
 
             <div className="flex items-center gap-4 text-xs">
-              <span className="text-slate-400 font-semibold">Acción al procesar:</span>
-              <label className="flex items-center gap-1.5 text-slate-200 cursor-pointer">
+              <span className={`font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Acción al procesar:</span>
+              <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="radio"
                   name="pasteMode"
                   checked={pasteMode === 'append'}
                   onChange={() => setPasteMode('append')}
-                  className="accent-amber-400"
+                  className={isLight ? 'accent-blue-600' : 'accent-amber-400'}
                 />
                 Sumar a las piezas existentes (+ Unificar)
               </label>
-              <label className="flex items-center gap-1.5 text-slate-200 cursor-pointer">
+              <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="radio"
                   name="pasteMode"
                   checked={pasteMode === 'replace'}
                   onChange={() => setPasteMode('replace')}
-                  className="accent-amber-400"
+                  className={isLight ? 'accent-blue-600' : 'accent-amber-400'}
                 />
                 Reemplazar todo
               </label>
@@ -2023,25 +2276,33 @@ export const CsvAnalyzer: React.FC<CsvAnalyzerProps> = ({
               value={pasteContent}
               onChange={e => setPasteContent(e.target.value)}
               placeholder={`Parte ,Perfil ,Cant. Partes,Diametro ,Agujeros por partes\nA80000 ,PL7.9*64 ,82 , ,\n , , , 17.5 , 2\nA80001 ,LP70*60*3.2 ,1 , ,\n , , , 14.0 , 4`}
-              className="w-full p-3 bg-slate-950 border border-slate-700 rounded-xl font-mono text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-400"
+              className={`w-full p-3 border rounded-xl font-mono text-xs focus:outline-none ${
+                isLight
+                  ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500'
+                  : 'bg-slate-950 border-slate-700 text-slate-200 placeholder-slate-600 focus:border-amber-400'
+              }`}
             />
 
             <div className="flex items-center justify-between pt-2">
-              <span className="text-[11px] text-slate-500">
+              <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
                 Detecta tabulaciones, comas o puntos y comas automáticamente.
               </span>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setShowPasteModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                  className={`px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer ${
+                    isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                  }`}
                 >
                   Cancelar
                 </button>
                 <button
                   type="button"
                   onClick={handleProcessPastedText}
-                  className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5"
+                  className={`px-4 py-2 rounded-lg text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5 ${
+                    isLight ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                  }`}
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   Procesar y Unificar

@@ -2,18 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { 
   Printer, 
   FileSpreadsheet, 
-  Layers, 
-  Wrench, 
   Ruler, 
   EyeOff, 
-  Building2, 
   SlidersHorizontal,
-  Edit2,
-  Check,
   Download,
   BarChart3,
   Boxes,
-  CircleDot
+  CircleDot,
+  Image as ImageIcon
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { PartRecord, DiameterSummary } from '../types';
@@ -27,21 +23,20 @@ interface ResumenPerforacionesReportProps {
   totalHolesProduction: number;
   headerMetadata: string[];
   obraTitle: string;
+  obraLogoUrl?: string;
   theme?: 'light' | 'dark';
-  onObraTitleChange?: (title: string) => void;
 }
 
 export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProps> = ({
   parts,
   totalPartsCount,
   obraTitle = 'VMC',
+  obraLogoUrl,
   theme = 'light',
-  onObraTitleChange,
 }) => {
   const [omitCorrederas, setOmitCorrederas] = useState(false);
   const [includeAnalytics, setIncludeAnalytics] = useState(false);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [tempTitle, setTempTitle] = useState(obraTitle);
+  const [showObraLogo, setShowObraLogo] = useState(true);
 
   const logoSrc = typeof window !== 'undefined' ? (localStorage.getItem('cinter_custom_logo') || defaultLogo) : defaultLogo;
 
@@ -241,13 +236,6 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
     window.print();
   };
 
-  const handleSaveTitle = () => {
-    if (tempTitle.trim() && onObraTitleChange) {
-      onObraTitleChange(tempTitle.trim());
-    }
-    setIsEditingTitle(false);
-  };
-
   // Export Matrix to Excel
   const handleExportExcel = () => {
     const wb = XLSX.utils.book_new();
@@ -315,10 +303,7 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
 
   // Export full parts and holes in re-importable metallurgy CSV format (to continue adding data later)
   const handleExportReimportableCsv = () => {
-    if (parts.length === 0) {
-      alert('No hay piezas cargadas para exportar.');
-      return;
-    }
+    if (parts.length === 0) return;
     const csvContent = exportPartsToReimportableCsv(parts, obraTitle);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -353,72 +338,21 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
   });
 
   return (
-    <div className="space-y-6">
-      {/* Top Action Bar (hidden when printing) */}
-      <div className={`print:hidden rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border transition-colors ${
+    <div className="space-y-4">
+      {/* Compact Print & Export Action Bar (hidden when printing) */}
+      <div className={`print:hidden rounded-xl px-4 py-3 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 border transition-colors ${
         isLight 
           ? 'bg-white border-slate-200 shadow-sm' 
           : 'bg-slate-900 border-slate-800 shadow-sm'
       }`}>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className={`text-base font-bold flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-              <Building2 className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-              RESUMEN DE PERFORACIONES - OBRA:
-              
-              {isEditingTitle ? (
-                <div className="inline-flex items-center gap-1">
-                  <input
-                    type="text"
-                    value={tempTitle}
-                    onChange={(e) => setTempTitle(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSaveTitle()}
-                    autoFocus
-                    className={`font-mono font-bold text-sm px-2 py-0.5 rounded border outline-none ${
-                      isLight ? 'bg-blue-50 border-blue-400 text-blue-900' : 'bg-slate-950 border-amber-400 text-amber-300'
-                    }`}
-                  />
-                  <button 
-                    onClick={handleSaveTitle}
-                    className={`p-1 rounded ${isLight ? 'bg-blue-600 text-white' : 'bg-amber-500 text-slate-950'}`}
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <span 
-                  onClick={() => {
-                    setTempTitle(obraTitle);
-                    setIsEditingTitle(true);
-                  }}
-                  className={`font-mono font-extrabold cursor-pointer group flex items-center gap-1 underline decoration-dotted decoration-blue-400 ${
-                    isLight ? 'text-blue-700 hover:text-blue-900' : 'text-amber-400 hover:text-amber-300'
-                  }`}
-                  title="Clic para editar el nombre de la obra"
-                >
-                  {obraTitle}
-                  <Edit2 className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100" />
-                </span>
-              )}
-            </h3>
-
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-              isLight 
-                ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-            }`}>
-              CINTER · ANÁLISIS DE PERFORACIONES POR ESPESOR & METROS
-            </span>
-          </div>
-          <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-            Matriz de perforaciones clasificada por espesor de chapa/perfil y cálculo de metros lineales a mecanizar de cada diámetro.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Checkbox Omitir Correderas */}
           <label className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${
-            isLight 
+            omitCorrederas
+              ? isLight
+                ? 'bg-purple-50 border-purple-300 text-purple-900'
+                : 'bg-purple-500/15 border-purple-500/40 text-purple-200'
+              : isLight 
               ? 'bg-slate-50 border-slate-300 hover:border-blue-400 text-slate-700' 
               : 'bg-slate-950 border-slate-800 hover:border-amber-500/40 text-slate-200'
           }`}>
@@ -426,10 +360,10 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
               type="checkbox"
               checked={omitCorrederas}
               onChange={e => setOmitCorrederas(e.target.checked)}
-              className={isLight ? 'accent-blue-600 w-4 h-4 rounded cursor-pointer' : 'accent-amber-400 w-4 h-4 rounded cursor-pointer'}
+              className={isLight ? 'accent-purple-600 w-3.5 h-3.5 rounded cursor-pointer' : 'accent-purple-400 w-3.5 h-3.5 rounded cursor-pointer'}
             />
             <span className="flex items-center gap-1.5">
-              <EyeOff className="w-3.5 h-3.5 text-purple-600" />
+              <EyeOff className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
               Omitir correderas
               {correderasSummary.totalCorrederasCount > 0 && (
                 <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono ${
@@ -455,7 +389,7 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
               type="checkbox"
               checked={includeAnalytics}
               onChange={e => setIncludeAnalytics(e.target.checked)}
-              className={isLight ? 'accent-blue-600 w-4 h-4 rounded cursor-pointer' : 'accent-amber-400 w-4 h-4 rounded cursor-pointer'}
+              className={isLight ? 'accent-blue-600 w-3.5 h-3.5 rounded cursor-pointer' : 'accent-amber-400 w-3.5 h-3.5 rounded cursor-pointer'}
             />
             <span className="flex items-center gap-1.5">
               <BarChart3 className={`w-3.5 h-3.5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
@@ -463,26 +397,53 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
             </span>
           </label>
 
-          {/* Guardar en CSV (Re-importable para seguir agregando datos luego) */}
+          {/* Checkbox Incluir Logo de Obra (when folder has a logo image) */}
+          {obraLogoUrl && (
+            <label className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${
+              showObraLogo
+                ? isLight
+                  ? 'bg-blue-50 border-blue-400 text-blue-900'
+                  : 'bg-amber-500/15 border-amber-500/50 text-amber-200'
+                : isLight 
+                ? 'bg-slate-50 border-slate-300 hover:border-blue-400 text-slate-700' 
+                : 'bg-slate-950 border-slate-800 hover:border-amber-500/40 text-slate-200'
+            }`}>
+              <input
+                type="checkbox"
+                checked={showObraLogo}
+                onChange={e => setShowObraLogo(e.target.checked)}
+                className={isLight ? 'accent-blue-600 w-3.5 h-3.5 rounded cursor-pointer' : 'accent-amber-400 w-3.5 h-3.5 rounded cursor-pointer'}
+              />
+              <span className="flex items-center gap-1.5">
+                <ImageIcon className={`w-3.5 h-3.5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
+                Logo de obra en PDF
+              </span>
+            </label>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleExportReimportableCsv}
-            className={`px-3.5 py-1.5 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer border ${
+            disabled={parts.length === 0}
+            className={`px-3 py-1.5 font-semibold text-xs rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border ${
               isLight 
-                ? 'bg-blue-50 hover:bg-blue-100 text-blue-900 border-blue-300' 
-                : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
+                ? 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-300' 
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
             }`}
-            title="Descarga la planilla en formato CSV compatible para poder abrirlo o seguir agregándole datos y archivos después"
+            title="Descarga la planilla en formato CSV compatible para poder abrirlo o seguir agregándole datos después"
           >
-            <Download className="w-4 h-4" />
-            Guardar en CSV
+            <Download className="w-3.5 h-3.5" />
+            Planilla CSV
           </button>
 
           <button
             onClick={handleExportMatrixCsv}
-            className={`px-3 py-1.5 font-semibold text-xs rounded-lg transition-colors flex items-center gap-1 border cursor-pointer ${
+            disabled={parts.length === 0}
+            className={`px-3 py-1.5 font-semibold text-xs rounded-lg transition-colors flex items-center gap-1 border cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
               isLight 
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300' 
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                ? 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-300' 
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
             }`}
             title="Descargar la matriz de espesores y diámetros como CSV"
           >
@@ -492,10 +453,11 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
 
           <button
             onClick={handleExportExcel}
-            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+            disabled={parts.length === 0}
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <FileSpreadsheet className="w-4 h-4" />
-            Descargar Excel
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            Excel
           </button>
 
           <button
@@ -506,87 +468,20 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
                 : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
             }`}
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-3.5 h-3.5" />
             Imprimir / Guardar PDF
           </button>
-        </div>
-      </div>
-
-      {/* KPI METRICS CARDS (Screen view) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 print:hidden">
-        <div className={`p-4 rounded-xl border ${
-          isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
-        }`}>
-          <div className={`text-xs font-semibold mb-1 flex items-center gap-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-            <Building2 className={`w-3.5 h-3.5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-            Obra / Proyecto
-          </div>
-          <div className={`text-2xl font-black font-mono truncate ${isLight ? 'text-blue-700' : 'text-amber-400'}`}>
-            {obraTitle}
-          </div>
-          <div className={`text-[11px] mt-1 ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
-            {totalPartsCount.toLocaleString()} piezas totales
-          </div>
-        </div>
-
-        <div className={`p-4 rounded-xl border ${
-          isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
-        }`}>
-          <div className={`text-xs font-semibold mb-1 flex items-center gap-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-            <Wrench className={`w-3.5 h-3.5 ${isLight ? 'text-blue-600' : 'text-amber-400'}`} />
-            Total Perforaciones
-          </div>
-          <div className={`text-2xl font-black font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            {matrixData.grandTotalHoles.toLocaleString()}
-          </div>
-          <div className={`text-[11px] mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-            {omitCorrederas ? 'Sin contar correderas' : 'Incluye todas las perforaciones'}
-          </div>
-        </div>
-
-        <div className={`p-4 rounded-xl border ${
-          isLight 
-            ? 'bg-blue-50/70 border-blue-200 shadow-sm' 
-            : 'bg-slate-900 border-amber-500/30 bg-amber-500/[0.04]'
-        }`}>
-          <div className={`text-xs font-bold mb-1 flex items-center gap-1 ${isLight ? 'text-blue-800' : 'text-amber-400'}`}>
-            <Ruler className="w-3.5 h-3.5" />
-            METROS A MECANIZAR
-          </div>
-          <div className={`text-2xl sm:text-3xl font-black font-mono ${isLight ? 'text-blue-900' : 'text-amber-300'}`}>
-            {matrixData.grandTotalMeters.toFixed(2)}{' '}
-            <span className={`text-sm font-sans font-semibold ${isLight ? 'text-blue-700' : 'text-amber-400'}`}>m</span>
-          </div>
-          <div className={`text-[11px] mt-1 ${isLight ? 'text-blue-800/80' : 'text-slate-400'}`}>
-            Longitud lineal acumulada
-          </div>
-        </div>
-
-        <div className={`p-4 rounded-xl border ${
-          isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
-        }`}>
-          <div className={`text-xs font-semibold mb-1 flex items-center gap-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-            <Layers className="w-3.5 h-3.5 text-blue-600" />
-            Variedad de Espesores
-          </div>
-          <div className={`text-2xl font-black font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            {matrixData.matrixRows.length}{' '}
-            <span className={`text-xs font-sans ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>espesores</span>
-          </div>
-          <div className={`text-[11px] mt-1 font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-            {matrixData.matrixRows[0]?.thickness || 0} mm a {matrixData.matrixRows[matrixData.matrixRows.length - 1]?.thickness || 0} mm
-          </div>
         </div>
       </div>
 
       {/* PRINTABLE REPORT SHEET: SIMPLIFIED, CRISP, LIGHT-THEME FOR SHOP FLOOR & PDF */}
       <div className="bg-white text-slate-900 p-6 sm:p-8 rounded-xl shadow-lg max-w-6xl mx-auto border border-slate-200 print:border-none print:shadow-none print:p-0 print:m-0 print:max-w-full font-sans">
         
-        {/* Header Block with CINTER Official Logo & Obra Title */}
+        {/* Header Block with CINTER Official Logo, Obra Title, Metadata, and optional Obra Client Logo */}
         <div className="border-b-2 border-blue-900 pb-4 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-4">
             {/* CINTER Logo */}
-            <div className="h-14 w-auto flex items-center justify-center bg-white">
+            <div className="h-14 w-auto flex items-center justify-center bg-white shrink-0">
               <img 
                 src={logoSrc} 
                 alt="CINTER Logo" 
@@ -606,11 +501,24 @@ export const ResumenPerforacionesReport: React.FC<ResumenPerforacionesReportProp
             </div>
           </div>
 
-          {/* Metadata Badge Box */}
-          <div className="text-right text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 space-y-0.5 print:bg-transparent print:border-none print:p-0">
-            <div><strong>Fecha:</strong> {currentDate}</div>
-            <div><strong>Total Piezas:</strong> {totalPartsCount.toLocaleString()} u.</div>
-            <div><strong>Condición:</strong> {omitCorrederas ? 'Correderas Omitidas' : 'Pasantes + Correderas'}</div>
+          <div className="flex items-center gap-3 self-end sm:self-center">
+            {/* Metadata Badge Box */}
+            <div className="text-right text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 space-y-0.5 print:bg-transparent print:border-none print:p-0">
+              <div><strong>Fecha:</strong> {currentDate}</div>
+              <div><strong>Piezas:</strong> {totalPartsCount.toLocaleString()} u. · <strong>Total:</strong> {matrixData.grandTotalHoles.toLocaleString()} ag. · <strong>{matrixData.grandTotalMeters.toFixed(2)} m</strong></div>
+              <div><strong>Condición:</strong> {omitCorrederas ? 'Correderas Omitidas' : 'Pasantes + Correderas'}</div>
+            </div>
+
+            {/* Optional Obra Client Logo */}
+            {obraLogoUrl && showObraLogo && (
+              <div className="h-14 w-14 rounded-lg border border-slate-200 bg-white p-1 flex items-center justify-center shrink-0">
+                <img
+                  src={obraLogoUrl}
+                  alt={`Logo ${obraTitle}`}
+                  className="max-h-full max-w-full object-contain"
+                />
+              </div>
+            )}
           </div>
         </div>
 
