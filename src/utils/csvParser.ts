@@ -488,6 +488,66 @@ export function parseFlexibleNumber(val: any): number {
   return isNaN(num) ? 0 : num;
 }
 
+/**
+ * Parses hole diameter and slot (corredera) notation from the Diameter column.
+ * Supports:
+ * - "17.5" -> diameter 17.5, pasante
+ * - "14.0(14.0x30.0)" or "17.5(40.0x17.5)" -> corredera with prefix diameter
+ * - "28.0x14.0", "14.0x28.0", "28.0*14.0" (without parentheses) -> corredera using min(d1, d2) as diameter
+ */
+export function parseDiameterAndSlot(rawDiam: string): {
+  diameter: number;
+  slot?: string;
+  type: 'pasante' | 'corredera';
+} {
+  if (!rawDiam) return { diameter: 0, type: 'pasante' };
+  const trimmed = String(rawDiam).trim();
+
+  // 1. Parentheses notation: e.g. "14.0(14.0x30.0)" or "17.5(40.0x17.5)"
+  const slotParenMatch = trimmed.match(/\(([^)]+)\)/);
+  if (slotParenMatch) {
+    const slotText = slotParenMatch[1].trim();
+    const prefixText = trimmed.slice(0, slotParenMatch.index).trim();
+    let diam = parseFlexibleNumber(prefixText);
+
+    const innerPair = slotText.match(/(\d+(?:[.,]\d+)?)\s*[xX*×]\s*(\d+(?:[.,]\d+)?)/);
+    if (innerPair) {
+      const d1 = parseFloat(innerPair[1].replace(',', '.'));
+      const d2 = parseFloat(innerPair[2].replace(',', '.'));
+      if (d1 > 0 && d2 > 0 && diam <= 0) {
+        diam = Math.min(d1, d2);
+      }
+    }
+
+    return {
+      diameter: diam > 0 ? diam : parseFlexibleNumber(trimmed),
+      slot: slotText,
+      type: 'corredera',
+    };
+  }
+
+  // 2. AxB notation without parentheses (e.g. "28.0x14.0" from Tekla oversize/special hole export) -> not a slotted corredera; take smaller value as standard hole diameter
+  const bareSlotMatch = trimmed.match(/(\d+(?:[.,]\d+)?)\s*[xX*×]\s*(\d+(?:[.,]\d+)?)/);
+  if (bareSlotMatch) {
+    const d1Str = bareSlotMatch[1].replace(',', '.');
+    const d2Str = bareSlotMatch[2].replace(',', '.');
+    const d1 = parseFloat(d1Str);
+    const d2 = parseFloat(d2Str);
+    if (d1 > 0 && d2 > 0) {
+      return {
+        diameter: Math.min(d1, d2),
+        type: 'pasante',
+      };
+    }
+  }
+
+  // 3. Standard round hole
+  return {
+    diameter: parseFlexibleNumber(trimmed),
+    type: 'pasante',
+  };
+}
+
 export interface ParseResult {
   obraTitle: string;
   headerMetadata: string[];
@@ -681,15 +741,11 @@ export function parseMetallurgyCsv(
       }
     }
 
-    const numDiam = parseFlexibleNumber(rawDiam);
+    const { diameter: numDiam, slot, type: holeType } = parseDiameterAndSlot(rawDiam);
     const numHoles = parseFlexibleNumber(rawHoles);
     const parsedRowThick = parseFlexibleNumber(rawThick);
 
     if (currentPartRecord && numDiam > 0 && numHoles > 0) {
-      // Check for slot / corredera notation e.g. "14.0(14.0x30.0)" or "17.5(40.0x17.5)"
-      const slotMatch = rawDiam.match(/\(([^)]+)\)/);
-      const slot = slotMatch ? slotMatch[1] : undefined;
-      const holeType = slot ? ('corredera' as const) : ('pasante' as const);
 
       // Determine thickness and location using the universal thickness rule:
       let holeThickness = parsedRowThick > 0 ? parsedRowThick : currentPartRecord.thickness;
