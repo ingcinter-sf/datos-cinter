@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   FileSpreadsheet, 
   Printer, 
@@ -8,11 +8,21 @@ import {
   Edit3,
   Check,
   RotateCcw,
-  Upload,
   BarChart3,
-  LayoutGrid
+  LayoutGrid,
+  ShieldCheck,
+  X
 } from 'lucide-react';
 import defaultLogo from '@/public/assets/aistudio/ImagotipoV_06__1__39317061.png';
+
+const CREDIT_TOKEN = 'Q3JlYWRvIHBvciBJZ25hY2lvIEdhbGxlZ29zIC0gMjAyNiAtIFBhcmEgQ2ludGVyIFNSTA==';
+function decodeCredit(): string {
+  try {
+    return atob(CREDIT_TOKEN);
+  } catch {
+    return 'Creado por Ignacio Gallegos - 2026 - Para Cinter SRL';
+  }
+}
 
 interface NavbarProps {
   activeTab: 'home' | 'csv' | 'print' | 'analytics' | 'global-print';
@@ -45,27 +55,40 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(projectName);
   const [confirmClear, setConfirmClear] = useState(false);
-  const [logoSrc, setLogoSrc] = useState<string>(() => {
-    return localStorage.getItem('cinter_custom_logo') || defaultLogo;
-  });
+  const [showAuthorModal, setShowAuthorModal] = useState(false);
+  const logoClickCountRef = useRef(0);
+  const logoClickTimerRef = useRef<number | null>(null);
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        if (result) {
-          setLogoSrc(result);
-          try {
-            localStorage.setItem('cinter_custom_logo', result);
-          } catch (err) {
-            console.error('Error saving custom logo', err);
-          }
-        }
-      };
-      reader.readAsDataURL(file);
+  useEffect(() => {
+    return () => {
+      if (logoClickTimerRef.current) {
+        window.clearTimeout(logoClickTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showAuthorModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowAuthorModal(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showAuthorModal]);
+
+  const handleLogoSecretClick = () => {
+    logoClickCountRef.current += 1;
+    if (logoClickTimerRef.current) {
+      window.clearTimeout(logoClickTimerRef.current);
     }
+    if (logoClickCountRef.current >= 5) {
+      logoClickCountRef.current = 0;
+      setShowAuthorModal(true);
+      return;
+    }
+    logoClickTimerRef.current = window.setTimeout(() => {
+      logoClickCountRef.current = 0;
+    }, 2500);
   };
 
   const isLight = theme === 'light';
@@ -89,30 +112,27 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
+    <>
     <header className={`print:hidden ${isLight ? 'bg-white border-slate-200 text-slate-900 shadow-sm' : 'bg-slate-900 border-slate-800 text-white shadow-md'} border-b sticky top-0 z-50 transition-colors duration-200`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-3">
           {/* Logo & Brand */}
           <div className="flex items-center gap-3 shrink-0">
-            {/* CINTER Official Logo Container with upload capability */}
-            <div className="relative group shrink-0">
+            {/* Fixed CINTER Official Logo (5 consecutive clicks reveal authorship) */}
+            <div
+              onClick={handleLogoSecretClick}
+              className="relative shrink-0 select-none"
+            >
               <div className={`h-11 px-2 py-1 rounded-lg flex items-center justify-center transition-all ${
                 isLight ? 'bg-blue-50/70 border border-blue-100 shadow-xs' : 'bg-white p-1 rounded-lg shadow-sm border border-slate-700'
               }`}>
                 <img 
-                  src={logoSrc} 
+                  src={defaultLogo} 
                   alt="CINTER Logo" 
+                  draggable={false}
                   className="h-9 w-auto max-w-[110px] object-contain"
                 />
               </div>
-              <label 
-                className="absolute inset-0 bg-black/70 rounded-lg flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-[10px] font-bold gap-0.5 shadow-md"
-                title="Haga clic para cargar su propio archivo de logo"
-              >
-                <Upload className="w-3.5 h-3.5 text-amber-300" />
-                <span>Cambiar logo</span>
-                <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-              </label>
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -396,5 +416,73 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
       </div>
     </header>
+
+    {showAuthorModal && (
+      <div
+        onClick={() => setShowAuthorModal(false)}
+        className="print:hidden fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4"
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className={`w-full max-w-sm rounded-2xl border p-6 shadow-2xl text-center space-y-4 ${
+            isLight
+              ? 'bg-white border-slate-200 text-slate-900'
+              : 'bg-slate-900 border-slate-700 text-slate-100'
+          }`}
+        >
+          <div className="flex justify-end -mt-2 -mr-2">
+            <button
+              type="button"
+              onClick={() => setShowAuthorModal(false)}
+              className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+              title="Cerrar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="flex justify-center -mt-3">
+            <div className="bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-xs">
+              <img
+                src={defaultLogo}
+                alt="CINTER SRL"
+                className="h-12 w-auto object-contain"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+              isLight ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+            }`}>
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Registro de Autoría</span>
+            </div>
+
+            <p className={`text-sm font-bold pt-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              {decodeCredit()}
+            </p>
+            <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              Portal de Control de Procesos y Perforaciones
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowAuthorModal(false)}
+            className={`w-full py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+              isLight
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+            }`}
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
