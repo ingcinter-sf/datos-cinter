@@ -1,4 +1,5 @@
 import { ObraProject, PartRecord } from '../types';
+import { isIgnoredDiameter } from './csvParser';
 
 const DB_NAME = 'CinterPortalOfflineDB';
 const DB_VERSION = 1;
@@ -82,6 +83,23 @@ function migrateLegacySingleObra(): ObraProject | null {
   }
 }
 
+function sanitizeLoadedObras(obras: ObraProject[]): ObraProject[] {
+  return obras.map(obra => ({
+    ...obra,
+    parts: (obra.parts || []).map(part => {
+      const filteredHoles = (part.holes || []).filter(h => !isIgnoredDiameter(h.diameter));
+      if (filteredHoles.length === (part.holes || []).length) return part;
+      const totalHolesPerPiece = filteredHoles.reduce((sum, h) => sum + h.countPerPiece, 0);
+      return {
+        ...part,
+        holes: filteredHoles,
+        totalHolesPerPiece,
+        totalHolesAllPieces: totalHolesPerPiece * part.quantity,
+      };
+    }),
+  }));
+}
+
 export async function loadObrasFromStorage(storagePrefix: string): Promise<ObraProject[]> {
   const storageKey = `${storagePrefix}_obras_v1`;
 
@@ -97,7 +115,7 @@ export async function loadObrasFromStorage(storagePrefix: string): Promise<ObraP
     db.close();
 
     if (Array.isArray(result)) {
-      return result;
+      return sanitizeLoadedObras(result);
     }
   } catch {
     // Fallback to localStorage below
@@ -107,7 +125,7 @@ export async function loadObrasFromStorage(storagePrefix: string): Promise<ObraP
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) return sanitizeLoadedObras(parsed);
     }
   } catch {
     // Ignore parse error
@@ -116,8 +134,9 @@ export async function loadObrasFromStorage(storagePrefix: string): Promise<ObraP
   // Check if there is legacy single-obra data to migrate automatically
   const migrated = migrateLegacySingleObra();
   if (migrated) {
-    await saveObrasToStorage(storagePrefix, [migrated]);
-    return [migrated];
+    const sanitized = sanitizeLoadedObras([migrated]);
+    await saveObrasToStorage(storagePrefix, sanitized);
+    return sanitized;
   }
 
   return [];

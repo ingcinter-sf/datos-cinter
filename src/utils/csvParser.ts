@@ -488,6 +488,16 @@ export function parseFlexibleNumber(val: any): number {
   return isNaN(num) ? 0 : num;
 }
 
+const IGNORED_DIAMETERS = [18.0];
+
+/**
+ * Checks whether a hole diameter should be discarded automatically
+ * (e.g. 18.0 is not a standardized perforation diameter and comes from extraneous annotations).
+ */
+export function isIgnoredDiameter(diameter: number): boolean {
+  return IGNORED_DIAMETERS.some(d => Math.abs(diameter - d) < 0.05);
+}
+
 /**
  * Parses hole diameter and slot (corredera) notation from the Diameter column.
  * Supports:
@@ -745,7 +755,7 @@ export function parseMetallurgyCsv(
     const numHoles = parseFlexibleNumber(rawHoles);
     const parsedRowThick = parseFlexibleNumber(rawThick);
 
-    if (currentPartRecord && numDiam > 0 && numHoles > 0) {
+    if (currentPartRecord && numDiam > 0 && numHoles > 0 && !isIgnoredDiameter(numDiam)) {
 
       // Determine thickness and location using the universal thickness rule:
       let holeThickness = parsedRowThick > 0 ? parsedRowThick : currentPartRecord.thickness;
